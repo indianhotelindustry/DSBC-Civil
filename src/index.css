@@ -1,0 +1,218 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "react-day-picker/dist/style.css";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: 'Inter', sans-serif;
+    --font-sans: 'Inter', sans-serif;
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+}
+
+:root {
+    --background: #f3f4f6;
+    --foreground: #1f2937;
+    --card: #ffffff;
+    --card-foreground: #1f2937;
+    --popover: #ffffff;
+    --popover-foreground: #1f2937;
+    --primary: #2563eb;
+    --primary-foreground: #ffffff;
+    --secondary: #f3f4f6;
+    --secondary-foreground: #1f2937;
+    --muted: #f3f4f6;
+    --muted-foreground: #6b7280;
+    --accent: #f3f4f6;
+    --accent-foreground: #1f2937;
+    --destructive: #ef4444;
+    --border: #e5e7eb;
+    --input: #e5e7eb;
+    --ring: #2563eb;
+    --radius: 8px;
+    --sidebar: #111827;
+    --sidebar-foreground: #9ca3af;
+    --sidebar-primary: #2563eb;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: rgba(255, 255, 255, 0.05);
+    --sidebar-accent-foreground: #ffffff;
+    --sidebar-border: #1f2937;
+    --sidebar-ring: #2563eb;
+
+    /* Design specific colors */
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+    /* Hard guard against page-level horizontal scroll.
+       Real horizontal scrollbars belong inside `overflow-x-auto`
+       table cards (Bills, Work Orders, etc.). Anything that
+       escapes the Layout shell — fixed-positioned dialogs sized
+       in viewport units (e.g. w-[95vw]), transforms, portals —
+       is clipped here so it can never push the body wider than
+       the viewport. The print stylesheet later resets
+       overflow:visible inside @media print, so PDFs still
+       paginate cleanly across multiple pages. */
+    overflow-x: hidden;
+    }
+  html {
+    @apply font-sans;
+    overflow-x: hidden;
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+ * Print layout — outputs only the document inside `.print-document`.
+ *
+ * Approach (rewritten — earlier visibility:hidden / visible cascade
+ * left the print blank because the .print-document lives deep inside
+ * a Base UI Dialog rendered through a Portal; some browsers don't
+ * apply the visibility:visible override across portal boundaries
+ * reliably in print media):
+ *
+ *   - #root (the React app shell — sidebar, header, modals not in a
+ *     portal, version footer) is fully `display: none` for print.
+ *   - Portal-rendered nodes (Dialog overlay + content) are siblings
+ *     of #root under <body>, so they STAY in the print tree.
+ *   - Dialog overlay + close button are explicitly hidden.
+ *   - Dialog content has its modal chrome stripped (background,
+ *     ring, padding, max-height, fixed positioning, grid layout)
+ *     so the .print-document inside lays out at the page's natural
+ *     width.
+ *   - The "Print PDF" toolbar uses Tailwind's `print:hidden`, which
+ *     compiles to `display: none` under print media — gone.
+ *   - @page sets A4 with sensible margins.
+ *
+ * Side effect: any background portals (toasts, popovers) open at the
+ * moment of print would also reach the page. Acceptable — the user
+ * is on the print modal at that point.
+ * ───────────────────────────────────────────────────────────────── */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Hide the whole React app tree. Portal contents (the print
+     dialog) live outside #root and remain visible. */
+  #root {
+    display: none !important;
+  }
+
+  /* Dialog chrome — overlay backdrop + close X — gone in print. */
+  [data-slot="dialog-overlay"],
+  [data-slot="dialog-close"] {
+    display: none !important;
+  }
+
+  /* Dissolve the dialog wrappers entirely with `display: contents`.
+     Their children render as if they were direct children of <body>
+     — there's no box, no fixed positioning, no grid layout, no
+     overflow clipping, nothing to interact with the print-document
+     inside. This is what was clipping the WO print to only the
+     last-rendered section: the dialog-content kept its block box
+     (with `display: block` from the previous fix) and across the
+     React Portal boundary some print engines only painted one of
+     the visible children. `display: contents` removes the dialog
+     boxes from the layout tree entirely. */
+  [data-slot="dialog-portal"],
+  [data-slot="dialog-content"] {
+    display: contents !important;
+  }
+
+  /* Print-only utility classes. Tailwind already emits .print\:hidden
+     as display:none in print, but the explicit rule defends against
+     any layer-ordering surprises. */
+  .print\:hidden,
+  .no-print {
+    display: none !important;
+  }
+
+  /* The single, explicit print target. Both .print-document (legacy)
+     and [data-print-root] (Phase: explicit attribute) match — every
+     printable wrapper carries one or both. Forces a clean, unconstr-
+     ained block at full page width. */
+  .print-document,
+  [data-print-root] {
+    display: block !important;
+    position: static !important;
+    transform: none !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: #111 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  /* Children of the print root must not be clipped or hidden. Some
+     screen-mode containers carry max-h / overflow-hidden / fixed
+     positioning that would prevent the BOQ table or signatures
+     block from making it onto the page. */
+  [data-print-root] *,
+  .print-document * {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  /* Page-break hygiene. */
+  table { page-break-inside: auto; }
+  tr    { page-break-inside: avoid; page-break-after: auto; }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+
+  .print-keep-together {
+    page-break-inside: avoid;
+  }
+}

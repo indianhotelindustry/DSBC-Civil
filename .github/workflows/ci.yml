@@ -1,0 +1,45 @@
+# DSBC Civil — Continuous Integration
+# Enforces the automatable half of the merge gate (NN-28, TEST-7):
+# type-check, lint, and the test suite must pass on every PR and push.
+name: CI
+
+on:
+  push:
+    branches: [main, develop, "platform/**"]
+  pull_request:
+    branches: [main, develop, "platform/**"]
+
+jobs:
+  verify:
+    name: Type-check · Lint · Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check (tsc --noEmit)
+        run: npm run lint
+
+      # ESLint is chartered (COD-2) but not yet configured in package.json.
+      # Once `npm run lint:eslint` (or eslint config) exists, enable this step.
+      # - name: Lint (ESLint)
+      #   run: npm run lint:eslint
+
+      - name: Test (vitest)
+        run: npm test
+
+  # Placeholder for the rules-unit-test job (NN-29 / TEST-3), enabled in Phase 2
+  # once tests/rules/ exists and the Firestore emulator is wired.
+  # rules:
+  #   name: Firestore rules tests
+  #   runs-on: ubuntu-latest
+  #   steps: [ ... firebase emulators:exec 'vitest run tests/rules' ... ]

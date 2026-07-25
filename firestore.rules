@@ -1,0 +1,606 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasRole(role) {
+      return isAuthenticated() && getUserData().role == role;
+    }
+
+    function isAdmin() {
+      return hasRole('ADMIN');
+    }
+
+    function isCEO() {
+      return hasRole('CEO');
+    }
+
+    function isPM() {
+      return hasRole('PROJECT_MANAGER');
+    }
+
+    function isAccounts() {
+      return hasRole('ACCOUNTS');
+    }
+
+    function isSuperAdmin() {
+      return hasRole('SUPER_ADMIN');
+    }
+
+    function isPurchaseManager() {
+      return hasRole('PURCHASE_MANAGER');
+    }
+
+    function isStoreManager() {
+      return hasRole('STORE_MANAGER');
+    }
+
+    function isStoreKeeper() {
+      return hasRole('STORE_KEEPER');
+    }
+
+    // Status transition helper: check that the new status is exactly the expected value
+    // given the current status
+    function isStatusTransitionTo(newStatus) {
+      return request.resource.data.status == newStatus;
+    }
+
+    function currentStatus() {
+      return resource.data.status;
+    }
+
+    // Check that only specific fields changed (for status-transition writes)
+    function onlyFieldsChanged(fields) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
+    }
+
+    // Identity fields on a Work Order are immutable post-creation —
+    // even ADMIN updates (and any future bulk-edit / import / API)
+    // cannot rotate them. Re-issuing a WO# would break audit trail,
+    // bill linkage, and contractor records. To genuinely renumber a
+    // WO, delete and recreate.
+    function workOrderIdentityUnchanged() {
+      return request.resource.data.woNumber == resource.data.woNumber
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.createdBy == resource.data.createdBy;
+    }
+
+    // ===============================================================
+    // USERS
+    //
+    // Status: PENDING (awaiting approval) → ACTIVE → INACTIVE
+    //
+    // - Self-create: only with role=PROJECT_MANAGER, status=PENDING
+    // - Self-update: cannot change own role OR status (even an admin editing
+    //   their own doc cannot flip these — must be done by another admin)
+    // - Admin: can update any other user's fields
+    // - No user can delete user documents
+    // ===============================================================
+
+    match /users/{uid} {
+      allow read: if isAuthenticated();
+
+      // Self-create branches:
+      //   (a) Default self-signup — role=PROJECT_MANAGER, status=PENDING
+      //   (b) Claiming an admin-created pre-registered profile — the
+      //       placeholder lives at `users/{lowercase(email)}` with uid='',
+      //       and the claim must exactly copy its role + status.
+      // Admin-create branch:
+      //   Admins can create any user (including pre-registered placeholders
+      //   at email-keyed paths) with any allowed role + status.
+      allow create: if (isOwner(uid)
+                        && (
+                          (request.resource.data.role == 'PROJECT_MANAGER'
+                           && request.resource.data.status == 'PENDING')
+                          ||
+                          (request.auth.token.email != null
+                           && exists(/databases/$(database)/documents/users/$(request.auth.token.email.lower()))
+                           && get(/databases/$(database)/documents/users/$(request.auth.token.email.lower())).data.uid == ''
+                           && request.resource.data.role == get(/databases/$(database)/documents/users/$(request.auth.token.email.lower())).data.role
+                           && request.resource.data.status == get(/databases/$(database)/documents/users/$(request.auth.token.email.lower())).data.status)
+                        )
+                        && request.resource.data.uid == uid
+                        && request.resource.data.email is string
+                        && request.resource.data.displayName is string)
+                    || ((isAdmin() || isSuperAdmin())
+                        && request.resource.data.role in ['CEO', 'PROJECT_MANAGER', 'ACCOUNTS', 'ADMIN',
+                                                          'SUPER_ADMIN', 'PURCHASE_MANAGER', 'STORE_MANAGER', 'STORE_KEEPER']
+                        && request.resource.data.status in ['PENDING', 'ACTIVE', 'INACTIVE']);
+
+      // Owners can update their own doc but NEVER their role or status.
+      // Admins can update any OTHER user's doc (they cannot change their own
+      // role or status via the client — another admin must do it).
+      allow update: if (isOwner(uid)
+                        && request.resource.data.role == resource.data.role
+                        && request.resource.data.status == resource.data.status)
+                    || ((isAdmin() || isSuperAdmin()) && !isOwner(uid));
+
+      // Real uid-keyed docs cannot be deleted. Pre-registered placeholders
+      // (uid='') can be cleaned up by admins, or by the signing-in user
+      // whose email matches the placeholder (sign-in claim flow).
+      allow delete: if (isAuthenticated()
+                        && resource.data.uid == ''
+                        && resource.data.email is string
+                        && request.auth.token.email != null
+                        && resource.data.email.lower() == request.auth.token.email.lower())
+                    || ((isAdmin() || isSuperAdmin()) && resource.data.uid == '');
+    }
+
+    // ===============================================================
+    // PROJECTS
+    // ===============================================================
+
+    match /projects/{projectId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() || isPM();
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // CONTRACTORS
+    // ===============================================================
+
+    match /contractors/{contractorId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() || isPM();
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // WORK ORDERS
+    //
+    // Status flow: PENDING → APPROVED → COMPLETED
+    //              PENDING → REJECTED
+    //
+    // - PM/Admin can create and edit non-status fields while PENDING
+    // - CEO can approve (PENDING → APPROVED) — only status+approval fields
+    // - Admin can do any update
+    // - Once APPROVED, only status transitions and admin overrides
+    //
+    // NOTE: Financial-conflict checks (value reduction below billed) are
+    // enforced in the service layer, not here. Firestore rules cannot
+    // cross-query bills collection.
+    // ===============================================================
+
+    match /workOrders/{workOrderId} {
+      allow read: if isAuthenticated();
+
+      allow create: if (isAdmin() || isPM())
+                    && request.resource.data.status == 'PENDING';
+
+      // Identity-fields-unchanged guard wraps every update branch:
+      // woNumber / createdAt / createdBy can never change once a WO
+      // exists, regardless of role or path. To renumber, delete and
+      // recreate.
+      allow update: if workOrderIdentityUnchanged() && (
+        isAdmin()
+        // PM can edit any field while WO is PENDING
+        || (isPM() && currentStatus() == 'PENDING')
+        // CEO can approve: PENDING → APPROVED (only approval fields)
+        || (isCEO() && currentStatus() == 'PENDING'
+            && isStatusTransitionTo('APPROVED')
+            && onlyFieldsChanged(['status', 'approvedBy', 'approvedAt']))
+        // PM can reject: PENDING → REJECTED (only status)
+        || (isPM() && currentStatus() == 'PENDING'
+            && isStatusTransitionTo('REJECTED')
+            && onlyFieldsChanged(['status']))
+        // CEO can mark APPROVED → COMPLETED (only status)
+        || (isCEO() && currentStatus() == 'APPROVED'
+            && isStatusTransitionTo('COMPLETED')
+            && onlyFieldsChanged(['status']))
+        // NOTE (Platform Stabilization v1.1): the VO-approval path that updates
+        // APPROVED-WO financials is now SERVER-AUTHORITATIVE — performed only by
+        // the backend via the Admin SDK — and is intentionally NOT client-writable.
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // BILLS
+    //
+    // Status flow: DRAFT → VERIFIED → APPROVED → PARTIALLY_PAID → PAID
+    //              Any pre-APPROVED status → REJECTED
+    //
+    // - Accounts/Admin can create (must be DRAFT)
+    // - Accounts can edit DRAFT bills freely
+    // - PM verifies: DRAFT → VERIFIED
+    // - CEO approves: VERIFIED → APPROVED
+    // - Service layer handles PARTIALLY_PAID/PAID via payment release
+    //
+    // NOTE: Cumulative billing limits and WO existence checks are
+    // enforced in the service layer. Firestore rules cannot cross-query.
+    // ===============================================================
+
+    match /bills/{billId} {
+      allow read: if isAuthenticated();
+
+      allow create: if (isAdmin() || isAccounts())
+                    && request.resource.data.status == 'DRAFT'
+                    && request.resource.data.workOrderId is string
+                    && request.resource.data.billNumber is string
+                    && request.resource.data.netPayable is number;
+
+      // SERVER-AUTHORITATIVE (Platform Stabilization v1.1): bill APPROVE
+      // (VERIFIED → APPROVED) and payment-driven MARK PAID (→ PARTIALLY_PAID/PAID)
+      // are performed only by the backend via the Admin SDK and are intentionally
+      // NOT client-writable here. Clients may still edit DRAFT bills, verify, and reject.
+      allow update: if
+        // Accounts/Admin can edit DRAFT bills (all fields)
+        ((isAccounts() || isAdmin()) && currentStatus() == 'DRAFT')
+        // PM verifies: DRAFT → VERIFIED
+        || (isPM() && currentStatus() == 'DRAFT'
+            && isStatusTransitionTo('VERIFIED')
+            && onlyFieldsChanged(['status', 'verifiedBy', 'verifiedAt']))
+        // PM/CEO can reject DRAFT or VERIFIED bills
+        || ((isPM() || isCEO()) && currentStatus() in ['DRAFT', 'VERIFIED']
+            && isStatusTransitionTo('REJECTED')
+            && onlyFieldsChanged(['status']));
+
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // PAYMENTS
+    //
+    // Status flow: PENDING → APPROVED → RELEASED
+    //              PENDING → REJECTED
+    //
+    // - Accounts/Admin can create (must be PENDING, must have billId)
+    // - CEO approves: PENDING → APPROVED
+    // - Accounts releases: APPROVED → RELEASED
+    //
+    // NOTE: Amount-vs-payable checks are in the service layer.
+    // ===============================================================
+
+    match /payments/{paymentId} {
+      allow read: if isAuthenticated();
+
+      allow create: if (isAdmin() || isAccounts())
+                    && request.resource.data.status == 'PENDING'
+                    && request.resource.data.billId is string
+                    && request.resource.data.amount is number
+                    && request.resource.data.amount > 0;
+
+      // SERVER-AUTHORITATIVE (Platform Stabilization v1.1): payment RELEASE
+      // (APPROVED → RELEASED) is performed only by the backend via the Admin SDK
+      // and is intentionally NOT client-writable here. Clients may still create,
+      // edit PENDING, approve (CEO) and reject.
+      allow update: if
+        // Accounts/Admin can edit PENDING payments
+        ((isAccounts() || isAdmin()) && currentStatus() == 'PENDING'
+            && isStatusTransitionTo('PENDING'))
+        // CEO approves: PENDING → APPROVED
+        || (isCEO() && currentStatus() == 'PENDING'
+            && isStatusTransitionTo('APPROVED')
+            && onlyFieldsChanged(['status', 'approvedBy', 'approvedAt']))
+        // CEO/Admin can reject PENDING payments
+        || ((isCEO() || isAdmin()) && currentStatus() == 'PENDING'
+            && isStatusTransitionTo('REJECTED')
+            && onlyFieldsChanged(['status']));
+
+      // No client-side delete of released payments
+      allow delete: if isAdmin() && currentStatus() != 'RELEASED';
+    }
+
+    // ===============================================================
+    // VARIATION ORDERS
+    //
+    // Status flow: DRAFT → APPROVED (CEO)
+    //              DRAFT → REJECTED (CEO)
+    //
+    // - PM/Admin can create (must be DRAFT)
+    // - PM can edit DRAFT VOs
+    // - CEO approves/rejects DRAFT VOs
+    // - Approved VOs cannot be edited or deleted
+    // ===============================================================
+
+    match /variationOrders/{voId} {
+      allow read: if isAuthenticated();
+
+      allow create: if (isAdmin() || isPM())
+                    && request.resource.data.status == 'DRAFT'
+                    && request.resource.data.workOrderId is string;
+
+      // SERVER-AUTHORITATIVE (Platform Stabilization v1.1): VO APPROVAL
+      // (DRAFT → APPROVED) is performed only by the backend via the Admin SDK
+      // (it also updates the parent WO financials) and is intentionally NOT
+      // client-writable here. Clients may still edit DRAFT VOs and reject.
+      allow update: if
+        ((isPM() || isAdmin()) && currentStatus() == 'DRAFT'
+            && isStatusTransitionTo('DRAFT'))
+        || (isCEO() && currentStatus() == 'DRAFT'
+            && isStatusTransitionTo('REJECTED')
+            && onlyFieldsChanged(['status']));
+
+      // Cannot delete approved VOs (they modified WO financials)
+      allow delete: if isAdmin() && currentStatus() != 'APPROVED';
+    }
+
+    // ===============================================================
+    // AUDIT LOGS — append-only, admin-readable
+    // ===============================================================
+
+    match /auditLogs/{logId} {
+      allow read: if isAdmin() || isSuperAdmin() || isCEO();
+      allow create: if isAuthenticated();
+      // No update or delete — audit logs are immutable
+      allow update, delete: if false;
+    }
+
+    // ===============================================================
+    // ALERTS — server-generated, user can mark as read
+    // ===============================================================
+
+    match /alerts/{alertId} {
+      allow read: if isAuthenticated();
+      // Users can only mark alerts as read
+      allow update: if isAuthenticated()
+                    && onlyFieldsChanged(['read'])
+                    && request.resource.data.read == true;
+      allow create, delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // DAILY SUMMARIES — server-generated, read-only for clients
+    // ===============================================================
+
+    match /dailySummaries/{summaryId} {
+      allow read: if isAuthenticated() && (isAdmin() || isSuperAdmin() || isCEO() || isAccounts());
+      allow create, update, delete: if false;
+      // NOTE: Created by server.ts / Cloud Functions only (using Admin SDK)
+    }
+
+    // ===============================================================
+    // ADJUSTMENTS
+    // ===============================================================
+
+    match /adjustments/{adjustmentId} {
+      allow read: if isAuthenticated();
+      // SERVER-AUTHORITATIVE (Platform Stabilization v1.1): clients MUST NOT adjust
+      // the ledger directly. Adjustment writes occur only via the backend (Admin SDK).
+      allow create, update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // COMPANIES
+    // ===============================================================
+
+    match /companies/{companyId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // SUB-LOCATIONS (Units / Departments)
+    // ===============================================================
+
+    match /subLocations/{subLocationId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() || isPM();
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // CUSTOMERS — buyer/customer master (SIPL unit ownership + future
+    // SIPL customer records). Service layer enforces CONSTRUCTION-only
+    // semantics; rules allow PM/Admin write, all authenticated read.
+    // ===============================================================
+
+    match /customers/{customerId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() || isPM();
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // SALES — SIPL-only unit sales module.
+    //
+    // Service layer enforces CONSTRUCTION-only semantics, ownership
+    // sync, state transitions (BOOKED → SOLD → POSSESSION_GIVEN or
+    // CANCELLED), and finalSaleValue integrity. Rules grant broad write
+    // access to ADMIN/PM/ACCOUNTS because:
+    //   - ADMIN/PM drive state transitions
+    //   - ACCOUNTS needs to bump totalReceived via the receipt batch
+    // Cross-document validation (activeSaleId uniqueness, status flow)
+    // cannot be expressed in rules and lives in saleService.
+    // ===============================================================
+
+    match /sales/{saleId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() || isPM() || isAccounts();
+      allow delete: if isAdmin();
+    }
+
+    // Receipts — Accounts/Admin record money received; Admin-only delete.
+    match /saleReceipts/{receiptId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin() || isAccounts();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // saleSchedules — Phase 2A installment plan rows. ADMIN/PM/ACCOUNTS
+    // can create and update; ADMIN-only delete. `saleReceiptService` also
+    // writes paidAmount/balanceAmount/status into this collection as part
+    // of an atomic batch when a receipt carries linkedScheduleId — that
+    // write is performed on behalf of ACCOUNTS/ADMIN so their permission
+    // here already covers it.
+    match /saleSchedules/{id} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() || isPM() || isAccounts();
+      allow delete: if isAdmin();
+    }
+    // saleAdjustments — still shape-reserved (Phase 2B). ADMIN-only.
+    match /saleAdjustments/{id} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // TERMS TEMPLATES — managed by admin, readable by all auth users
+    // ===============================================================
+
+    match /termsTemplates/{templateId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // WORK CATEGORIES — master list powering the WO form dropdown
+    // ===============================================================
+
+    match /workCategories/{categoryId} {
+      allow read: if isAuthenticated();
+      // Admin + PM can create/update so the Masters page matches the
+      // other WO-adjacent masters (Projects, Contractors). Delete
+      // stays admin-only; the service layer also blocks hard-delete
+      // while any active WO references the category.
+      allow create, update: if isAdmin() || isPM();
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // NUMBER SERIES — singleton counters used by createDocument flows
+    // (Work Order # today; future bill / payment series may share).
+    //
+    // Configuration (prefix / paddingLength / includeYear / explicit
+    // year override / explicit nextNumber override) is ADMIN-ONLY.
+    // PMs cannot rewrite the numbering scheme; numbering integrity
+    // and audit trail belong to admin.
+    //
+    // The single PM exception: the runTransaction inside
+    // workOrderService.create increments `nextNumber` (and bumps
+    // `year` on year rollover) as part of WO creation, under the
+    // PM's auth. The diff-guard below allows ONLY that bump — every
+    // configuration field must remain unchanged.
+    // ===============================================================
+
+    match /numberSeries/{seriesId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin();
+      allow update: if isAdmin()
+        || (
+          isPM()
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['nextNumber', 'year', 'updatedAt', 'updatedBy'])
+        );
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // PAYMENT REQUESTS — Phase 1 workflow sitting alongside Bills.
+    // Status transitions are enforced in the service layer; rules
+    // here only gate collection access by role. Read is broad so
+    // every signed-in user's dashboard can count scoped requests.
+    // ===============================================================
+
+    match /paymentRequests/{id} {
+      allow read: if isAuthenticated();
+      // Create: PM or Admin. Service rejects amounts > WO ceiling,
+      // enforces reason discipline, and blocks duplicate active
+      // ADVANCE requests.
+      allow create: if isAdmin() || isPM();
+      // Update transitions — Phase 1.2 pinning. Each branch is
+      // status-gated AND field-scoped via diff().affectedKeys() so
+      // a direct Firestore write can't rewrite arbitrary fields
+      // while pretending to do a transition. Admin keeps an
+      // emergency override for data fixes.
+      //
+      //   CEO : PENDING_APPROVAL → APPROVED | REJECTED
+      //   ACC : APPROVED         → PAID
+      //   PAID is terminal for everyone except ADMIN.
+      allow update: if
+        isAdmin()
+        || (
+          isCEO()
+          && resource.data.status == 'PENDING_APPROVAL'
+          && request.resource.data.status in ['APPROVED', 'REJECTED']
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['status', 'approvedBy', 'approvedAt', 'rejectionReason', 'updatedAt'])
+        )
+        || (
+          isAccounts()
+          && resource.data.status == 'APPROVED'
+          && request.resource.data.status == 'PAID'
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['status', 'paidBy', 'paidAt', 'paymentMode',
+                         'paymentReference', 'paymentRemarks', 'updatedAt'])
+        );
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // APP VERSIONS — deployment log, append-only
+    // ===============================================================
+
+    match /appVersions/{versionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin();
+      // No update or delete — deployment log is append-only
+      allow update, delete: if false;
+    }
+
+    // ===============================================================
+    // R2 — PROCUREMENT & INVENTORY MASTERS
+    // ===============================================================
+
+    match /materialCategories/{id} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() || isSuperAdmin() || isPurchaseManager();
+      allow delete: if isAdmin() || isSuperAdmin();
+    }
+
+    match /uoms/{id} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() || isSuperAdmin() || isPurchaseManager();
+      allow delete: if isAdmin() || isSuperAdmin();
+    }
+
+    match /materials/{id} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() || isSuperAdmin() || isPurchaseManager();
+      allow delete: if isAdmin() || isSuperAdmin();
+    }
+
+    // Vendors hold sensitive financial data (bank, GSTIN) —
+    // restrict reads to procurement and admin roles.
+    match /vendors/{id} {
+      allow read: if isAuthenticated()
+                  && (isAdmin() || isSuperAdmin() || isPurchaseManager()
+                      || isStoreManager() || isStoreKeeper());
+      allow create, update: if isAdmin() || isSuperAdmin() || isPurchaseManager();
+      allow delete: if isAdmin() || isSuperAdmin();
+    }
+
+    match /stores/{id} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() || isSuperAdmin();
+      allow delete: if isAdmin() || isSuperAdmin();
+    }
+
+    match /vehicles/{id} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() || isSuperAdmin();
+      allow delete: if isAdmin() || isSuperAdmin();
+    }
+  }
+}
