@@ -34,5 +34,6 @@ Conformant feature work *within* existing patterns does **not** need an ADR — 
 | ADR | Title | Status | Date |
 |---|---|---|---|
 | [0001](./0001-scope-status-transition-branches-in-firestore-rules.md) | Field-scope the unscoped status-transition branches in `firestore.rules` | **Accepted** | 2026-07-29 |
+| [0002](./0002-bind-audit-log-authorship-to-the-authenticated-caller.md) | Bind audit-log authorship to the authenticated caller (NN-12) | **Accepted** | 2026-07-29 |
 
 > Expected early ADRs (from [`../../ENGINEERING_PHASE_2.md`](../../ENGINEERING_PHASE_2.md)): deploy secure backend as Cloud Functions; remove `secureApi` fallback; adopt custom-claims roles; introduce `journalEntries` + chart of accounts; unify the overbilling ceiling.

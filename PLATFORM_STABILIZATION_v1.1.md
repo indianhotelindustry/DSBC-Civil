@@ -17,7 +17,7 @@
 > | **T3** Tighten rules; money transitions function-only | ✅ **Done** (rules) · ✅ **tests added 2026-07-29** | `firestore.rules` — no client branch for payment→RELEASED, bill→PAID, WO-financial rewrite; `tests/rules/` |
 > | **T4** FinancialCalculationService | 🟡 **Partial — deliberately** | `src/lib/financialCalculationService.ts` exists and is shared by UI + server. The VO formula and the 3 ceilings are reproduced **verbatim** and flagged `TODO: Finance Approval Required`; unification is **blocked on finance sign-off**, not on engineering |
 > | **T5** Atomic money mutations | ❌ Not started | — |
-> | **T6** Security hardening (admin auth, `auditLogs` userId) | ❌ Not started | `firestore.rules` `auditLogs` create is still `if isAuthenticated()` |
+> | **T6** Security hardening (admin auth, `auditLogs` userId) | 🟡 **Partial** — `auditLogs` userId ✅ **done** (ADR-0002); `/api/admin/*` auth still open | `firestore.rules` `auditLogs` create now binds `userId == request.auth.uid` |
 > | **T7** Posting engine foundation | ❌ Not started (out of v1.1 scope) | — |
 > | **T8** ESLint + CI | 🟡 CI runs `tsc` + tests; ESLint still unconfigured | `.github/workflows/ci.yml` |
 > | **T9 / T10** Dead code · indexes · `ledgerUtils` tests | ❌ Not started | — |
@@ -26,7 +26,7 @@
 > - **§P0-3 "No `functions/` directory exists (verified)"** — no longer true; `functions/` exists.
 > - **§P0-2 "the fallback keeps the app working without the server"** — no longer true; it fails loud.
 > - **§P0-6 rules findings** for payment→RELEASED / bill→PAID / WO-financial scoping — **closed**;
->   the `auditLogs` forgery finding (H-3) is **still open**.
+>   the `auditLogs` forgery finding (H-3) is **also closed** as of 2026-07-29 (ADR-0002).
 > **Governed by:** the Architecture Constitution, [`ENGINEERING_PHASE_2.md`](./ENGINEERING_PHASE_2.md), [`CURRENT_SPRINT.md`](./CURRENT_SPRINT.md), and the accepted forensic audit ([`audit/`](./audit/README.md)). Every finding below references existing implementation. No architecture is redesigned; the plan **strengthens** what exists.
 
 ---

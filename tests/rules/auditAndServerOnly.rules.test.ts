@@ -81,20 +81,70 @@ describe('auditLogs — append-only', () => {
   });
 
   // ---------------------------------------------------------------
-  // KNOWN-OPEN DEFECT — AUDIT SECURITY H-3, violates NN-12.
-  // `allow create: if isAuthenticated()` does not bind userId to auth.uid,
-  // so any signed-in user can author an entry attributed to someone else.
-  // Tracked, NOT accepted. Fix = add
-  //   && request.resource.data.userId == request.auth.uid
-  // then flip this assertion to assertFails.
+  // H-3 — CLOSED by ADR-0002 (accepted 2026-07-29). Satisfies NN-12.
+  //
+  // `allow create` was `if isAuthenticated()` with no authorship binding, so
+  // any signed-in user could author an entry attributed to someone else.
+  // Entries are immutable, so a forged one could never be corrected.
+  //
+  // The rule now requires `request.resource.data.userId == request.auth.uid`.
+  // Server writes are unaffected — server/auditLog.ts uses the Admin SDK,
+  // which bypasses rules entirely.
   // ---------------------------------------------------------------
-  it('CHARACTERIZATION (KNOWN GAP H-3): a forged userId is currently ALLOWED', async () => {
-    await assertSucceeds(
+  it('DENIES a PM writing an entry attributed to the CEO (ADR-0002 / H-3)', async () => {
+    await assertFails(
       setDoc(doc(as(env, 'pm'), 'auditLogs', 'log_forged'), auditEntry({
         userId: UIDS.ceo,          // ← not the caller
         action: 'APPROVE',
         details: 'Attributed to the CEO but written by a PM',
       })),
+    );
+  });
+
+  it('DENIES ACCOUNTS writing an entry attributed to ADMIN', async () => {
+    await assertFails(
+      setDoc(doc(as(env, 'accounts'), 'auditLogs', 'log_forged_2'), auditEntry({
+        userId: UIDS.admin,
+      })),
+    );
+  });
+
+  it('DENIES an entry with an empty userId', async () => {
+    await assertFails(
+      setDoc(doc(as(env, 'pm'), 'auditLogs', 'log_no_author'), auditEntry({ userId: '' })),
+    );
+  });
+
+  it('DENIES an entry with no userId field at all', async () => {
+    const { userId: _omitted, ...withoutAuthor } = auditEntry();
+    await assertFails(
+      setDoc(doc(as(env, 'pm'), 'auditLogs', 'log_missing_author'), withoutAuthor),
+    );
+  });
+
+  // Regression guards: logAction() must keep working for every role. It writes
+  // `userId: auth.currentUser.uid`, i.e. always self-attributed.
+  it('ALLOWS a PM to write a correctly self-attributed entry', async () => {
+    await assertSucceeds(
+      setDoc(doc(as(env, 'pm'), 'auditLogs', 'log_pm'), auditEntry({ userId: UIDS.pm })),
+    );
+  });
+
+  it('ALLOWS ACCOUNTS to write a correctly self-attributed entry', async () => {
+    await assertSucceeds(
+      setDoc(doc(as(env, 'accounts'), 'auditLogs', 'log_acc'), auditEntry({ userId: UIDS.accounts })),
+    );
+  });
+
+  it('ALLOWS CEO to write a correctly self-attributed entry', async () => {
+    await assertSucceeds(
+      setDoc(doc(as(env, 'ceo'), 'auditLogs', 'log_ceo'), auditEntry({ userId: UIDS.ceo })),
+    );
+  });
+
+  it('ALLOWS ADMIN to write a correctly self-attributed entry', async () => {
+    await assertSucceeds(
+      setDoc(doc(as(env, 'admin'), 'auditLogs', 'log_admin'), auditEntry({ userId: UIDS.admin })),
     );
   });
 });

@@ -355,7 +355,19 @@ service cloud.firestore {
 
     match /auditLogs/{logId} {
       allow read: if isAdmin() || isSuperAdmin() || isCEO();
-      allow create: if isAuthenticated();
+
+      // ADR-0002 / NN-12: an entry must name its own author. Without the
+      // userId binding any signed-in user could write an entry attributed to
+      // someone else — entries are immutable, so a forged one could never be
+      // corrected. The trail is a first-class product (§2.8); it has to be
+      // honest about WHO wrote each line.
+      //
+      // The server (server/auditLog.ts) writes via the Admin SDK and bypasses
+      // rules, so it may still attribute an entry to the acting user during a
+      // privileged operation. Client logAction() already writes its own uid.
+      allow create: if isAuthenticated()
+                    && request.resource.data.userId == request.auth.uid;
+
       // No update or delete — audit logs are immutable
       allow update, delete: if false;
     }
