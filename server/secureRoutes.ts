@@ -19,14 +19,34 @@ import { computeVariationOrderFinancials } from "../src/lib/financialCalculation
 
 /**
  * Rate limiter for secure financial routes.
- * 30 requests per minute per IP — generous for normal use,
+ * 30 requests per minute per AUTHENTICATED USER — generous for normal use,
  * blocks automated abuse.
+ *
+ * DEPLOYMENT_READINESS_REPORT D-1 — why the key is the uid, not the IP:
+ *
+ * The default key is `req.ip`. Behind Firebase Hosting → Cloud Functions every
+ * request reaches Express through the Google Front End, so `req.ip` resolves to
+ * the proxy, not the caller. That would place EVERY user in a single 30/min
+ * bucket and return 429 to the whole organisation on the 31st privileged
+ * request — an outage of the money path. The defect is invisible in local dev,
+ * where there is no proxy.
+ *
+ * Trusting the proxy chain is not a safe fix either: `trust proxy: true` lets a
+ * client spoof `X-Forwarded-For` and is rejected by express-rate-limit
+ * (ERR_ERL_PERMISSIVE_TRUST_PROXY), while a numeric hop count cannot be
+ * verified without a deployed environment — so it could silently keep the bug.
+ *
+ * Every route on this router is authenticated (`router.use(requireAuth)`), so
+ * `req.uid` is a verified Firebase ID-token subject: unspoofable, stable across
+ * IP changes, and the thing we actually want to bound — privileged financial
+ * operations per operator. This is correct regardless of the proxy topology.
  */
 const secureLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 30,
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => (req as AuthenticatedRequest).uid ?? 'unauthenticated',
   message: { success: false, code: 'RATE_LIMITED', message: 'Too many requests. Please wait a moment.' },
 });
 
@@ -249,23 +269,29 @@ async function approveVariationOrder(req: AuthenticatedRequest, res: Response) {
 export function createSecureRoutes(): Router {
   const router = Router();
 
-  // Apply rate limiting to all secure routes
+  // Authenticate BEFORE rate limiting so the limiter can key on the verified
+  // uid (D-1). Every route below already required auth individually — hoisting
+  // it changes no authorization outcome, it only makes `req.uid` available to
+  // the limiter. Unauthenticated callers now get 401 rather than possibly 429.
+  router.use(requireAuth);
+
+  // Apply rate limiting to all secure routes (per authenticated user).
   router.use(secureLimiter);
 
   router.post('/bills/:id/verify',
-    requireAuth, requireRole('PROJECT_MANAGER', 'ADMIN'),
+    requireRole('PROJECT_MANAGER', 'ADMIN'),
     withAudit('VERIFY', 'Bill', verifyBill));
 
   router.post('/bills/:id/approve',
-    requireAuth, requireRole('CEO', 'ADMIN'),
+    requireRole('CEO', 'ADMIN'),
     withAudit('APPROVE', 'Bill', approveBill));
 
   router.post('/payments/:id/release',
-    requireAuth, requireRole('ACCOUNTS', 'ADMIN'),
+    requireRole('ACCOUNTS', 'ADMIN'),
     withAudit('RELEASE', 'Payment', releasePayment));
 
   router.post('/variation-orders/:id/approve',
-    requireAuth, requireRole('CEO', 'ADMIN'),
+    requireRole('CEO', 'ADMIN'),
     withAudit('APPROVE', 'VariationOrder', approveVariationOrder));
 
   return router;
