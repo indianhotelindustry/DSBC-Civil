@@ -64,6 +64,17 @@ service cloud.firestore {
       return resource.data.status;
     }
 
+    // ADR-0001. A branch that grants BROAD edit rights within a state must not
+    // also permit a status change — otherwise it silently subsumes the narrow,
+    // field-scoped transition branches sitting beside it, and the documented
+    // approval gates stop being enforced (NN-9, NN-3).
+    //
+    // Use this on "role X may edit while in state S" branches. Transitions get
+    // their own branch, scoped with isStatusTransitionTo + onlyFieldsChanged.
+    function statusUnchanged() {
+      return request.resource.data.status == resource.data.status;
+    }
+
     // Check that only specific fields changed (for status-transition writes)
     function onlyFieldsChanged(fields) {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
@@ -189,8 +200,11 @@ service cloud.firestore {
       // recreate.
       allow update: if workOrderIdentityUnchanged() && (
         isAdmin()
-        // PM can edit any field while WO is PENDING
-        || (isPM() && currentStatus() == 'PENDING')
+        // PM can edit any field while WO is PENDING — EXCEPT status.
+        // ADR-0001: without statusUnchanged() this branch also permitted
+        // status → APPROVED, letting a PM self-approve and bypass the CEO
+        // gate below. Rejection has its own scoped branch further down.
+        || (isPM() && currentStatus() == 'PENDING' && statusUnchanged())
         // CEO can approve: PENDING → APPROVED (only approval fields)
         || (isCEO() && currentStatus() == 'PENDING'
             && isStatusTransitionTo('APPROVED')
@@ -241,8 +255,11 @@ service cloud.firestore {
       // are performed only by the backend via the Admin SDK and are intentionally
       // NOT client-writable here. Clients may still edit DRAFT bills, verify, and reject.
       allow update: if
-        // Accounts/Admin can edit DRAFT bills (all fields)
-        ((isAccounts() || isAdmin()) && currentStatus() == 'DRAFT')
+        // Accounts/Admin can edit DRAFT bills (all fields) — EXCEPT status.
+        // ADR-0001: without statusUnchanged() this branch also permitted
+        // status → VERIFIED, letting ACCOUNTS verify the very bills it
+        // creates and bypass the PM verification gate below.
+        ((isAccounts() || isAdmin()) && currentStatus() == 'DRAFT' && statusUnchanged())
         // PM verifies: DRAFT → VERIFIED
         || (isPM() && currentStatus() == 'DRAFT'
             && isStatusTransitionTo('VERIFIED')

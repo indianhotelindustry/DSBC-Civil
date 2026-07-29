@@ -4,9 +4,16 @@ Technical and operational documentation that is neither governance (see [`../gov
 
 | Document | Purpose |
 |---|---|
+| [`PROGRAM_STATE.md`](./PROGRAM_STATE.md) | **Read first each session** — one-page continuity briefing: what is done, what is paused, what is next |
 | [`GIT_STRATEGY.md`](./GIT_STRATEGY.md) | Branching, tagging, releases, semantic versioning, commit plan |
 | [`FIREBASE_MIGRATION.md`](./FIREBASE_MIGRATION.md) | Provisioning the new DSBC Civil Firebase project (Auth, Firestore, Storage, Hosting, Functions, App Check, Analytics) |
-| [`CLOUD_FUNCTIONS_PLAN.md`](./CLOUD_FUNCTIONS_PLAN.md) | Original plan for the authoritative backend (basis for Phase-2 P0.1 Cloud Functions deployment) |
+| [`CLOUD_FUNCTIONS_PLAN.md`](./CLOUD_FUNCTIONS_PLAN.md) | The authoritative backend: what is implemented, what remains before deploy |
+| [`FINANCE_DECISIONS_PENDING.md`](./FINANCE_DECISIONS_PENDING.md) | **Awaiting business approval** — the VO-approval formula and the overbilling ceiling. Both ADR-mandatory; no code changes until decided |
+| [`PLATFORM_STABILIZATION_v1.1_SPECS.md`](./PLATFORM_STABILIZATION_v1.1_SPECS.md) | Detailed specs for the v1.1 sprint objectives |
+
+Sprint deliverables at the repository root:
+[`../RULES_TEST_REPORT.md`](../RULES_TEST_REPORT.md) (rules-unit-test results and findings) ·
+[`../DEPLOYMENT_READINESS_REPORT.md`](../DEPLOYMENT_READINESS_REPORT.md) (pre-deploy blockers).
 
 ## Where things live
 

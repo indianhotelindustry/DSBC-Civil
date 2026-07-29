@@ -31,12 +31,34 @@ using Firebase Admin SDK with Firestore transactions. The client calls them via
 - **Transaction**: Atomically updates VO (→ APPROVED) + recalculates WO financials server-side
 - **Role**: CEO, ADMIN
 
-### Future: Migrate to Firebase Cloud Functions
-When moving from Express to Firebase Cloud Functions hosting:
-- Convert each route handler to an `onCall` or HTTPS function
-- Replace `global.__sipl_db` with `admin.firestore()` in the function context
-- Replace `admin.auth().verifyIdToken()` with `context.auth` from callable context
-- The validation and transaction logic stays the same
+### Migrate to Firebase Cloud Functions — WRITTEN, NOT YET DEPLOYED
+
+Implemented differently (and more cheaply) than the `onCall` conversion originally
+sketched here: rather than rewriting four handlers as callables, the **whole Express
+app is re-hosted** as a single HTTPS function. Nothing was rewritten.
+
+- [`server/app.ts`](../server/app.ts) — `createApp()` builds the Express app (health,
+  admin triggers, `/api/secure` router) with **no** listener and **no** Vite.
+- [`server.ts`](../server.ts) — local dev harness: `createApp()` + Vite + node-cron + listen.
+- [`functions/index.ts`](../functions/index.ts) — `export const api = onRequest({region}, createApp())`.
+- [`firebase.json`](../firebase.json) — Hosting rewrites `/api/secure/**` and `/api/health`
+  to function `api` in `asia-south1`; `"functions": { "source": "functions" }`.
+- Auth is unchanged: real ID-token verification in `server/authMiddleware.ts`, role read
+  from the `users/{uid}` document (custom-claims migration remains future work, P1.5).
+- The client needs no change — `secureApi.ts` already POSTs to `/api/secure/*`.
+
+**Status: not deployed.** Blocked on a provisioned Firebase project (`.firebaserc` is
+still `REPLACE_WITH_NEW_FIREBASE_PROJECT_ID`) — see
+[`DEPLOYMENT_READINESS_REPORT.md`](../DEPLOYMENT_READINESS_REPORT.md) for the full
+blocker list and the exact deploy sequence.
+
+**Still open before/at deploy:**
+- The two `/api/admin/*` triggers are unauthenticated. They are *not* exposed by the
+  Hosting rewrite (only `/api/secure/**` and `/api/health` are), so they are unreachable
+  in the deployed topology — but they must be gated before that rewrite is ever widened
+  (AUDIT SECURITY H-2).
+- No idempotency key on the money operations (NN-23) — handlers re-assert status inside
+  the transaction, so a replay throws rather than double-effecting.
 
 ## Priority 2: Role Management (should move before multi-tenant)
 
@@ -46,17 +68,24 @@ When moving from Express to Firebase Cloud Functions hosting:
 - **Cloud Function**: `onCall` function with admin-only custom claim check
 - **Trigger**: Called from admin panel
 
-## Priority 3: Background Processing (already partially implemented in server.ts)
+## Priority 3: Background Processing — WRITTEN, NOT YET DEPLOYED
+
+Both jobs live in [`server/backgroundJobs.ts`](../server/backgroundJobs.ts) and now have
+two callers: node-cron in `server.ts` (dev) and a scheduled function (production).
 
 ### Alert Engine
-- **Current**: Runs in `server.ts` via node-cron
-- **Migration**: Cloud Scheduler + Cloud Function (runs daily)
+- **Dev**: `server.ts` node-cron `0 8 * * *`, plus one run at startup
+- **Production**: [`functions/index.ts`](../functions/index.ts) `dailyJobs` —
+  `onSchedule({ schedule: "0 8 * * *", region: "asia-south1", timeZone: "Asia/Kolkata" })`
 - **Collection**: Writes to `/alerts`
 
 ### Daily Summary Generator
-- **Current**: Runs in `server.ts` via node-cron
-- **Migration**: Cloud Scheduler + Cloud Function (runs daily at 8 AM)
+- **Dev / Production**: same `dailyJobs` scheduled function, run immediately after the alert engine
 - **Collection**: Writes to `/dailySummaries`
+
+Until `dailyJobs` is deployed, `/alerts` and `/dailySummaries` stay empty for deployed
+users (AUDIT SECURITY L-2, MODULE_AUDIT #29-30) — the rules already deny client writes
+to `dailySummaries`, so only the Admin SDK can populate it.
 
 ## Priority 4: Data Integrity Triggers
 

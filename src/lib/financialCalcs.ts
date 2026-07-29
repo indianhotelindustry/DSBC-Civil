@@ -21,9 +21,18 @@
  *   PAYMENT (not ADVANCE) types reduce bill liability.
  *   ADVANCE payments are tracked separately (do not offset bills).
  *
+ * GROSS vs NET (read this before adding a KPI)
+ *   woGrossValue(wo)     = total BOQ amount BEFORE advance/GST/retention/other
+ *                          charges. This is the CONTRACTUAL COMMITMENT and is what
+ *                          every "value"/"liability"/"committed" aggregate uses.
+ *   woRemainingAmount(wo)= NET grandTotal AFTER those deductions. Use only for
+ *                          "Remaining Amount" / "Net Payable" displays.
+ *   `woEffectiveValue` is a DEPRECATED alias of woRemainingAmount — do not use it
+ *   in new aggregates. Conflating the two produced the ₹6,800-on-a-₹21,000-WO bug.
+ *
  * KPI FORMULAS (dashboard)
- *   Total Work Order Value   = Σ woEffectiveValue(wo) over active WOs
- *   Approved Liability       = Σ woEffectiveValue(wo) over WOs in {APPROVED, COMPLETED}
+ *   Total Work Order Value   = Σ woGrossValue(wo) over active WOs
+ *   Approved Liability       = Σ woGrossValue(wo) over WOs in {APPROVED, COMPLETED}
  *   Total Billed Amount      = Σ netPayable over active bills
  *   Total Paid Amount        = Σ amount over released, non-advance payments
  *   Outstanding Payable      = Total Billed - Total Paid
@@ -38,7 +47,8 @@
  *   Outstanding (contractor)  = Total Billed - Total Paid
  *
  * PROJECT FORMULAS
- *   Committed      = Σ woEffectiveValue over active WOs in project
+ *   Committed      = Σ woGrossValue over active WOs in project
+ *                    (gross, so it compares like-for-like against project.budget)
  *   Billed         = Σ netPayable over active bills on those WOs
  *   Paid           = Σ amount over released non-advance payments on those bills
  *

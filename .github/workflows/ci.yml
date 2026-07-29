@@ -37,9 +37,69 @@ jobs:
       - name: Test (vitest)
         run: npm test
 
-  # Placeholder for the rules-unit-test job (NN-29 / TEST-3), enabled in Phase 2
-  # once tests/rules/ exists and the Firestore emulator is wired.
-  # rules:
-  #   name: Firestore rules tests
-  #   runs-on: ubuntu-latest
-  #   steps: [ ... firebase emulators:exec 'vitest run tests/rules' ... ]
+      - name: Production build
+        run: npm run build
+
+  # Firestore rules-unit-tests (NN-29 / TEST-3). `firestore.rules` is the
+  # production trust boundary (NN-1), so every rules change must ship tests
+  # proving BOTH allow and deny. The Firestore emulator is a Java process,
+  # hence the JDK step.
+  rules:
+    name: Firestore rules tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set up JDK 21 (required by the Firestore emulator)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Cache Firebase emulator binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: ${{ runner.os }}-firebase-emulators-${{ hashFiles('firebase.json') }}
+          restore-keys: ${{ runner.os }}-firebase-emulators-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Firebase CLI
+        run: npm install --global firebase-tools
+
+      # Runs `vitest run --config vitest.rules.config.ts` inside
+      # `firebase emulators:exec --only firestore` (see package.json).
+      - name: Rules unit tests (emulator)
+        run: npm run test:rules
+
+  # Verifies the Cloud Functions package still bundles. `functions/` is
+  # excluded from the root tsconfig, so this is the only gate that compiles it.
+  functions-build:
+    name: Cloud Functions build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install functions dependencies
+        run: npm ci --prefix functions
+
+      - name: Build functions bundle
+        run: npm run build --prefix functions

@@ -2,6 +2,32 @@
 
 **Date:** 2026-07-07 · **Codebase version:** 0.9.0 (`v0.9-test-deployment`)
 
+> ## ⚠️ HISTORICAL RECORD — read this first
+>
+> **This folder is a frozen snapshot of v0.9.0, dated 2026-07-07. It is deliberately NOT
+> updated as the code moves.** Its *findings and reasoning* remain the accepted baseline
+> and the roadmap of record; its *inventory figures* are as-of that date and some have
+> since changed. Do not "fix" the numbers here — correct the living documents instead
+> (NN-21/NN-22). For current state, read
+> [`docs/PROGRAM_STATE.md`](../docs/PROGRAM_STATE.md) and
+> [`BASELINE_v1.0.0-beta.1.md`](../BASELINE_v1.0.0-beta.1.md).
+>
+> ### Superseded inventory figures (verified 2026-07-29 @ v1.0.0-beta.1)
+>
+> | Stated in this folder | Current source truth | Where changed |
+> |---|---|---|
+> | 194 passing tests across 8 files | **199 across 9 files** | `financialCalculationService.test.ts` added by Platform Stabilization v1.1 |
+> | `firestore.rules` is 614 lines | **606 lines** | Money transitions removed from client-writable branches (v1.1) |
+> | "there is no `functions/` directory" (EXECUTIVE_SUMMARY §3) | **`functions/` exists and is wired** in `firebase.json` — still **not deployed** | `functions/index.ts` + `server/app.ts` added by v1.1 |
+> | "the client silently falls back to direct Firestore writes" | **`secureApi` now fails loud**; the fallback is gated behind `VITE_ALLOW_CLIENT_FALLBACK` (default `false`) | `src/services/secureApi.ts` (v1.1) |
+> | Rules permit payment→RELEASED / bill→PAID (C-2/C-3 evidence) | **Those branches no longer exist** — the transitions are Admin-SDK-only | `firestore.rules` (v1.1) |
+>
+> **The underlying CRITICAL finding still stands:** the authoritative backend is written
+> and wired but **not deployed**, so the four privileged operations do not execute in a
+> production deployment. C-1 is not closed — it is one `firebase deploy` away, blocked on
+> project provisioning. See
+> [`DEPLOYMENT_READINESS_REPORT.md`](../DEPLOYMENT_READINESS_REPORT.md).
+
 This folder is the definitive, source-verified baseline for future development. It was produced by reading the code, not the documentation. Where the two disagreed, the code won. No application code was modified during the audit.
 
 ## Documents

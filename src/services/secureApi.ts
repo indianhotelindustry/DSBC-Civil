@@ -1,12 +1,21 @@
 /**
  * Client-side helper for calling server-authoritative API routes.
  *
- * When the Express server is running (local dev via `npm run dev`),
- * these call the server for full transaction-safe validation.
+ * Both hosts serve the SAME handlers (server/secureRoutes.ts via
+ * server/app.ts → createApp):
+ *   - local dev  — the Express harness under `npm run dev`;
+ *   - deployed   — the `api` HTTPS Function, reached through the
+ *                  /api/secure/** Hosting rewrite in firebase.json.
  *
- * When deployed to Firebase Hosting (no Express server), the server
- * routes return 404. In that case, we fall back to direct Firestore
- * writes with client-side validation.
+ * If neither is reachable the behaviour is FAIL-LOUD, not degrade:
+ * `handleServerUnavailable` throws a typed BusinessRuleError unless the
+ * client fallback is explicitly enabled (see CLIENT_FALLBACK_ENABLED
+ * below). The clientXxx implementations are a DEV-only safety net and
+ * an emergency production rollback — never the normal path.
+ *
+ * NOTE: until a Firebase project is provisioned the function is not
+ * deployed, so in a hosting-only deployment these routes 404 and the
+ * four privileged operations fail loud by design.
  */
 
 import { auth } from '../lib/firebase';

@@ -2,6 +2,31 @@
 
 > **Sprint:** Platform Stabilization v1.1 (Engineering Phase 2, P0) · **Repo:** DSBC Civil
 > **Status:** INSPECTION & PLAN — **no code has been modified.** This document reports the current implementation, the risks, and a migration plan for approval. Implementation begins only after sign-off.
+
+> ## ⚠️ HISTORICAL PLAN — partially executed. Read this before trusting the "Current state" sections.
+>
+> This document was written as a pre-implementation **inspection & plan**. It has since been
+> acted on. Its *plan, sequencing and reasoning* stand; its **"Current state (inspected)"
+> sections describe the code as it was BEFORE the work, and several are now false.**
+> Task status verified against source on 2026-07-29:
+>
+> | Task | Status | Evidence |
+> |---|---|---|
+> | **T1** Deploy backend as Cloud Functions | 🟡 **Written & wired, NOT deployed** | `functions/index.ts`, `server/app.ts`, `firebase.json` rewrites. Blocked on Firebase project provisioning |
+> | **T2** Invert `secureApi` to fail-loud | ✅ **Done** | `secureApi.ts` — `CLIENT_FALLBACK_ENABLED`, `handleServerUnavailable()` throws |
+> | **T3** Tighten rules; money transitions function-only | ✅ **Done** (rules) · ✅ **tests added 2026-07-29** | `firestore.rules` — no client branch for payment→RELEASED, bill→PAID, WO-financial rewrite; `tests/rules/` |
+> | **T4** FinancialCalculationService | 🟡 **Partial — deliberately** | `src/lib/financialCalculationService.ts` exists and is shared by UI + server. The VO formula and the 3 ceilings are reproduced **verbatim** and flagged `TODO: Finance Approval Required`; unification is **blocked on finance sign-off**, not on engineering |
+> | **T5** Atomic money mutations | ❌ Not started | — |
+> | **T6** Security hardening (admin auth, `auditLogs` userId) | ❌ Not started | `firestore.rules` `auditLogs` create is still `if isAuthenticated()` |
+> | **T7** Posting engine foundation | ❌ Not started (out of v1.1 scope) | — |
+> | **T8** ESLint + CI | 🟡 CI runs `tsc` + tests; ESLint still unconfigured | `.github/workflows/ci.yml` |
+> | **T9 / T10** Dead code · indexes · `ledgerUtils` tests | ❌ Not started | — |
+>
+> Specific corrections to the inspection text below:
+> - **§P0-3 "No `functions/` directory exists (verified)"** — no longer true; `functions/` exists.
+> - **§P0-2 "the fallback keeps the app working without the server"** — no longer true; it fails loud.
+> - **§P0-6 rules findings** for payment→RELEASED / bill→PAID / WO-financial scoping — **closed**;
+>   the `auditLogs` forgery finding (H-3) is **still open**.
 > **Governed by:** the Architecture Constitution, [`ENGINEERING_PHASE_2.md`](./ENGINEERING_PHASE_2.md), [`CURRENT_SPRINT.md`](./CURRENT_SPRINT.md), and the accepted forensic audit ([`audit/`](./audit/README.md)). Every finding below references existing implementation. No architecture is redesigned; the plan **strengthens** what exists.
 
 ---
@@ -74,7 +99,10 @@ The happy path is unchanged for users: same service calls, same toasts. Only the
 ## P0-3 · Cloud Functions
 
 ### Current state (inspected)
-- **No `functions/` directory exists** (verified) — **zero Cloud Functions have been written or deployed.**
+- ~~**No `functions/` directory exists** (verified) — **zero Cloud Functions have been written or deployed.**~~
+  **[SUPERSEDED 2026-07-29]** `functions/` now exists (`index.ts` + `package.json`) and wraps
+  `createApp()` as the `api` HTTPS function; `firebase.json` rewrites `/api/secure/**` to it.
+  Still **not deployed** — blocked on Firebase project provisioning, not on code.
 - The authoritative layer is an **Express app** ([`server.ts`](./server.ts) + [`server/`](./server/)) that runs only under `npm run dev`. `firebase.json` deploys **hosting + rules only** — no functions/run config.
 - **Existing routes** (Express, 4): bill verify, bill approve, payment release, VO approve — [`secureRoutes.ts`](./server/secureRoutes.ts), registered under `/api/secure` with a 30 req/min rate limiter (`:24-30`).
 - **Authentication:** real Firebase ID-token verification in [`authMiddleware.ts`](./server/authMiddleware.ts) (`verifyIdToken`).

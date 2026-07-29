@@ -81,7 +81,7 @@ Each clause of that sentence is a commitment with a concrete anchor in the prese
 
 | Vision clause | Present anchor | Maturation obligation |
 |---|---|---|
-| "every rupee … provably correct" | Derive-on-read financial core, [`src/lib/financialCalcs.ts`](../src/lib/financialCalcs.ts), 194 passing tests | Add the posting engine (Section 10); unify the drifted business math (AUDIT: TECHNICAL_DEBT D-1/D-2) |
+| "every rupee … provably correct" | Derive-on-read financial core, [`src/lib/financialCalcs.ts`](../src/lib/financialCalcs.ts), 199 passing tests | Add the posting engine (Section 10); unify the drifted business math (AUDIT: TECHNICAL_DEBT D-1/D-2) |
 | "authoritatively enforced" | [`firestore.rules`](../firestore.rules), [`server/secureRoutes.ts`](../server/secureRoutes.ts) | Make one enforcement path real in production (Section 8; AUDIT: SECURITY C-1) |
 | "auditable" | [`server/auditLog.ts`](../server/auditLog.ts), `db.logAction` | Make audit writes trusted and readable (Section 14) |
 | "every industry vertical a configuration" | `BusinessType` CONSTRUCTION/HOSPITALITY, [`companyLabels.ts`](../src/lib/companyLabels.ts) | Formalize the vertical-config seam (Section 24) |
@@ -196,7 +196,7 @@ Twelve principles. Each is stated as a rule, justified from the current architec
 
 ### AP-9 · Pure logic is separated from I/O and tested
 **Rule:** Business math MUST live in pure functions (injectable clock, no Firestore) in `src/lib/`, and MUST be unit-tested. I/O wrappers (services) orchestrate; they do not compute.
-**Why:** This is why the calc core has 194 passing tests while `ledgerUtils.ts` — which mixed concerns less cleanly — has zero (AUDIT: TECHNICAL_DEBT D-3).
+**Why:** This is why the calc core has 199 passing tests while `ledgerUtils.ts` — which mixed concerns less cleanly — has zero (AUDIT: TECHNICAL_DEBT D-3).
 
 ### AP-10 · Additive evolution; deprecate, don't delete-in-place
 **Rule:** Schema and API evolution MUST be additive with explicit `@deprecated` markers and read-time fallbacks, as already practiced (`wo.billing.*`, receipt `linkedScheduleId` → `allocations[]`, [`types.ts:421-428`](../src/types.ts)). Breaking changes require a migration tool committed alongside.
@@ -1041,14 +1041,22 @@ These standards codify **how the codebase is already mostly written** (service t
 
 ## 19.1 The current baseline
 
-The platform has **194 passing tests across 8 files** (Vitest 3.2.4): `financialCalcs` (26), `customerLedgerCalcs` (14), `paymentRequestCalcs` (15), `pmDashboardCalcs` (10), `recoveryCalcs` (13), `scheduleCalcs` (33), `userAccess` (39), `masterValidations` (44). The pure-calc core is genuinely well-tested; the schedule engine and access matrix are exemplary. This is the foundation the testing standard builds on.
+The platform has **199 passing tests across 9 files** (Vitest 3.2.x): `financialCalcs` (26), `customerLedgerCalcs` (14), `paymentRequestCalcs` (15), `pmDashboardCalcs` (10), `recoveryCalcs` (13), `scheduleCalcs` (33), `userAccess` (39), `masterValidations` (44), `financialCalculationService` (5). The pure-calc core is genuinely well-tested; the schedule engine and access matrix are exemplary. This is the foundation the testing standard builds on.
+
+> *Corrected 2026-07-29 under NN-22 / Amendment Protocol §1 (code wins; a stale constitution is a defect). The prior figure — 194 tests across 8 files — was the v0.9.0 audit baseline, taken before `financialCalculationService.test.ts` was added by Platform Stabilization v1.1. The audit documents intentionally retain the original figure as a historical record.*
 
 ## 19.2 The critical gaps to close
 
 - **`ledgerUtils.ts` has zero tests** — the most accounting-like module in the repo (AUDIT: TECHNICAL_DEBT D-3). **Rule TEST-1:** this MUST be covered before any further ledger change.
 - **No service tests** — client-side business rules (overbilling, payment ceilings, receipt cache atomicity) are untested.
 - **No function/route tests** — the transactional money invariants (where correctness actually lives) have no coverage.
-- **No integration/emulator tests** — rules and cross-document behavior are unverified end-to-end.
+- ~~**No integration/emulator tests** — rules and cross-document behavior are unverified end-to-end.~~
+  **CLOSED for rules (2026-07-29):** `tests/rules/` now holds **161 emulator-backed
+  rules-unit-tests** across bills, payments, payment requests, work orders, variation
+  orders, the audit trail and the server-only collections, proving allow AND deny
+  (TEST-3). Run with `npm run test:rules`. Cross-document behaviour remains uncovered —
+  rules cannot cross-query, so that belongs to `tests/functions/`, still pending.
+  Findings: [`RULES_TEST_REPORT.md`](../RULES_TEST_REPORT.md).
 
 ## 19.3 The testing pyramid for DSBC
 

@@ -33,12 +33,19 @@ Browser (React 19 SPA, Vite)
    │                                          ▲
    │                          firestore.rules │  ← the production trust boundary
    │
-   └── secureApi ──►  [ Cloud Functions ]  ← authoritative transactional ops (Phase 2 target)
-                      [ Express, dev only ]   (server/ — currently not deployed)
+   └── secureApi ──►  [ Cloud Functions ]  ← authoritative transactional ops
+                      [ Express, dev only ]   (server/ — same handlers, dev harness)
 ```
 
+Both hosts run the **same** handlers: `server/secureRoutes.ts` is built into an Express
+app by `server/app.ts` (`createApp`), which `server.ts` serves locally and
+`functions/index.ts` wraps as the `api` HTTPS Function. `functions/` is written and
+wired in `firebase.json` (hosting rewrites `/api/secure/**` → `api`, region
+`asia-south1`) but **is not yet deployed** — no Firebase project is provisioned.
+Until it is, the four privileged operations fail loud in a hosting-only deployment.
+
 - **Frontend** — `src/` : pages, components, one service per Firestore collection, pure calculation libs.
-- **Backend** — `server/` : token verification, role checks, transactional privileged operations, background jobs (deployed as Cloud Functions in Phase 2).
+- **Backend** — `server/` : token verification, role checks, transactional privileged operations, background jobs. `functions/` re-hosts these verbatim as Cloud Functions (deploy pending a Firebase project).
 - **Boundary** — `firestore.rules` : per-collection role + status-transition enforcement; the real production security perimeter.
 - **Governance** — `governance/` : the engineering constitution and its operating instruments.
 
@@ -91,8 +98,8 @@ Full history and forward plan: [`RELEASES.md`](./RELEASES.md) · [`ENGINEERING_P
 **Prerequisites:** Node.js 20+, a Firebase project, and access to environment configuration.
 
 ```bash
-git clone https://github.com/YOUR-ORG/dsbc-civil.git   # ← replace with the new repository URL
-cd dsbc-civil
+git clone https://github.com/indianhotelindustry/DSBC-Civil.git
+cd DSBC-Civil
 npm install
 cp .env.example .env.local     # fill in VITE_FIREBASE_* values (REQUIRED — no fallback config ships in the repo)
 npm run dev                    # Express + Vite dev server (includes local secure API)
@@ -112,7 +119,10 @@ npm run deploy:hosting # build + firebase deploy --only hosting
 npm run deploy:rules   # firebase deploy --only firestore:rules
 ```
 
-> **Note:** `npm run dev` runs the Express secure backend locally. In the current production deployment (hosting only) that backend is absent and `secureApi` falls back to client writes — closing this gap is the first Phase 2 objective.
+> **Note:** `npm run dev` runs the Express secure backend locally. In a hosting-only
+> deployment that backend is absent, and `secureApi` **fails loud** rather than falling
+> back to client writes (`VITE_ALLOW_CLIENT_FALLBACK` defaults to `false`). Deploying
+> `functions/` closes the gap — it is the first Phase 2 objective.
 
 ## Documentation Index
 

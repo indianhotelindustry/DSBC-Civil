@@ -1,0 +1,40 @@
+# DSBC Civil — line-ending and diff normalization
+#
+# Pin LF in the repository AND in the working tree. DSBC Civil is developed on
+# Windows today but the CI runners, the Cloud Functions runtime and the Firestore
+# emulator are all Linux — pinning LF keeps diffs identical across every
+# contributor and stops spurious whole-file changes.
+
+* text=auto eol=lf
+
+# Explicitly text (belt-and-braces for the load-bearing surfaces)
+*.ts      text eol=lf
+*.tsx     text eol=lf
+*.js      text eol=lf
+*.json    text eol=lf
+*.md      text eol=lf
+*.css     text eol=lf
+*.html    text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+*.rules   text eol=lf
+.gitignore     text eol=lf
+.gitattributes text eol=lf
+.env.example   text eol=lf
+
+# Binary assets — never convert, never diff as text
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.pdf  binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.eot   binary
+
+# Generated / vendored — collapse in PR diffs so review focuses on real changes
+package-lock.json           linguist-generated=true -diff
+functions/package-lock.json linguist-generated=true -diff
