@@ -13,7 +13,10 @@ Technical and operational documentation that is neither governance (see [`../gov
 
 Sprint deliverables at the repository root:
 [`../RULES_TEST_REPORT.md`](../RULES_TEST_REPORT.md) (rules-unit-test results and findings) ·
-[`../DEPLOYMENT_READINESS_REPORT.md`](../DEPLOYMENT_READINESS_REPORT.md) (pre-deploy blockers).
+[`../DEPLOYMENT_READINESS_REPORT.md`](../DEPLOYMENT_READINESS_REPORT.md) (pre-deploy blockers) ·
+[`../ADR-0001_IMPLEMENTATION_REPORT.md`](../ADR-0001_IMPLEMENTATION_REPORT.md) (rules tightening) ·
+[`../FIRST_PUSH_REPORT.md`](../FIRST_PUSH_REPORT.md) (canonical publication record) ·
+[`../REPOSITORY_HEALTH.md`](../REPOSITORY_HEALTH.md) (health snapshot and scores).
 
 ## Where things live
 
