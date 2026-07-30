@@ -171,7 +171,7 @@ them.
 this is reachable only by a direct client-SDK write — precisely the threat NN-1 addresses.
 **No money moves** — the APPROVE step remains denied to all roles.
 
-### H-3 (pre-existing, re-confirmed) · The audit log is forgeable — NN-12
+### H-3 (pre-existing, re-confirmed) · The audit log is forgeable — NN-12 — ✅ **CLOSED by ADR-0002**
 
 [`firestore.rules:341`](./firestore.rules#L341) — `allow create: if isAuthenticated()`
 with no `userId == request.auth.uid` check. Any signed-in user can author an entry
@@ -186,13 +186,18 @@ here by a characterization test. Fix is one conjunct; it warrants its own ADR.
 |---|---|---|---|---|---|
 | R-1 PM self-approves WO | No | No | ~~Yes~~ **No** | **Medium** | ✅ Closed (ADR-0001) |
 | R-2 ACCOUNTS self-verifies bill | No | No | ~~Yes~~ **No** | **Medium** | ✅ Closed (ADR-0001) |
-| H-3 forgeable audit authorship | No | No | Yes | **Medium** (pre-existing) | ⛔ **Open** |
+| H-3 forgeable audit authorship | No | No | ~~Yes~~ **No** | **Medium** (pre-existing) | ✅ Closed (ADR-0002) |
 
 All three were **Medium**, not High: none moves money, none is reachable through the
 application's own code paths, and today's beta runs under a single-operator trust model.
 All three are **blocking for untrusted multi-tenant operation**, which is exactly the
-posture v1.1 → RC is driving toward. R-1 and R-2 are now closed at the boundary; **H-3 is
-the last unmitigated NN violation in the rules.**
+posture v1.1 → RC is driving toward.
+
+**All three are now closed at the boundary** (ADR-0001 and ADR-0002). There is **no
+remaining unmitigated Non-Negotiable violation in `firestore.rules`.** What remains open is
+not a rules defect but a deployment one: **C-1** — the authoritative backend is still not
+deployed, so the invariants rules structurally cannot express (amounts, cumulative
+ceilings, transactional atomicity) are still unenforced in a hosting-only deployment.
 
 ### Structural observation
 
