@@ -16,6 +16,21 @@ import { runAlertEngine, runSummaryGenerator } from "./backgroundJobs.ts";
 export function createApp(): Express {
   const app = express();
 
+  // --------------- Proxy awareness (DEPLOYMENT_READINESS_REPORT D-1) ---------------
+  // Behind Firebase Hosting the function is reached through the Google Front End,
+  // so the socket peer is a proxy rather than the caller. Declaring one trusted
+  // hop makes `req.ip` meaningful in logs and error reporting.
+  //
+  // Deliberately NOT `true`: that would let any client spoof `X-Forwarded-For`,
+  // and express-rate-limit rejects it outright (ERR_ERL_PERMISSIVE_TRUST_PROXY —
+  // "allows anyone to trivially bypass IP-based rate limiting").
+  //
+  // The exact hop count cannot be verified without a deployed environment, so
+  // VERIFY POST-DEPLOY. Nothing security-critical depends on it: the secure-route
+  // rate limiter keys on the authenticated uid, not on `req.ip` (see
+  // server/secureRoutes.ts).
+  app.set("trust proxy", 1);
+
   // --------------- Middleware ---------------
   app.use(express.json({ limit: "1mb" }));
 
