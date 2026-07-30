@@ -6,7 +6,7 @@
 | **Full Product Name** | DSBC Civil — Enterprise Construction ERP Platform |
 | **Short Name** | DSBC Civil |
 | **Repository Name** | `DSBC-Civil` on GitHub · `dsbc-civil` as the npm package name in `package.json` (npm requires lowercase). Both are correct; they are not a drift. |
-| **Current Version** | `1.0.0-beta.1` (see [`VERSION`](./VERSION), [`package.json`](./package.json), [`src/lib/appVersion.ts`](./src/lib/appVersion.ts)) |
+| **Current Version** | `1.0.0-beta.2` (see [`VERSION`](./VERSION), [`package.json`](./package.json), [`src/lib/appVersion.ts`](./src/lib/appVersion.ts)) — an interim increment of Platform Stabilization v1.1, **not** its completion |
 | **Product Status** | Commercial beta — Platform Stabilization (Engineering Phase 2) in progress |
 | **Product Family** | DSBC ERP (construction vertical; hospitality/manufacturing verticals chartered as future config packs — Constitution §24) |
 | **Owner** | DSBC |

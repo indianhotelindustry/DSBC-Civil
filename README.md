@@ -5,7 +5,7 @@
 **Enterprise Construction ERP Platform**
 A commercial, multi-company Construction & Real-Estate ERP built on React 19 · TypeScript · Firebase · Firestore
 
-`v1.0.0-beta.1` · Governance `v1.0` · Status: **Platform Stabilization (Engineering Phase 2)**
+`v1.0.0-beta.2` · Governance `v1.0` · Status: **Platform Stabilization (Engineering Phase 2) — in progress**
 
 </div>
 
@@ -19,7 +19,7 @@ A commercial, multi-company Construction & Real-Estate ERP built on React 19 · 
 
 DSBC Civil is the financial-operational backbone for construction and real-estate businesses: work orders, bills, payments, variation orders, contractor and customer ledgers, unit/plot inventory, sales, receipts, installment schedules, and recovery — governed by an 8-role, multi-stage approval workflow across multiple companies.
 
-The platform is at **v1.0.0-beta.1** and operates today as a role-based web application. It is governed by a ratified engineering constitution (Governance v1.0) and is entering **Engineering Phase 2 — Platform Stabilization**, whose first objective is to make every financially-material action authoritatively enforced in production.
+The platform is at **v1.0.0-beta.2** and operates today as a role-based web application. It is governed by a ratified engineering constitution (Governance v1.0) and is in **Engineering Phase 2 — Platform Stabilization**, whose first objective is to make every financially-material action authoritatively enforced in production. **That objective is not yet met:** the authoritative backend is written and verified to build but **not deployed**, so 1 of the sprint's 6 exit criteria is satisfied (see [`STABILIZATION_v1.1_RELEASE_REVIEW.md`](./STABILIZATION_v1.1_RELEASE_REVIEW.md) §5).
 
 > **Honest status (per the platform's own honesty principle):** DSBC Civil currently performs **derived financial reporting, not double-entry accounting** — the posting engine is designed but not yet built. It is **safe for a single trusted operator today** and is being hardened for untrusted, multi-tenant commercial deployment. See [`audit/EXECUTIVE_SUMMARY.md`](./audit/EXECUTIVE_SUMMARY.md).
 
@@ -70,15 +70,15 @@ Per-module status and completion %: [`audit/MODULE_AUDIT.md`](./audit/MODULE_AUD
 - **Frontend:** React 19, TypeScript (strict), Vite 6, Tailwind CSS v4, shadcn/Base-UI, react-router v7, react-hook-form + zod, recharts, sonner, lucide-react, date-fns
 - **Backend:** Express (dev harness) → Firebase Cloud Functions (target), Firebase Admin SDK, node-cron → Cloud Scheduler
 - **Data:** Cloud Firestore (~28 collections) with `firestore.rules` enforcement
-- **Testing:** Vitest (199 tests today)
+- **Testing:** Vitest — 204 unit/config tests (`npm test`) + 177 Firestore Rules emulator tests (`npm run test:rules`); **381 total**
 - **Hosting:** Firebase Hosting (static SPA) + Firestore rules
 
 ## Current Status
 
-- **Codebase:** v1.0.0-beta.1 (commercial rebranding of the v0.9.0 platform)
+- **Codebase:** v1.0.0-beta.2 (enforcement boundary proven & hardened; interim increment of v1.1)
 - **Governance:** v1.0 ratified ([`AMENDMENT-001`](./governance/amendments/AMENDMENT-001.md))
 - **Engineering:** entering Phase 2 — Platform Stabilization ([`ENGINEERING_PHASE_2.md`](./ENGINEERING_PHASE_2.md), [`CURRENT_SPRINT.md`](./CURRENT_SPRINT.md))
-- **Tests:** 199 passing (Vitest)
+- **Tests:** 381 passing — 204 unit/config + 177 Firestore Rules (emulator; needs a JDK)
 - **Known P0s:** authoritative backend not yet deployed; divergent financial math; non-atomic money mutations — see [`audit/NEXT_DEVELOPMENT_PLAN.md`](./audit/NEXT_DEVELOPMENT_PLAN.md)
 
 ## Roadmap
