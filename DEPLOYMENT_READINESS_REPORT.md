@@ -149,9 +149,28 @@ Requires re-verifying the limiter still keys on the real client IP after the cha
 
 ---
 
-### ⛔ D-2 · The alert engine needs a composite index that is not committed — and it will fail silently
+### ✅ D-2 · The alert engine needs a composite index that is not committed — **RESOLVED 2026-07-29**
 
 **New finding. Not previously documented.**
+
+> **Resolution.** `firestore.indexes.json` now exists declaring the
+> `alerts(type ASC, relatedId ASC, timestamp ASC)` composite index, and
+> `firebase.json` points at it (`firestore.indexes`), so `firebase deploy` ships
+> it. A full sweep of every Firestore query in `server/` and `src/services/`
+> confirmed this is the **only** composite index the codebase requires — every
+> other query is single-field equality, served by automatic indexes. Pinned by 5
+> hermetic tests in `tests/config/firestoreIndexes.test.ts`.
+>
+> **Still requires post-deploy verification** (`firebase deploy --only
+> firestore:indexes`, then confirm the alert job populates `alerts`). The
+> Firestore emulator does not enforce composite indexes, so no local test can
+> prove the index is *sufficient* — only that it is *declared*.
+>
+> The silent-failure aspect is **not** fixed: `runAlertEngine` still swallows
+> errors in a blanket `catch`. Making it throw is not safe here — `server.ts`
+> calls it un-awaited at startup, so a rejection would crash the dev server on
+> Node 20. Tracked as a follow-up that must fix the call sites together with the
+> handler (NN-14).
 
 [`server/backgroundJobs.ts:20-25`](./server/backgroundJobs.ts#L20-L25) runs:
 
@@ -328,8 +347,8 @@ Supersedes `RELEASE_READINESS.md` §4 step 5 (indexes) and adds the D-1/D-2 fixe
 
 | ID | Finding | Severity | Blocks deploy? | Fix effort |
 |---|---|---|---|---|
-| **D-1** | `trust proxy` unset → global 30 req/min throttle on the money path | **High** | **Yes** | 1 line |
-| **D-2** | Missing `alerts` composite index; no `firestore.indexes.json`; failure is silent | **High** | **Yes** | S |
+| **D-1** | ~~`trust proxy` unset → global 30 req/min throttle on the money path~~ | **High** | ~~Yes~~ | ✅ **FIXED** — limiter now keys on the authenticated uid (`fix/trust-proxy-rate-limit-key`) |
+| **D-2** | ~~Missing `alerts` composite index; no `firestore.indexes.json`~~ | **High** | ~~Yes~~ | ✅ **FIXED** — index committed + wired + test-pinned (`fix/firestore-indexes`). Silent-`catch` follow-up remains |
 | **D-3** | Functions ignore named-database config → client/server split-brain | Medium | Only if a named DB is used | S |
 | **D-4** | `functions/` excluded from `tsc`; lockfile was missing | Medium | No (CI job added) | Done / S |
 | **D-5** | 1 critical + 6 high advisories, incl. runtime `react-router-dom` | Medium | No — needs disposition | S |
