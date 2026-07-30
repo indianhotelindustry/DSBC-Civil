@@ -4,7 +4,15 @@
 > For the full prior conversation, run `claude --continue` (reloads the whole session).
 > Ground truth order: source code > this file > other docs. Fix drift toward source.
 
-**Repo:** `dsbc-civil` · **Version:** `1.0.0-beta.1` · **Last updated:** 2026-07-29
+**Repo:** `dsbc-civil` · **Version:** `1.0.0-beta.1` · **Last updated:** 2026-07-30
+
+> **Canonical repo:** https://github.com/indianhotelindustry/DSBC-Civil — the ONLY source of
+> truth. No local copy is authoritative.
+>
+> **⚠️ Platform Stabilization v1.1 is NOT complete.** 4 of its 6 exit criteria are open, and a
+> 5th is only partial. Do not describe it as done. Scorecard:
+> [`STABILIZATION_v1.1_RELEASE_REVIEW.md`](../STABILIZATION_v1.1_RELEASE_REVIEW.md) §5.
+> What remains: [`NEXT_MILESTONE.md`](../NEXT_MILESTONE.md).
 
 ---
 
@@ -69,10 +77,15 @@
    `ENGINEERING_PHASE_2.md` ("do not build P1/P2 on an unenforced money core").
 
 ## Immediate next action(s)
-1. Fix D-1 + D-2 from the deployment report, then provision Firebase and deploy (thread 1).
-   The ADR-0001 rules tightening is waiting on that same deploy.
-2. Route the two finance questions to the business owner (thread 3).
-3. Open an ADR for H-3 (audit-log authorship) — last unmitigated NN violation (thread 7).
+1. **Enable branch protection on `main`** (+ tag protection, Dependabot, CodeQL). Cheapest
+   win; `main` is currently protected only by documentation. Owner action.
+2. **Decide the `main` promotion path** — Option A (create `develop`, keep `main` at baseline)
+   or Option B (cut `release/1.0.0-beta.2`, tag an interim increment).
+   **Neither may be labelled "v1.1 complete."** See RELEASE_REVIEW §7.
+3. **Provision Firebase** (staging first, DEP-2) → deploy rules → indexes → functions →
+   hosting. This is the only way C-1 closes. Owner action.
+4. Route finance decisions **F-1 + F-2** to the business — they have a data-restatement clock.
+5. **T5 atomic money mutations** — the last open money-integrity defect (NN-5).
 
 ## Key verified facts (don't re-derive)
 - **This directory IS both the validated commercial baseline AND the `dsbc-civil` repo.**
