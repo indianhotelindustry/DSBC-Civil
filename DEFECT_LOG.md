@@ -86,22 +86,15 @@ If a **P0** is confirmed:
 
 ## 4. Known and accepted — record, do not re-file
 
-Confirming these is useful. Diagnosing them is not; they are already understood.
+**Moved to [`RUNTIME_DIAGNOSTICS.md`](./RUNTIME_DIAGNOSTICS.md)** — the single authoritative
+register. Before filing anything, check it:
 
-| Ref | Expected observation | Why it is not a new defect |
-|---|---|---|
-| **F-1** | An approved variation order inflates the WO `grandTotal` by more than the VO amount | Known divergence, awaiting business decision. Record exact figures — they inform the ADR |
-| **F-2** | Bill ceiling behaves differently at *create* vs *approve* | Known; three ceilings exist. Awaiting business decision |
-| **F-4 / NN-5** | Two concurrent receipts on one sale can produce a wrong `totalReceived` | **Known open defect.** Read-modify-write, not atomic. Record and move on |
-| **D-3 (tech debt)** | Contractor ledger header totals may not equal the sum of rows | Known — `ledgerUtils` has zero tests |
-| **D-4** | Retention is deducted but appears in no ledger as a liability | Known — v1.2 scope |
-| **C-1** | If functions are not deployed, all four privileged ops fail loud with a typed error | **Correct behaviour**, not a bug |
-| — | `alerts` / `dailySummaries` empty until `dailyJobs` has run at 08:00 IST | Expected |
-| — | ~15 buttons with no handler | Known (TECH-DEBT G-4). Record *which* — that list is useful |
-| — | Company/project scoping happens client-side after a full read | Chartered (Constitution §23) |
-| — | Slow first load (single JS chunk > 500 kB) | Known performance item |
-
----
+- [Register B — Silent-Danger](./RUNTIME_DIAGNOSTICS.md#3-register-b--🟠-silent-danger) holds the
+  known finance divergences (**F-1**, **F-2**) and the open NN-5 concurrency defect (**F-4**).
+  These are **real** issues that are **already owned elsewhere** — record what you see, do not
+  re-diagnose them.
+- [Register C — Benign](./RUNTIME_DIAGNOSTICS.md#4-register-c--🟢-benign) holds behaviour that
+  looks like a fault and is not.
 
 ## 5. Test-tier coverage — where a regression test can actually go
 

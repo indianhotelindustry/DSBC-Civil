@@ -14,18 +14,22 @@ NN-7 rather than producing a plan that cannot be executed:
 1. **No Firebase project exists.** `.firebaserc` is `REPLACE_WITH_NEW_FIREBASE_PROJECT_ID`
    and the 7 `VITE_FIREBASE_*` values are unset, so the app cannot reach Auth or Firestore.
    Sign-in — the entry point to every workflow below — cannot happen.
-2. **Emulator mode is not wired.** `.env.example` advertises
-   `VITE_USE_FIREBASE_EMULATOR`, but `src/lib/firebase.ts` contains **no**
-   `connectAuthEmulator` / `connectFirestoreEmulator` call. Verified 2026-07-30. So "just run
-   it against the emulators" is not available either. (`.env.example` has been corrected to
-   say so.)
+2. **Emulator mode is half-wired, and setting the flag makes things worse.** *(Corrected
+   2026-07-31 — an earlier version of this section said "not wired", which was inaccurate.)*
+   `connectAuthEmulator` **does** exist (`src/services/auth.ts:18-20`), but there is **no**
+   `connectFirestoreEmulator` anywhere in `src/`, and `firebase.json` declares only the
+   *firestore* emulator — nothing ever listens on 9099. Setting
+   `VITE_USE_FIREBASE_EMULATOR=true` therefore either fails to connect, or authenticates you
+   as an emulator user whose uid is absent from the **real** Firestore `users` collection,
+   which denies every role-gated operation. So "just run it against the emulators" is not
+   available. See `RUNTIME_READINESS_CHECKLIST.md` §7.1.
 
 ### Two ways to unblock — the choice is the owner's
 
 | Path | What it takes | Trade-off |
 |---|---|---|
 | **A — Provision Firebase staging** *(recommended)* | Owner creates `dsbc-civil-staging`, sets `.firebaserc` + `.env.local`, deploys rules → indexes → functions → hosting | Tests the **real** stack, including the Cloud Functions path and the deployed rules. This is the only way to validate C-1 closure. Follows `RELEASE_CANDIDATE_CHECKLIST.md` Stage 3–4 |
-| **B — Wire emulator mode** | A small dev-only change in `src/lib/firebase.ts` (~10 lines, guarded by the existing flag) plus an Auth-emulator entry in `firebase.json` | No cloud account needed; fast, disposable, free. **But** it is a code change, and this phase is explicitly not for development — so it needs your go-ahead. It also cannot test the deployed-function path, so it does **not** close C-1 |
+| **B — Complete emulator mode** (backlog **APP-002**) | Smaller than first estimated — Auth is already wired. Needs `connectFirestoreEmulator`, an `auth` entry in `firebase.json`, port alignment, and a way to seed emulator `users/{uid}` docs (without them the role lookup still denies everything) | No cloud account needed; fast, disposable, free. **But** it is a code change, and this phase is explicitly not for development — so it needs your go-ahead. It also cannot test the deployed-function path, so it does **not** close C-1 |
 
 **Recommendation: A, then optionally B later** as a developer convenience. B validates the
 client and the rules but leaves the single most important unverified claim — that the four
@@ -217,20 +221,14 @@ File every defect as a GitHub issue using `.github/ISSUE_TEMPLATE/bug_report.md`
 
 ## 5. Expected findings — record, do **not** re-diagnose
 
-These are already known and accepted. Confirming them is valuable; investigating them is not.
+**Moved to [`RUNTIME_DIAGNOSTICS.md`](./RUNTIME_DIAGNOSTICS.md).** Several behaviours are already
+known and owned — confirming them is useful, diagnosing them is wasted QA time.
 
-| Ref | What you will see | Status |
-|---|---|---|
-| **F-1** | An approved VO inflates the WO `grandTotal` by more than the VO amount (QA-5.3) | Known — **awaiting business decision.** Record exact figures |
-| **F-2** | Ceiling behaviour differs between bill *create* and bill *approve* (QA-3.4) | Known — awaiting business decision |
-| **F-4 / NN-5** | Concurrent receipts on one sale can produce a wrong `totalReceived` (QA-6.7) | Known open defect. Record, do not diagnose |
-| **D-4** | Retention is deducted but appears in no ledger as a liability | Known — v1.2 scope |
-| **D-3** | Contractor ledger header totals may not equal the row sum (QA-7.1) | Known — `ledgerUtils` untested |
-| **C-1** | If functions are not deployed, all four privileged ops **fail loud** | Correct behaviour, not a bug |
-| — | `alerts` / `dailySummaries` empty until `dailyJobs` has run | Expected |
-| — | ~15 buttons with no handler | Known (TECH-DEBT G-4) — record which |
-
----
+Read both registers before starting a suite:
+[B — Silent-Danger](./RUNTIME_DIAGNOSTICS.md#3-register-b--🟠-silent-danger) (looks fine, result
+is invalid) and [C — Benign](./RUNTIME_DIAGNOSTICS.md#4-register-c--🟢-benign) (looks broken, is
+not). Register B matters most: **B-1** will make an entire QA session invalid without announcing
+itself.
 
 ## 6. Regression-test policy — every confirmed bug gets a test
 

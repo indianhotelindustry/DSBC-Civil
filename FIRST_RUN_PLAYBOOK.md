@@ -116,59 +116,23 @@ concurrent-receipt totals) are separate and live in [`DEFECT_LOG.md`](./DEFECT_L
 
 ## Step 8 · Known First-Run Diagnostics
 
-The fastest path from a symptom to a cause. **Check the Verification column before acting** —
-several of these look alike from the outside (a blank page and a denied-everything page have
-completely different causes).
+**Moved.** The diagnostics register now lives in one authoritative place:
+**[`RUNTIME_DIAGNOSTICS.md`](./RUNTIME_DIAGNOSTICS.md)**.
 
-### Evidence status
+It carries every symptom with its likely cause, the exact verification step, and the
+resolution — classified by **severity** (🔴 Blocking · 🟠 Silent-Danger · 🟢 Benign) and by
+**evidence level** (✅ Runtime Proven · 🔍 Source Proven · ⏳ Pending Validation).
 
-Each row is marked with how much we actually know:
-
-| Mark | Meaning |
+| If you are… | Go to |
 |---|---|
-| ✅ **Observed** | Reproduced on this codebase, with the exact message captured. Trust the string |
-| ◻ **Derived** | Predicted from source (file:line given), **not yet observed**. The cause is sound; the exact wording may differ |
+| Stuck on a startup failure | [Register A — Blocking](./RUNTIME_DIAGNOSTICS.md#2-register-a--🔴-blocking) |
+| About to trust a QA result | [Register B — Silent-Danger](./RUNTIME_DIAGNOSTICS.md#3-register-b--🟠-silent-danger) |
+| Wondering whether to file something | [Register C — Benign](./RUNTIME_DIAGNOSTICS.md#4-register-c--🟢-benign) |
 
-Stated this way deliberately (NN-7): a troubleshooting table that implies everything was
-tested, when it wasn't, sends people down wrong paths with false confidence.
-
-### A · Blocking failures — the app does not work
-
-| Symptom | Likely cause | Verification | Resolution |
-|---|---|---|---|
-| ✅ **White screen. No UI, no error, nothing.** `<div id="root">` empty | Missing/invalid Firebase API key. `VITE_FIREBASE_*` unset → config falls back to the empty placeholders in `firebase-applet-config.json` | Browser console: **`Uncaught FirebaseError: Firebase: Error (auth/invalid-api-key)`** from `firebase_auth.js`. Thrown by `getAuth(app)` at [`src/lib/firebase.ts:34`](./src/lib/firebase.ts) at **module-evaluation time** — before React renders, which is why `ErrorBoundary` cannot catch it and why there is no error UI | Complete [Firebase provisioning](./FIREBASE_PROVISIONING_GUIDE.md), populate all 7 `VITE_FIREBASE_*` in `.env.local` ([env setup §3](./ENVIRONMENT_SETUP_GUIDE.md)), then **restart the dev server / rebuild** — these are baked at build time |
-| ✅ **Server starts, but every Admin-SDK call fails** | Missing Application Default Credentials | **Server log** (not the browser): `Unable to detect a Project Id in the current environment`, raised from `GoogleAuth.findAndCacheProjectId`. Appears from `[background] Alert Engine failed:` and from `requireAuth` at [`server/authMiddleware.ts:34`](./server/authMiddleware.ts) | `gcloud auth application-default login` and `gcloud config set project <staging-id>` ([env setup §4](./ENVIRONMENT_SETUP_GUIDE.md)). Only needed for `npm run dev`; deployed functions get credentials from their runtime service account automatically |
-| ◻ Sign-in popup opens, closes, nothing happens | Hosting domain not in Firebase **Authorized domains** | Console shows an unauthorized-domain auth error; sign-in never resolves | Add `localhost` + both hosting domains ([provisioning §4.4](./FIREBASE_PROVISIONING_GUIDE.md)) |
-| ◻ `auth/operation-not-allowed` on sign-in | Auth provider not enabled in the console | The error code itself; `auth.ts:32` maps it to *"Authentication method is not enabled"* | Enable **Google** and **Email/Password** ([provisioning §4](./FIREBASE_PROVISIONING_GUIDE.md)) |
-| ◻ **Everything denied** for a valid, approved user | Either the client is on a **named** Firestore DB while functions use `(default)` (**D-3**), or `users/{uid}` is missing / still `PENDING` | Firestore console: does `users/{your-uid}` exist with `status: ACTIVE`? Then check whether `VITE_FIREBASE_FIRESTORE_DATABASE_ID` is set — it must be **unset**. Every rule resolves the role via `get(/users/$(request.auth.uid))`, so a missing doc denies everything | Unset the database-ID variable and rebuild; set `role`/`status` per Step 2 |
-| ◻ `CONFIG_REQUIRED` on work-order create | WO Number Series not configured | The typed error: *"Work Order Number Series is not configured…"* from `workOrderService.create` | Step 3. **There is no timestamp fallback** — this is deliberate |
-| ◻ Privileged ops fail: *"The secure service is temporarily unavailable"* | Functions not deployed, or the Hosting rewrite is wrong | `curl <host>/api/health` — HTML or 404 instead of JSON confirms it. Network tab: `/api/secure/*` returns non-JSON | **This is correct fail-loud behaviour, not a bug.** Deploy functions ([staging plan §2.3](./STAGING_DEPLOYMENT_PLAN.md)) and re-verify §6.1 |
-| ✅ `Could not spawn 'java -version'` on `npm run test:rules` | No JDK on `PATH` — the Firestore emulator is a Java process | The message itself, from firebase-tools | Install a JDK 17+ and set `JAVA_HOME`/`PATH` ([env setup §1](./ENVIRONMENT_SETUP_GUIDE.md)) |
-| ✅ `Could not start Firestore Emulator, port taken` | Another process holds the emulator port | `Get-NetTCPConnection -LocalPort 8085 -State Listen` (on this machine, port **8080** was held by Apache `httpd`, which is why `firebase.json` uses **8085**) | Free the port, or change `firebase.json` → `emulators.firestore.port` **and** the fallback in `tests/rules/helpers.ts` |
-
-### B · Silent-danger failures — it *looks* fine but the result is invalid
-
-**These are the dangerous ones.** Nothing appears broken, so QA proceeds and produces results
-that mean nothing.
-
-| Symptom | Likely cause | Verification | Resolution |
-|---|---|---|---|
-| ◻ A privileged op **succeeds**, but there is **no `/api/secure/*` request** in the network tab | `VITE_ALLOW_CLIENT_FALLBACK` was `"true"` at build time — the weaker client-side path ran instead of the server | Network tab during bill-verify/approve or payment-release. Also check the `auditLogs` entry: a server-performed transition carries **`source: 'server'`** | Set `VITE_ALLOW_CLIENT_FALLBACK="false"`, **rebuild**, redeploy. **Any QA performed in this state is invalid and must be re-run** |
-| ◻ `dailyJobs` reports success but `alerts` / `dailySummaries` stay empty | Missing composite index (**D-2**) — `runAlertEngine` swallows the error in a blanket `catch`, so a failure is indistinguishable from "nothing to alert about" | Firestore console → Indexes → Composite: is `alerts(type▲ relatedId▲ timestamp▲)` **Enabled**? Then check the function log for a `FAILED_PRECONDITION` | `firebase deploy --only firestore:indexes` ([staging plan §2.2](./STAGING_DEPLOYMENT_PLAN.md)) |
-| ◻ **429 "Too many requests"** hits user B because user A was busy | **P0 regression** — the D-1 per-user rate-limit key is not in effect | Two users, ~20 privileged calls each within a minute ([staging plan §4.3](./STAGING_DEPLOYMENT_PLAN.md)) | **Stop QA and report immediately.** Do not work around it |
-
-### C · Benign — expected, do not file as defects
-
-| Symptom | Likely cause | Verification | Resolution |
-|---|---|---|---|
-| ◻ `permission-denied` for **`test/connection`** in the console on every page load | Expected under the current rules. `testConnection()` at [`src/lib/firebase.ts:43-53`](./src/lib/firebase.ts) reads `test/connection` on module load; there is **no `match /test/...` block**, so it is denied by default. The app catches and ignores it — but the Firebase SDK logs it anyway | Browser console. The path is always `test/connection`, and nothing in the UI misbehaves | **Ignore during QA.** Recorded in [`DEFECT_LOG.md`](./DEFECT_LOG.md) §4. A one-line cleanup is a documented follow-up — it is application code and needs approval. *(Not yet observed directly: `getAuth` throws first at line 34, so with an unconfigured project this read never runs. Expect it once config is valid.)* |
-| ✅ Build warning: `@import must precede all other statements` | Google Fonts `@import` at [`src/index.css:5`](./src/index.css) sits after other rules | Appears in `vite build` and dev-server output | Cosmetic, pre-existing. Ignore |
-| ◻ Alerts bell empty; no daily summaries | `dailyJobs` runs at **08:00 Asia/Kolkata** and has not run yet. Client writes are denied by design (`allow create: if false`) | Firestore: `alerts` / `dailySummaries` empty; function has no execution yet | Wait for the scheduled run, or trigger it manually. If it runs and still produces nothing, see §B |
-| ◻ Missing font / broken Google icon on the sign-in button | External CDN fetch blocked (network policy or ad-blocker) — Google Fonts and a `gstatic.com` SVG are the **only** two external runtime dependencies | Network tab: failed requests to `fonts.googleapis.com` / `gstatic.com` | Cosmetic. Ignore |
-| ◻ Slow first load | Single JS chunk, 2.12 MB / 563 kB gzipped | Network tab | Known performance item, tracked in `audit/PERFORMANCE_AUDIT.md` |
-| ◻ ~15 buttons with no handler | Known dead controls (TECH-DEBT G-4) | Clicking does nothing, no console error | Expected. **Do record which ones** — that list is useful |
-
----
+> Kept as a single register deliberately: three overlapping troubleshooting tables previously
+> existed across this playbook, `MANUAL_QA_PLAN.md` and `DEFECT_LOG.md`. Duplicated tables drift,
+> and a drifted troubleshooting table is worse than none. **Add rows to `RUNTIME_DIAGNOSTICS.md`,
+> never here.**
 
 ## Completion
 
