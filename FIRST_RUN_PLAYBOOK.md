@@ -121,7 +121,7 @@ Full register: [`DEFECT_LOG.md`](./DEFECT_LOG.md) §4.
 |---|---|---|
 | Sign-in popup opens then closes, nothing happens | Hosting domain not in **Authorized domains** | Provisioning §4.4 |
 | `auth/operation-not-allowed` | Provider not enabled | Enable Google / Email-Password |
-| App loads blank, console shows Firebase config errors | `VITE_FIREBASE_*` unset → fell back to empty placeholders | Environment setup §3, then **rebuild** |
+| **App loads completely blank — white page, no error UI at all** | `VITE_FIREBASE_*` unset → config falls back to the empty placeholders in `firebase-applet-config.json`. **Verified 2026-07-31 by running the app:** `getAuth(app)` (`src/lib/firebase.ts:34`) throws `Uncaught FirebaseError: Firebase: Error (auth/invalid-api-key)` at **module-evaluation time**, so `<div id="root">` stays empty and React never mounts. `ErrorBoundary` **cannot** catch this — it happens before React renders anything | Set all 7 `VITE_FIREBASE_*` in `.env.local`, then **restart the dev server / rebuild**. Confirm with devtools console: the only Firebase error should be the benign `test/connection` one in §7 |
 | Everything denied for a valid, approved user | Client on a **named** Firestore DB while functions use `(default)`, or `users/{uid}` missing/`PENDING` | Unset `VITE_FIREBASE_FIRESTORE_DATABASE_ID` (**D-3**); check `status: ACTIVE` |
 | `CONFIG_REQUIRED` on work-order create | WO Number Series not configured | Step 3 |
 | Privileged ops fail with "secure service is temporarily unavailable" | Functions not deployed, or the rewrite is wrong | **Correct fail-loud behaviour.** Deploy functions; verify 6.1 |

@@ -204,13 +204,46 @@ app ignores it — but the **Firebase SDK logs the failure to the console anyway
 [`DEFECT_LOG.md`](./DEFECT_LOG.md) §4 so it is not filed. *(A one-line cleanup is possible but
 touches application code — recommendation only.)*
 
-### 7.5 ℹ️ No `engines` field in the root `package.json`
+### 7.5 ⚠️ Misconfiguration produces a silent blank page — **verified by running the app**
+
+The app was launched on 2026-07-31 (`npm run dev`, no `.env.local`) to test this rather than
+reason about it. Result:
+
+| Layer | Outcome |
+|---|---|
+| Express harness | ✅ **Started.** `GET /api/health` → `{"success":true,"message":"ok"}` |
+| Express routing / `createApp()` | ✅ **Verified locally** |
+| `requireAuth` hoisted above the limiter (**D-1**) | ✅ **Verified.** No header → `401 UNAUTHENTICATED "Missing or invalid Authorization header."`; garbage token → `401 "Invalid or expired auth token."` |
+| Vite middleware / SPA HTML | ✅ Served |
+| **React SPA** | ❌ **Never mounted.** `<div id="root">` empty; screenshot is a blank white page |
+
+**Exact cause, from the browser console:**
+```
+Uncaught FirebaseError: Firebase: Error (auth/invalid-api-key)
+  source: firebase_auth.js
+```
+`getAuth(app)` (`src/lib/firebase.ts:34`) throws at **module-evaluation time** because
+`VITE_FIREBASE_API_KEY` is unset and the config falls back to the empty placeholders in
+`firebase-applet-config.json`. Because the throw happens while the module graph is being
+evaluated — before React renders — **`ErrorBoundary` cannot catch it.** The operator sees a
+blank page with no message.
+
+**Recommendation (NOT implemented — application code, needs approval):** validate the Firebase
+config at startup and render a plain configuration-error page instead of throwing. A missing
+env var is the single most likely first-run failure, and it currently produces the least
+diagnosable symptom possible.
+
+Also confirmed in the same run: the background jobs failed with *"Unable to detect a Project Id
+in the current environment"* (no ADC) but were **caught and logged without crashing the
+server** — the blanket `catch` in `runAlertEngine` behaving exactly as documented in D-2.
+
+### 7.6 ℹ️ No `engines` field in the root `package.json`
 
 Nothing prevents a contributor building on Node 18 or 22. `functions/package.json` pins
 `"node": "20"`; the root declares nothing. **Recommendation:** add
 `"engines": { "node": ">=20 <21" }`. Not implemented — it is a repository-config change.
 
-### 7.6 Placeholder inventory — complete
+### 7.7 Placeholder inventory — complete
 
 | Placeholder | File | Intent | Action |
 |---|---|---|---|
@@ -294,3 +327,4 @@ corrections in §7.1–7.2 are documentation fixes, and the three recommendation
 2. Tag `v*` protection enabled.
 3. The release is labelled an **interim increment** — **not** "Platform Stabilization v1.1
    complete." Four of six exit criteria remain open.
+
