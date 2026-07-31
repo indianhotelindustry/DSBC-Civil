@@ -5,7 +5,7 @@
 
 > **Status: QA has NOT started.** No defect can be logged yet, because no deployed
 > environment exists to test against. This file is the register, ready to receive entries the
-> moment staging is live (`STAGING_SETUP_RUNBOOK.md`).
+> moment staging is live ([`STAGING_DEPLOYMENT_PLAN.md`](./STAGING_DEPLOYMENT_PLAN.md)).
 >
 > Recording this plainly rather than pre-populating plausible-looking entries — an empty log
 > that says "empty" is worth more than a log that implies testing happened (NN-7).
@@ -138,5 +138,8 @@ to slip in mid-QA.
 | Environment | **not provisioned** |
 | QA status | **BLOCKED — awaiting staging** |
 
-**Next action:** execute [`STAGING_SETUP_RUNBOOK.md`](./STAGING_SETUP_RUNBOOK.md), pass the
-Step 8 smoke gate, then begin `MANUAL_QA_PLAN.md` QA-1.
+**Next action:** [`FIREBASE_PROVISIONING_GUIDE.md`](./FIREBASE_PROVISIONING_GUIDE.md) →
+[`ENVIRONMENT_SETUP_GUIDE.md`](./ENVIRONMENT_SETUP_GUIDE.md) →
+[`STAGING_DEPLOYMENT_PLAN.md`](./STAGING_DEPLOYMENT_PLAN.md) →
+[`FIRST_RUN_PLAYBOOK.md`](./FIRST_RUN_PLAYBOOK.md) Step 6 smoke gate → begin
+[`MANUAL_QA_PLAN.md`](./MANUAL_QA_PLAN.md) QA-1.
