@@ -4,6 +4,11 @@
 
 > **One register, no duplicates.** `FIRST_RUN_PLAYBOOK.md`, `MANUAL_QA_PLAN.md` and
 > `DEFECT_LOG.md` all point here. Do not copy rows into them — add rows here instead.
+>
+> **Companion:** [`RUNTIME_VALIDATION_EVIDENCE.md`](./RUNTIME_VALIDATION_EVIDENCE.md) is the
+> per-deployment **capture sheet** (checkpoints RV-01 … RV-13, one run per copy). It is not a
+> second register: evidence flows **one way**, from a failed checkpoint there into a new row
+> here. This file stays cumulative and permanent; a capture sheet is a point-in-time record.
 
 ---
 
