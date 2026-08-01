@@ -28,8 +28,10 @@
     "test": "vitest run",
     "test:rules": "firebase emulators:exec --only firestore --project dsbc-civil-rules-test \"vitest run --config vitest.rules.config.ts\"",
     "test:all": "npm test && npm run test:rules",
-    "deploy:hosting": "npm run build && firebase deploy --only hosting",
     "deploy:rules": "firebase deploy --only firestore:rules",
+    "deploy:indexes": "firebase deploy --only firestore:indexes",
+    "deploy:functions": "firebase deploy --only functions",
+    "deploy:hosting": "npm run build && firebase deploy --only hosting",
     "deploy:test": "npm run build && firebase deploy --only hosting,firestore:rules"
   },
   "dependencies": {
