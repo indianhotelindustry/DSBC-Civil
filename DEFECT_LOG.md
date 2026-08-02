@@ -44,7 +44,7 @@ Reproduce  →  Log here + GitHub issue  →  Root-cause  →  Smallest safe fix
 
 | ID | Suite | Severity | Title | Root cause | Fix | Regression test | Status |
 |---|---|---|---|---|---|---|---|
-| **D-1** | Deployment (RV-03) | **P0** | Cloud Functions bundle cannot load — `Dynamic require of "path" is not supported` | ESM output (`"type":"module"` + `--format=esm`) with **inlined CommonJS** deps (express → body-parser → `depd`), which `require()` at module scope | ⏳ **Awaiting approval** — engineering frozen | ⏳ None — see gap note below | **DIAGNOSED** |
+| **D-1** | Deployment (RV-03) | **P0** | Cloud Functions bundle cannot load — `Dynamic require of "path" is not supported` | ESM output (`"type":"module"` + `--format=esm`) with **inlined CommonJS** deps (express → body-parser → `depd`), which `require()` at module scope | ✅ `createRequire` banner + `verify:bundle` load gate (`functions/package.json`) | ✅ `npm run verify:bundle` — proven to fail on the broken artifact | **FIXED — pending deploy re-verification (RV-03)** |
 
 **Severity:** **P0** money can be lost/created/moved without authorisation, or a security
 boundary fails · **P1** a documented workflow cannot be completed · **P2** cosmetic, UX, or
@@ -52,6 +52,75 @@ performance.
 
 **Status:** `OPEN` → `DIAGNOSED` → `FIX_IN_PROGRESS` → `FIXED_PENDING_PR` → `MERGED` ·
 or `ACCEPTED` (known limitation, reason recorded) · `NOT_A_DEFECT`.
+
+### D-1 · [RV-03] `firebase deploy --only functions` fails — the bundle cannot be loaded
+
+- **Severity:** **P0** — blocks AUDIT C-1, sprint criterion 3, and all four privileged operations
+- **Role / environment:** deploy-time, `dsbc-civil-staging`, `v1.0.0-beta.2` @ `58d51e9`
+- **Steps to reproduce:** 1. `npm run deploy:functions` · 2. observe the codebase-analysis step
+- **Expected:** two functions deployed to `asia-south1` — `api` (HTTP) and `dailyJobs` (scheduled)
+- **Actual:** `Error: Functions codebase could not be analyzed successfully`, preceded by
+  `Error: Dynamic require of "path" is not supported` at `functions/lib/index.js:11`
+- **Evidence:** deploy output 2026-08-02; reproduced locally twice —
+  `cd functions && node --input-type=module -e "import('./lib/index.js')"` →
+  `LOAD FAILED: Dynamic require of "path" is not supported`
+- **Known?** Checked against `DEPLOYMENT_BLOCKERS.md`, `audit/TECHNICAL_DEBT.md` and §4 → **new.**
+  It was *masked* by a build gate that never loaded the artifact
+- **Root cause:** `functions/package.json:4` declares `"type": "module"` and the build emitted
+  `--format=esm`, but esbuild **inlines CommonJS dependencies** (express → body-parser → `depd`).
+  `depd` calls `require('path')` at module scope. ESM has no `require`, so esbuild's shim at
+  `lib/index.js:11` throws. `createApp()` runs at module evaluation (`functions/index.ts:24`),
+  so no cold start could ever avoid it
+- **Fix:** committed directly to `release/1.0.0-beta.2` under the Phase D1 directive (not a
+  `fix/*` branch). Two additive changes to `functions/package.json`, no application code:
+  1. `--banner:js="import{createRequire}from'module';const require=createRequire(import.meta.url);"`
+     — defines a real `require` in the ESM output, so esbuild's shim (`typeof require !== "undefined"`)
+     delegates to it instead of throwing.
+  2. A new `verify:bundle` script, chained onto `build` with `&&`.
+
+  **Why this is the smallest safe fix (NN-19):** it changes only how the bundle is *linked*.
+  The alternatives — switching the artifact to CommonJS, or abandoning bundling and shipping
+  `node_modules` — both alter the module system or the deployment shape. This alters neither.
+- **Regression test:** `functions/package.json` → `verify:bundle`, which performs a real ESM
+  `import()` of the built artifact. **Proven in both directions:** exit **1** against a
+  deliberately un-bannered rebuild, exit **0** against the fixed one. A gate that has never been
+  observed to fail is not a gate — that was the original defect
+- **Gates:** tsc ☑ · unit ☑ 204/204 · rules ☑ 177/177 · build ☑ 3,759 modules · functions ☑ (with load check)
+- **GitHub issue:** *(not filed —* `gh` *is not installed on this machine; file manually)*
+
+#### Build-gate improvement — rationale, rollback, residual risk
+
+**Rationale.** `npm run build --prefix functions` proved only that esbuild *emitted* a file. It
+never executed it. That gap let "Cloud Functions bundle builds — ✅ Runtime Proven" stand in the
+register from 2026-07-29 until the first real deploy on 2026-08-02, and the claim was repeated in
+`PROGRAM_STATE.md`, `DEPLOYMENT_BLOCKERS.md` and the release review. **The bundle had never
+loaded, anywhere, at any point.** Only executing the artifact can prove the artifact runs.
+
+**Rollback.** Fully reversible, no data or topology implications:
+```bash
+git revert <commit>          # or drop the two additions from functions/package.json
+npm run build --prefix functions
+```
+The `--banner` flag affects only the emitted file's prologue; removing it restores the previous
+(broken) artifact byte-for-byte. `verify:bundle` is additive — deleting it removes the check and
+nothing else. **Neither the deployed rules nor the indexes are touched by any of this.**
+
+**Residual risks — stated, not hand-waved:**
+1. **The load check is not a functional test.** It proves the module *evaluates* and exports
+   `api` + `dailyJobs`. It does not invoke a handler, reach Firestore, or verify behaviour. A
+   function that loads and then misbehaves still passes. Real proof is **RV-11**.
+2. **`createRequire` resolves relative to the emitted file.** Any future dependency doing a
+   *dynamic* `require(variable)` for a module not inlined by esbuild would still fail — at
+   runtime, on the request path, not at build. Not currently the case; worth knowing.
+3. **Cold-start cost is unmeasured.** The banner adds one `module` import. Expected negligible,
+   but not measured, so not claimed.
+4. **Windows-only verification so far.** The check runs identically in CI (Linux), but that has
+   not been observed yet — it will be on the next CI run.
+5. **The gate is only as good as its `--input-type=module` flag.** Without it, `node -e` runs as
+   CommonJS, `require` exists in scope, and the check reports a **false pass** — the exact trap
+   that caught the first diagnosis attempt. Do not "simplify" that flag away.
+6. **N-1 is now dated, and unrelated to this fix.** Node 20 is decommissioned **2026-10-30**.
+   This fix does not extend that deadline.
 
 ### Entry template
 

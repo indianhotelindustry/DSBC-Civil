@@ -28,13 +28,16 @@ must knowingly accept before one. Nice-to-haves are in
 
 | Blocker | Status | Detail |
 |---|---|---|
-| **Defect D-1** — the Cloud Functions bundle **cannot be loaded by Node**. `firebase deploy --only functions` fails at the codebase-analysis step | ❌ **OPEN — awaiting approval to fix** | ESM output with inlined CommonJS deps; `depd` calls `require('path')` at module scope and ESM has no `require`. Diagnostic **A-10**; defect **D-1** in `DEFECT_LOG.md` |
+| **Defect D-1** — the Cloud Functions bundle **cannot be loaded by Node**. `firebase deploy --only functions` fails at the codebase-analysis step | ✅ **FIXED 2026-08-02 — deploy re-verification pending** | ESM output with inlined CommonJS deps; `depd` calls `require('path')` at module scope and ESM has no `require`. Fixed with a `createRequire` banner plus a `verify:bundle` load gate. Diagnostic **A-10**; defect **D-1** in `DEFECT_LOG.md` |
 
-**Blocks:** RV-03, RV-04, AUDIT **C-1**, sprint **criterion 3**, and every privileged operation.
+**Was blocking:** RV-03, RV-04, AUDIT **C-1**, sprint **criterion 3**, and every privileged
+operation. **Not cleared until RV-03 actually succeeds** — the fix is proven locally, not in
+a deployment.
 
-**Gate weakness that hid it:** `npm run build --prefix functions` only proves esbuild *emitted*
-a file. It never loads it. The bundle has never successfully loaded in any environment, yet was
-recorded as ✅ Runtime Proven since 2026-07-29.
+**Gate weakness that hid it — now closed.** `npm run build --prefix functions` only proved
+esbuild *emitted* a file; it never loaded it. The bundle had never successfully loaded in any
+environment, yet was recorded as ✅ Runtime Proven from 2026-07-29 until the first real deploy.
+The build now performs a real ESM `import()` of the artifact and fails if it cannot load.
 
 ### Previously closed (unchanged)
 
