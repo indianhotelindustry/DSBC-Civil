@@ -5,6 +5,15 @@
 must knowingly accept before one. Nice-to-haves are in
 [`RELEASE_CANDIDATE_CHECKLIST.md`](./RELEASE_CANDIDATE_CHECKLIST.md).
 
+> **⚠️ SUPERSEDED IN PART — 2026-08-02.** The claim below that there are "no remaining
+> engineering blockers" **is no longer true.** The first real deployment attempt found
+> **defect D-1: the Cloud Functions bundle cannot load** (`Dynamic require of "path" is not
+> supported` — diagnostic **A-10**). It is a genuine engineering blocker, and it blocks
+> criterion 3 and AUDIT C-1. See §A below.
+>
+> This is exactly what the "builds ≠ deploys" distinction was warning about, and it was only
+> ever going to be found by deploying. The original text is kept for the record:
+
 > **Bottom line:** there are **no remaining engineering blockers**. Every blocker is either
 > **infrastructure** (provisioning, which requires the owner's Firebase account) or
 > **business-policy** (decisions only the business can make). D-1 and D-2 — the two
@@ -15,7 +24,19 @@ must knowingly accept before one. Nice-to-haves are in
 
 ## A · ENGINEERING BLOCKERS
 
-### ✅ None outstanding.
+### ❌ One outstanding — **defect D-1** (found 2026-08-02, first real deploy attempt)
+
+| Blocker | Status | Detail |
+|---|---|---|
+| **Defect D-1** — the Cloud Functions bundle **cannot be loaded by Node**. `firebase deploy --only functions` fails at the codebase-analysis step | ❌ **OPEN — awaiting approval to fix** | ESM output with inlined CommonJS deps; `depd` calls `require('path')` at module scope and ESM has no `require`. Diagnostic **A-10**; defect **D-1** in `DEFECT_LOG.md` |
+
+**Blocks:** RV-03, RV-04, AUDIT **C-1**, sprint **criterion 3**, and every privileged operation.
+
+**Gate weakness that hid it:** `npm run build --prefix functions` only proves esbuild *emitted*
+a file. It never loads it. The bundle has never successfully loaded in any environment, yet was
+recorded as ✅ Runtime Proven since 2026-07-29.
+
+### Previously closed (unchanged)
 
 | Former blocker | Status | Closed by |
 |---|---|---|
@@ -33,7 +54,7 @@ All five gates green on the integrated branch: `tsc` 0 errors · 204/204 unit ·
 | ID | Item | Becomes blocking if… | Resolution |
 |---|---|---|---|
 | **D-3** | Cloud Functions resolve the Firestore database only from `firebase-applet-config.json`, which is not deployed with the functions package — so they always bind to `(default)` | …the project is created with a **named** (non-default) Firestore database. Client and functions would then read different databases and every privileged operation would 404 | **Use the `(default)` database** (already the recommendation in `docs/FIREBASE_MIGRATION.md` §3.1). Decide at provisioning; no code change needed if `(default)` is used |
-| **N-1** | `functions/package.json` pins `engines.node: "20"` | …Cloud Functions has retired the Node 20 runtime by deploy date | Verify at deploy time; bump to a supported LTS if rejected. One-line change |
+| **N-1** | `functions/package.json` pins `engines.node: "20"` | ⏱️ **NOW DATED — verified at deploy 2026-08-02.** Google's own warning, captured verbatim: *"Runtime Node.js 20 was deprecated on 2026-04-30 and will be decommissioned on **2026-10-30**, after which you will not be able to deploy without upgrading."* **Deploys are still accepted today** — this did not cause defect D-1 — but there is a hard ~3-month clock | Plan the runtime bump before 2026-10-30, as a governed PR. Also flagged at deploy: `firebase-functions` (6.1.1) is outdated and *"there will be breaking changes when you upgrade"* — do **not** bundle that upgrade with the D-1 fix |
 | **S-1** | No `storage.rules` committed; `getStorage()` is initialized but unused | …Firebase Storage is **enabled** at provisioning — it would run on permissive defaults | Leave Storage **disabled** until a feature needs it, or commit least-privilege rules first |
 
 ---

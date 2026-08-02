@@ -1,14 +1,15 @@
 # DEFECT LOG — DSBC Civil QA
 
-**Opened:** 2026-07-30 · **Build under test:** `v1.0.0-beta.2` · **Environment:** staging *(not yet provisioned)*
-**Plan:** [`MANUAL_QA_PLAN.md`](./MANUAL_QA_PLAN.md)
+**Opened:** 2026-07-30 · **Build under test:** `v1.0.0-beta.2` · **Environment:** `dsbc-civil-staging`
+**Plan:** [`MANUAL_QA_PLAN.md`](./MANUAL_QA_PLAN.md) · **Evidence:** [`RUNTIME_VALIDATION_EVIDENCE.md`](./RUNTIME_VALIDATION_EVIDENCE.md)
 
-> **Status: QA has NOT started.** No defect can be logged yet, because no deployed
-> environment exists to test against. This file is the register, ready to receive entries the
-> moment staging is live ([`STAGING_DEPLOYMENT_PLAN.md`](./STAGING_DEPLOYMENT_PLAN.md)).
+> **Status: manual QA has NOT started.** Staging is now partially provisioned — Firestore rules
+> and indexes are deployed — but **Cloud Functions deployment failed (defect D-1)**, so the
+> privileged-operation paths cannot be exercised. Hosting was deliberately **not** deployed:
+> the sequence forbids continuing past a failed layer.
 >
-> Recording this plainly rather than pre-populating plausible-looking entries — an empty log
-> that says "empty" is worth more than a log that implies testing happened (NN-7).
+> The one entry below came from **deployment**, not from QA. Recording that distinction rather
+> than implying a QA pass happened (NN-7).
 
 ---
 
@@ -36,9 +37,14 @@ Reproduce  →  Log here + GitHub issue  →  Root-cause  →  Smallest safe fix
 
 ## 2. Defect register
 
+> **ID namespace note:** these `D-<n>` ids are the **defect** series and are *not* the same as
+> the `D-1`/`D-2`/`D-3` **deployment-blocker** ids in
+> [`DEPLOYMENT_BLOCKERS.md`](./DEPLOYMENT_BLOCKERS.md). Always say "defect D-1" or
+> "blocker D-1" explicitly.
+
 | ID | Suite | Severity | Title | Root cause | Fix | Regression test | Status |
 |---|---|---|---|---|---|---|---|
-| — | — | — | *(no defects logged — QA not started)* | — | — | — | — |
+| **D-1** | Deployment (RV-03) | **P0** | Cloud Functions bundle cannot load — `Dynamic require of "path" is not supported` | ESM output (`"type":"module"` + `--format=esm`) with **inlined CommonJS** deps (express → body-parser → `depd`), which `require()` at module scope | ⏳ **Awaiting approval** — engineering frozen | ⏳ None — see gap note below | **DIAGNOSED** |
 
 **Severity:** **P0** money can be lost/created/moved without authorisation, or a security
 boundary fails · **P1** a documented workflow cannot be completed · **P2** cosmetic, UX, or

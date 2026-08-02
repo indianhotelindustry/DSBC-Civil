@@ -37,7 +37,14 @@ Every entry carries **both** a severity and an evidence level. They answer diffe
 🔍 → ✅ requires captured output. **Inference is never recorded as observation.** If a row's
 evidence level changes, the evidence goes in the row.
 
-**Current register state:** 7 ✅ Runtime Proven · 8 🔍 Source Proven · 8 ⏳ Pending Validation.
+**Current register state:** 8 ✅ Runtime Proven · 8 🔍 Source Proven · 8 ⏳ Pending Validation.
+
+> **⚠️ Demoted 2026-08-02 (NN-21 / NN-7).** "Cloud Functions bundle builds — 1.3 MB ESM
+> exporting `api` + `dailyJobs`" was recorded in §5 as ✅ Runtime Proven. **That claim was
+> measuring the wrong thing.** esbuild emitting a file says nothing about Node being able to
+> load it — and it cannot (**A-10**). The row has been corrected rather than deleted, because
+> how a false ✅ survived is worth remembering: *a gate that never executes the artifact cannot
+> prove the artifact runs.*
 
 ---
 
@@ -53,6 +60,7 @@ evidence level changes, the evidence goes in the row.
 | **A-6** | `CONFIG_REQUIRED` on work-order create | 🔍 **Source Proven** — `src/services/workOrderService.ts:61-67` | WO Number Series not configured | The typed error: *"Work Order Number Series is not configured…"* | Configure Masters → WO Number Series. **There is no timestamp fallback** — removed deliberately to prevent duplicate WO numbers under concurrency |
 | **A-7** | Privileged ops fail: *"The secure service is temporarily unavailable"* | 🔍 **Source Proven** — `src/services/secureApi.ts:80-83` | Functions not deployed, or the Hosting rewrite is misconfigured | `curl <host>/api/health` — HTML or 404 instead of JSON confirms it | **Correct fail-loud behaviour, not a bug.** Deploy functions; re-verify. This is audit finding **C-1** |
 | **A-8** | Sign-in popup opens, closes, nothing happens | ⏳ **Pending Validation** | Hosting domain absent from Firebase **Authorized domains** | Console shows an unauthorized-domain auth error; sign-in never resolves | Add `localhost` + both hosting domains |
+| **A-10** | **`firebase deploy --only functions` fails: `Error: Functions codebase could not be analyzed successfully`**, preceded by `Dynamic require of "path" is not supported` | ✅ **Runtime Proven** — 2026-08-02, reproduced in the deploy **and** twice locally | **The functions bundle cannot load — it never could.** `functions/package.json:4` sets `"type": "module"` and `:10` builds `--format=esm`, but esbuild **inlines CommonJS dependencies** (express → body-parser → `depd`). `depd` calls `require('path')` at module scope; ESM has no `require`, so esbuild's shim throws at `functions/lib/index.js:11`. `createApp()` runs at module evaluation (`functions/index.ts:24`), so the failure is unavoidable at cold start | `cd functions && node --input-type=module -e "import('./lib/index.js')"` → `LOAD FAILED: Dynamic require of "path" is not supported`. **⚠️ `node -e` WITHOUT `--input-type=module` reports a FALSE PASS** — that script runs as CommonJS, where `require` exists in scope and the shim silently delegates to it | **Open defect D-1.** Fix requires approval — engineering is frozen. **The `npm run build --prefix functions` gate does NOT catch this**: it proves esbuild *emitted* a file, never that Node can *load* it |
 | **A-9** | `auth/operation-not-allowed` on sign-in | ⏳ **Pending Validation** — mapping exists at `src/services/auth.ts:32` | Auth provider not enabled in console | The error code; the app maps it to *"Authentication method is not enabled"* | Enable **Google** and **Email/Password** |
 
 ## 3. Register B — 🟠 Silent-Danger
@@ -97,7 +105,7 @@ Recorded so they are not re-tested, and so a later regression is obvious.
 | **D-1 middleware ordering** — no auth header → `401 UNAUTHENTICATED "Missing or invalid Authorization header."`; garbage token → `401 "Invalid or expired auth token."` | ✅ Runtime Proven 2026-07-31 |
 | Vite middleware serves the SPA shell | ✅ Runtime Proven 2026-07-31 |
 | Background jobs fail on absent ADC but are caught and logged **without crashing the server** | ✅ Runtime Proven 2026-07-31 |
-| Cloud Functions bundle builds — 1.3 MB ESM exporting `api` + `dailyJobs` | ✅ Runtime Proven 2026-07-29 |
+| ~~Cloud Functions bundle builds — 1.3 MB ESM exporting `api` + `dailyJobs`~~ **← DEMOTED 2026-08-02** | ❌ **Withdrawn.** esbuild *emits* the 1.3 MB file, but Node **cannot load it** — see **A-10**. The bundle has never been successfully loaded, in any environment. Do not cite this as evidence of anything |
 | 381 automated tests pass (204 unit/config + 177 rules) | ✅ Runtime Proven 2026-07-31 |
 
 ## 6. Not yet verifiable — requires a deployed environment
