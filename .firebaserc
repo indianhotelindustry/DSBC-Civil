@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "REPLACE_WITH_NEW_FIREBASE_PROJECT_ID"
+    "default": "dsbc-civil-staging",
+    "staging": "dsbc-civil-staging"
   }
 }
