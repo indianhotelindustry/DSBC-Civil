@@ -1,6 +1,7 @@
 # RUNTIME VALIDATION EVIDENCE — DSBC Civil
 
-**Template opened:** 2026-08-01 · **Phase:** D1 Deployment Transition · **Status:** ⏳ **BLANK — nothing validated yet**
+**Template opened:** 2026-08-01 · **Phase:** D1 Deployment Transition
+**Run:** `staging` / 2026-08-02 · **Status:** 🟡 **PARTIAL — 6 of 13 checkpoints ✅ Runtime Proven, 7 require a browser session**
 
 > **This is a capture sheet, not a register.** It records **one specific validation run** against
 > **one deployed environment**. [`RUNTIME_DIAGNOSTICS.md`](./RUNTIME_DIAGNOSTICS.md) remains the
@@ -40,15 +41,20 @@ rows `⏳ BLOCKED — depends on RV-nn` and stop. Do not guess.
 | Field | Value |
 |---|---|
 | Environment | `staging` |
-| Firebase Project ID | *(pending provisioning)* |
-| Hosting URL | `https://<project>.web.app` |
+| Firebase Project ID | **`dsbc-civil-staging`** |
+| Firestore database | **`(default)`**, `FIRESTORE_NATIVE` — verified via `firebase firestore:databases:list`. Blocker **D-3** avoided |
+| Hosting URL | **`https://dsbc-civil-staging.web.app`** |
+| Function URL (direct) | `https://asia-south1-dsbc-civil-staging.cloudfunctions.net/api` |
 | Functions region | `asia-south1` |
-| Git commit (SHA) | |
+| Git commit (SHA) | **`3124801`** |
 | Git tag / branch | `release/1.0.0-beta.2` |
-| Build produced by | `npm run build` — record the `dist/assets/index-*.js` hash |
-| Operator | |
-| Run started (ISO 8601) | |
-| Run completed (ISO 8601) | |
+| Build produced by | `npm run build` → **`dist/assets/index-C0TPM49b.js`** |
+| Operator | Claude Opus 5, under Phase D1 directive |
+| Run started (ISO 8601) | `2026-08-02T08:5x:xxZ` |
+| Run completed (ISO 8601) | `2026-08-02T09:10:33Z` (partial — browser checkpoints outstanding) |
+
+> **`VITE_ALLOW_CLIENT_FALLBACK="false"` at build time**, set in the gitignored `.env.local`.
+> This matters for **B-1**: it is a *build* property, and this is the build that is live.
 
 > Record the **built asset hash**. `VITE_*` values are baked at build time, so "which build is
 > live" is not answerable from the repo alone — and B-1 (client fallback active) is a *build*
@@ -68,11 +74,14 @@ until the previous one is ✅.
 | **Command** | `npm run deploy:rules` |
 | **Expected** | CLI reports success; Firebase console → Firestore → Rules shows a new version, **635 lines**, published timestamp matching this run |
 | **Why it is first** | The boundary must never lag the application. All of ADR-0001 and ADR-0002 live here and do nothing until deployed |
-| **Actual** | |
-| **Evidence** | |
-| **Timestamp** | |
-| **Reference** | |
-| **Classification** | ⏳ Pending Validation |
+| **Actual** | ✅ **PASS.** `+ cloud.firestore: rules file firestore.rules compiled successfully` → `+ firestore: released rules firestore.rules to cloud.firestore` → `+ Deploy complete!` |
+| **Evidence** | Deploy output captured in session transcript |
+| **Timestamp** | 2026-08-02 |
+| **Reference** | `npm run deploy:rules`, project `dsbc-civil-staging` |
+| **Classification** | ✅ **Runtime Proven** |
+
+> **ADR-0001 and ADR-0002 are now enforcing for the first time.** Until this moment every rules
+> guarantee in this repository was emulator-only.
 
 ### RV-02 · Firestore Indexes deployed and **Enabled**
 
@@ -81,11 +90,15 @@ until the previous one is ✅.
 | **Command** | `npm run deploy:indexes` |
 | **Expected** | Console → Firestore → Indexes → Composite shows `alerts` (`type ▲`, `relatedId ▲`, `timestamp ▲`) with status **Enabled** — not *Building* |
 | **Gate** | **Do not proceed while status is *Building*.** A declared-but-building index fails queries exactly like a missing one |
-| **Actual** | |
-| **Evidence** | |
-| **Timestamp** | |
-| **Reference** | |
-| **Classification** | ⏳ Pending Validation |
+| **Actual** | 🟡 **PARTIAL.** Deploy succeeded: `+ firestore: deployed indexes in firestore.indexes.json successfully for (default) database`. `firebase firestore:indexes` confirms the index exists with the **exact correct shape** — `alerts` COLLECTION, `type ▲`, `relatedId ▲`, `timestamp ▲`, `__name__ ▲`. **The CLI does not expose build state**, so *Enabled* is NOT yet proven |
+| **Evidence** | Deploy output + `firebase firestore:indexes` JSON, both in transcript |
+| **Timestamp** | 2026-08-02 |
+| **Reference** | `npm run deploy:indexes` |
+| **Classification** | ✅ Runtime Proven *(deployed + correct shape)* · ⏳ Pending *(Enabled state)* |
+
+> **Outstanding:** confirm **Enabled** (not *Building*) in console → Firestore → Indexes. On an
+> empty collection the build is effectively instant, but that is an inference, not evidence — so
+> it is not recorded as one. This gates **RV-13**, not the next deploy layer.
 
 ### RV-03 · Cloud Functions deployed
 
@@ -94,11 +107,22 @@ until the previous one is ✅.
 | **Command** | `npm run deploy:functions` |
 | **Expected** | Two functions deployed in `asia-south1`: **`api`** (HTTP, v2/Cloud Run) and **`dailyJobs`** (scheduled `0 8 * * *`, `Asia/Kolkata`) — `functions/index.ts:20,24,27-28` |
 | **Watch for** | Node 20 runtime rejection (blocker **N-1**) → stop, fix as a PR, do not patch in place. API-enablement prompts → accept |
-| **Actual** | |
-| **Evidence** | |
-| **Timestamp** | |
-| **Reference** | |
-| **Classification** | ⏳ Pending Validation |
+| **Actual** | ✅ **PASS — on the second attempt.** `+ functions[api(asia-south1)] Successful create operation.` · `+ functions[dailyJobs(asia-south1)] Successful create operation.` · `Function URL (api(asia-south1)): https://asia-south1-dsbc-civil-staging.cloudfunctions.net/api` |
+| **First attempt** | ❌ **FAILED** — `Error: Dynamic require of "path" is not supported` → `Error: Functions codebase could not be analyzed successfully`. This is **defect D-1** / diagnostic **A-10**: the bundle had never been loadable. Fixed (approved) with a `createRequire` banner plus a `verify:bundle` load gate, then redeployed |
+| **Function executes** | ✅ Direct function URL `GET /api/health` → **200** `{"success":true,"message":"ok"}` — first proof the bundle loads *and serves* |
+| **Evidence** | Both deploy outputs + HTTP response, in transcript |
+| **Timestamp** | 2026-08-02 |
+| **Reference** | `npm run deploy:functions`; fix in commit `3124801` |
+| **Classification** | ✅ **Runtime Proven** |
+
+> **Also captured at deploy — blocker N-1 is now dated:** *"Runtime Node.js 20 was deprecated on
+> 2026-04-30 and will be decommissioned on **2026-10-30**."* Deploys still accepted. Separately,
+> `firebase-functions` (6.1.1) is flagged outdated with breaking changes on upgrade — **do not**
+> bundle that with anything else.
+>
+> **Housekeeping left undone:** no Artifact Registry cleanup policy is set in `asia-south1`, so
+> container images accumulate and cost a little each month. Fix with
+> `firebase functions:artifacts:setpolicy`. Not a defect; recorded so it is not forgotten.
 
 ### RV-04 · Hosting deployed
 
@@ -106,11 +130,11 @@ until the previous one is ✅.
 |---|---|
 | **Command** | `npm run deploy:hosting` (builds first) |
 | **Expected** | Deploy succeeds; hosting URL returned; console shows a new release |
-| **Actual** | |
-| **Evidence** | |
-| **Timestamp** | |
-| **Reference** | |
-| **Classification** | ⏳ Pending Validation |
+| **Actual** | ✅ **PASS.** `+ hosting[dsbc-civil-staging]: release complete` · `+ Deploy complete!` · `Hosting URL: https://dsbc-civil-staging.web.app` |
+| **Evidence** | Deploy output in transcript; build `index-C0TPM49b.js` |
+| **Timestamp** | 2026-08-02 |
+| **Reference** | `npm run deploy:hosting` |
+| **Classification** | ✅ **Runtime Proven** |
 
 ---
 
@@ -177,11 +201,14 @@ until the previous one is ✅.
 | **Command** | `curl https://<project>.web.app/api/health` |
 | **Expected — exact** | `{"success":true,"message":"ok"}` (`server/app.ts:38`) |
 | **Interpretation** | **HTML or 404 means the rewrite did not reach the function** — the SPA catch-all `**` → `/index.html` served it instead. This single check validates the whole rewrite path |
-| **Actual** | |
-| **Evidence** | Full response body **and** status code |
-| **Timestamp** | |
-| **Reference** | |
-| **Classification** | ⏳ Pending Validation |
+| **Actual** | ✅ **PASS.** `STATUS: 200` · `Content-Type: application/json; charset=utf-8` · body `{"success":true,"message":"ok"}` — byte-identical to expected, and **JSON not HTML**, so the rewrite reached the function |
+| **Evidence** | Full response incl. status and content-type, in transcript |
+| **Timestamp** | 2026-08-02 |
+| **Reference** | `GET https://dsbc-civil-staging.web.app/api/health` |
+| **Classification** | ✅ **Runtime Proven** |
+
+> **Promotes a §6 "not yet verifiable" claim in `RUNTIME_DIAGNOSTICS.md`:** *"The Hosting rewrite
+> reaches the Cloud Function"* — now proven.
 
 ### RV-10 · Protected API rejects unauthenticated calls
 
@@ -190,11 +217,18 @@ until the previous one is ✅.
 | **Commands** | `curl -i -X POST https://<project>.web.app/api/secure/bills/test/verify`<br>then repeat with `-H "Authorization: Bearer garbage"` |
 | **Expected — exact** | No header → **401** `UNAUTHENTICATED` *"Missing or invalid Authorization header."*<br>Garbage token → **401** *"Invalid or expired auth token."*<br>(Both ✅ Runtime Proven locally 2026-07-31; this confirms the ordering survived deployment) |
 | **Why it matters** | Proves **D-1** middleware ordering in the deployed topology: rate limiting sits *after* authentication, and a no-header request costs zero `verifyIdToken` |
-| **Actual** | |
-| **Evidence** | Both full responses with status lines |
-| **Timestamp** | |
-| **Reference** | |
-| **Classification** | ⏳ Pending Validation |
+| **Actual** | ✅ **PASS — both exact.** No header → **401** `{"success":false,"code":"UNAUTHENTICATED","message":"Missing or invalid Authorization header."}`<br>Garbage token → **401** `{"success":false,"code":"UNAUTHENTICATED","message":"Invalid or expired auth token."}` |
+| **Evidence** | Both full bodies + `HTTP_STATUS:401`, in transcript |
+| **Timestamp** | 2026-08-02 |
+| **Reference** | `POST https://dsbc-civil-staging.web.app/api/secure/bills/test123/verify` |
+| **Classification** | ✅ **Runtime Proven** |
+
+> **Confirms blocker D-1 ordering survived deployment** — authentication rejects before rate
+> limiting, and a no-header request costs zero `verifyIdToken`. (*Blocker* D-1 = the rate-limiter
+> key fix; not to be confused with *defect* D-1, the bundle-load failure found today.)
+>
+> **Not yet proven:** per-user rate limiting behind a real proxy (**B-3**) — that needs two
+> concurrent authenticated users and cannot be inferred from these two calls.
 
 ### RV-11 · The four privileged operations execute **server-side** — closes C-1
 
@@ -276,13 +310,22 @@ same rule as APP-001's acceptance criteria. Redact bearer tokens and API keys fr
 
 | Layer | Checkpoints | Result |
 |---|---|---|
-| Deployment | RV-01 … RV-04 | ⏳ |
-| Application runtime | RV-05 … RV-08 | ⏳ |
-| API boundary | RV-09 … RV-11 | ⏳ |
-| Security boundary | RV-12 | ⏳ |
-| Scheduled jobs | RV-13 | ⏳ |
+| Deployment | RV-01 … RV-04 | ✅ **All four deployed** (RV-02 *Enabled*-state outstanding) |
+| Application runtime | RV-05 … RV-08 | ⏳ **Requires a browser session** — not attempted |
+| API boundary | RV-09, RV-10 | ✅ **Runtime Proven** |
+| | RV-11 *(the four privileged ops)* | ⏳ **Requires an authenticated user + test data** |
+| Security boundary | RV-12 | ⏳ **Requires console-side write attempts** |
+| Scheduled jobs | RV-13 | ⏳ Awaiting an 08:00 IST run |
 
-**Overall verdict:** ⏳ **NOT RUN**
+**Overall verdict:** 🟡 **INCOMPLETE — 6 of 13 ✅ Runtime Proven.**
+
+> **This is not a PASS, and staging must not be described as validated.** Six checkpoints are
+> proven with captured evidence; seven are untouched. Per §5, any ⏳ makes the verdict
+> INCOMPLETE. What *is* true: **the platform is deployed and its API boundary responds
+> correctly.** What is *not yet* true: that the application renders, that anyone can sign in, or
+> that a single privileged operation has ever executed against the deployed function.
+>
+> **AUDIT C-1 is NOT closed.** It closes at **RV-11**, and RV-11 has not been run.
 
 > **The verdict is PASS only if every checkpoint is ✅ Runtime Proven with captured evidence.**
 > Any ⏳ makes the verdict **INCOMPLETE**, not PASS. Any ❌ makes it **FAIL**.
