@@ -3860,6 +3860,6307 @@ into exactly the negotiation LI-26 prohibits.
 
 ---
 
-> **End of Parts 1–8.**
-> Continues with **Part 9 — Business Rules**, **Part 10 — Risk & Leakage Model**, and
-> **Part 11 — Evidence, Audit & Investigation**.
+# PART 9 — BUSINESS RULES
+
+## 9.1 Status and authority of this Part
+
+Part 9 is **third in the order of constitutional authority** (§ How to read this document): below the
+Immutable Laws and the Constitutional Principles, above every other part of this document.
+
+A **Business Rule** is a binding statement about how the enterprise behaves. It differs from an
+Immutable Law in exactly one respect: **a Law admits no exception whatever; a Rule may admit a
+defined, attributed, counted exception.** Every rule below therefore carries an explicit exception
+policy, and where that policy reads **"None"**, the rule is operating at Law-equivalent strength and
+no authority in the enterprise may relax it.
+
+> **The rule catalogue is not a checklist for implementers. It is the enumerated behaviour of a
+> conforming construction enterprise.** An implementation that satisfies every rule has not
+> "implemented CAP-WFC-01"; it has become capable of conforming to it. Conformance is demonstrated
+> by evidence (Part 11), not by feature presence.
+
+### 9.1.1 Rule specification format
+
+Every rule is specified with the following attributes. Where an attribute is genuinely inapplicable
+it reads **"—"**; it is never omitted, because an omitted attribute is an undefined term and by
+**LA-2 every undefined term is a leakage site.**
+
+| Attribute | Meaning |
+|---|---|
+| **Identifier** | Domain prefix + sequence. Permanent; never reused, never renumbered |
+| **Statement** | The binding behaviour, in one sentence, in the normative language of § How to read |
+| **Rationale** | Why the enterprise requires this. A rule whose rationale cannot be stated is a habit, not a rule |
+| **Trigger** | The business event at which the rule is evaluated |
+| **Preconditions** | What must already be true for the rule to be evaluable |
+| **Mandatory actions** | What MUST happen |
+| **Prohibited actions** | What MUST NOT happen |
+| **Exception policy** | Who may relax it, on what authority, for how long — or **None** |
+| **Laws** | The Immutable Law(s) the rule enforces |
+| **Cross-references** | Related rules, objects, lifecycles, formulae, risks |
+
+### 9.1.2 Rule domains
+
+| # | Prefix | Domain | Rules |
+|---|---|---|---|
+| 1 | **WRK** | Workforce identity and engagement | WRK-01…14 |
+| 2 | **CLB** | Company (directly engaged) labour | CLB-01…12 |
+| 3 | **CTL** | Contractor labour | CTL-01…14 |
+| 4 | **BRL** | Borrowed, supplied and intermediated labour | BRL-01…14 |
+| 5 | **GNG** | Gang management | GNG-01…10 |
+| 6 | **DEP** | Deployment | DEP-01…11 |
+| 7 | **ASG** | Work assignment | ASG-01…11 |
+| 8 | **ATT** | Attendance | ATT-01…20 |
+| 9 | **LAB** | Statutory labour obligations and welfare | LAB-01…14 |
+| 10 | **WGR** | Wage rates | WGR-01…12 |
+| 11 | **DWG** | Daily wages | DWG-01…10 |
+| 12 | **WKS** | Weekly and periodic settlement | WKS-01…12 |
+| 13 | **PCR** | Piece-rate work | PCR-01…10 |
+| 14 | **PRD** | Productivity | PRD-01…09 |
+| 15 | **MSR** | Measurement | MSR-01…18 |
+| 16 | **MBK** | Measurement Book | MBK-01…12 |
+| 17 | **RBL** | Running bills | RBL-01…18 |
+| 18 | **EVL** | Earned value | EVL-01…10 |
+| 19 | **PEL** | Payment eligibility | PEL-01…14 |
+| 20 | **ADV** | Advances | ADV-01…14 |
+| 21 | **REC** | Recoveries | REC-01…16 |
+| 22 | **RET** | Retention | RET-01…12 |
+| 23 | **VAR** | Variation orders | VAR-01…12 |
+| 24 | **OVR** | Manual overrides | OVR-01…10 |
+| 25 | **FIN** | Financial integrity | FIN-01…16 |
+| 26 | **EXC** | Exception handling | EXC-01…10 |
+| 27 | **SEC** | Security and access | SEC-01…12 |
+| 28 | **AUD** | Audit | AUD-01…12 |
+| 29 | **CLS** | Contract closure | CLS-01…14 |
+| | | **Total** | **373 rules** |
+
+## 9.2 Higher-order governing principles
+
+Before the catalogue: **twenty-four governing principles that consolidate recurring rule patterns.**
+Each principle stands in place of the dozens of near-identical rules that would otherwise be needed
+in every domain. **Where a specific rule and a governing principle appear to conflict, the specific
+rule governs its own domain and the principle governs everywhere else.**
+
+> **Why consolidation matters constitutionally.** A catalogue of five hundred unconnected rules is
+> unlearnable, and an unlearnable rule set is obeyed by the system and ignored by the organisation.
+> These principles are what a competent officer can hold in their head. **The catalogue is what the
+> enterprise proves.**
+
+| # | Governing principle | Consolidates |
+|---|---|---|
+| **GP-01** | **Nothing financial exists without an authorising instrument in force at the effective date.** Every amount, rate, limit, percentage, and entitlement resolves to an instrument, by date. | ~40 rules across WGR, RBL, ADV, RET, VAR |
+| **GP-02** | **Every evidentiary record is created by the party who observed the fact, at the time and place of the fact.** | ATT, MSR, MBK |
+| **GP-03** | **Every financial record is created by one party, verified by a second, approved by a third, and executed by a fourth.** No two of these are the same person for the same transaction. | RBL, WKS, PEL, ADV, FIN |
+| **GP-04** | **Nothing is consumed twice.** Every evidentiary unit — a worker-day, a measured quantity, an issued item, an approved variation — carries a consumption marker and is structurally unusable once consumed. | ATT, MSR, RBL, BRL |
+| **GP-05** | **Every computation is cumulative and self-correcting.** No financial position is derived by accumulating period figures forward. | RBL, EVL, ADV, REC, RET, CLS |
+| **GP-06** | **Every amount owed to the enterprise is deducted before value leaves.** Recovery is never pursued after disbursement where it could have been deducted before it. | REC, ADV, RET, PEL, CLS |
+| **GP-07** | **Every ceiling is absolute and rises only by formal instrument.** Contract value, delegated limit, retention cap, deduction limit, advance limit — all behave identically. | RBL, VAR, ADV, PEL, SEC |
+| **GP-08** | **Every record is append-only.** Correction is supersession; the erroneous record remains permanently visible with its successor. | All domains |
+| **GP-09** | **Every control declares its own execution, including its failure to execute.** Silence is never success. | AUD, EXC, FIN |
+| **GP-10** | **Every deviation is attributed, time-boxed, counted against its authoriser, and reported by frequency.** | OVR, EXC, AUD |
+| **GP-11** | **Every figure is drillable to primary evidence without human explanation.** | FIN, AUD, EVL |
+| **GP-12** | **The worker's statutory entitlement outranks every commercial consideration in this capability.** | LAB, DWG, WKS, BRL |
+| **GP-13** | **A claim is never evidence.** Any assertion by a party who benefits from it requires independent corroboration before it can support value. | CTL, BRL, RBL, MSR |
+| **GP-14** | **Absence is never consent.** No approval, acceptance, validation, or entitlement arises from silence, inaction, or the expiry of a review window. | All domains |
+| **GP-15** | **Identity is enterprise-wide and permanent.** Workers, contractors, measurements, bills, and vouchers are unique across the enterprise and across time, never per project or per period. | WRK, ATT, MSR, BRL |
+| **GP-16** | **Where a financial control cannot execute, the transaction stops.** Missing data is never treated as zero, nil, or nothing-to-recover. | FIN, REC, PEL |
+| **GP-17** | **Rates, limits, statutes, and authorities are time-versioned and resolve by the effective date of the work**, never by the date of computation, approval, or payment. | WGR, MSR, RBL, SEC, LAB |
+| **GP-18** | **Splitting to evade a threshold is the same offence as breaching it.** Bills, vouchers, advances, and measurements are tested against cumulative position, not instance size. | PEL, SEC, ADV, RBL |
+| **GP-19** | **The counterparty may see the derivation of their own entitlement.** | CTL, BRL, RBL, LAB |
+| **GP-20** | **Every open obligation ages, and age escalates automatically.** Nothing sits unresolved indefinitely: disputes, recoveries, deferrals, unbilled measurements, unsettled attendance. | REC, MSR, EXC, CLS |
+| **GP-21** | **The enterprise measures its own controls.** Every rule in this Part has a detection mechanism, and the rate at which each fires is reported to accountable officers. | AUD, FIN, PRD |
+| **GP-22** | **Concealment is the trigger for maximum verification.** Any work, quantity, or fact that will become unverifiable is verified at maximum strength before it becomes so. | MSR, MBK, AUD |
+| **GP-23** | **Two independent records of the same fact must reconcile, and the reconciliation is a control, not a report.** | FIN, PRD, REC, AUD |
+| **GP-24** | **No actor may occupy a position from which they can both cause a loss and conceal it.** This is separation of duties stated as its purpose rather than as a list. | SEC, AUD, OVR, FIN |
+
+---
+
+## 9.3 Domain WRK — Workforce identity and engagement
+
+> *Establishes who exists, who may be paid, and under what authority. Every phantom-labour scenario
+> in Part 10 begins with a failure in this domain.*
+
+**WRK-01 — An unidentified person MUST NOT be paid.**
+- **Rationale.** Payment to an unidentified person is indistinguishable from payment to no person, which is leakage form L1 in its purest form and undetectable in principle (§ 2.3 D-13).
+- **Trigger.** Any wage settlement or labour payment.
+- **Preconditions.** A Worker record (OBJ-01) in state `REGISTERED` or later.
+- **Mandatory.** Establish and record a durable identity before any attendance may be validated.
+- **Prohibited.** Payment against a name, a headcount, or a gang total without underlying identities.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2, LAW-5. **Cross-refs.** § 5.2, LI-16, GP-15, RSK-01.
+
+**WRK-02 — Worker identity MUST be unique across the entire enterprise and permanent across time.**
+- **Rationale.** Per-project or per-contractor identity makes one human being into several records, and duplicate attendance becomes structurally invisible (§ 5.2).
+- **Trigger.** Worker registration; re-engagement after a gap; transfer between contractors or projects.
+- **Preconditions.** A single enterprise-wide identity register exists.
+- **Mandatory.** Search the enterprise register before creating any new worker identity; re-use the existing identity on re-engagement.
+- **Prohibited.** Creating a second identity for a person already registered; deriving identity from the contractor.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2, LAW-5. **Cross-refs.** WRK-03, ATT-06, BRL-04, GP-15, XCP-02.
+
+**WRK-03 — Where documentary identity is unavailable, an alternative durable identity MUST be established.**
+- **Rationale.** Much of the construction workforce is genuinely undocumented (§ 1.4.3). Refusing to record such workers does not remove them from site; it removes them from control while they continue to be paid.
+- **Trigger.** Registration of a worker who cannot produce documentary identity.
+- **Preconditions.** A defined alternative-identity method (biometric or photographic with supervisor attestation).
+- **Mandatory.** Capture the alternative identity; record the attesting supervisor; record the reason documentary identity was unavailable.
+- **Prohibited.** Treating undocumented status as a bar to registration; paying an undocumented worker without alternative identity.
+- **Exception policy.** **None** — the method may vary; the requirement may not.
+- **Laws.** LAW-2, LAW-5. **Cross-refs.** § 5.2, LAB-03, RSK-02.
+
+**WRK-04 — A worker record MUST NOT be deleted, at any time, for any reason.**
+- **Rationale.** A worker found to be fictitious is the single most valuable record in an investigation; deleting it destroys the evidence of the leakage it caused.
+- **Trigger.** Discovery of a fictitious, duplicate, or erroneous worker record.
+- **Preconditions.** —
+- **Mandatory.** Mark the record with its finding; retain every record referencing it; raise an exception (LC-12).
+- **Prohibited.** Deletion; merge that discards history; anonymisation that breaks the reference chain.
+- **Exception policy.** **None.** Statutory erasure obligations, where they exist, are satisfied by restricting access, never by destroying the financial chain.
+- **Laws.** LAW-11. **Cross-refs.** GP-08, AUD-09, SEC-11.
+
+**WRK-05 — Every worker MUST be classified by trade and skill grade, and the classification MUST be evidenced.**
+- **Rationale.** Trade and grade determine the wage rate and the statutory minimum. An unclassified or over-classified worker is a permanent, silent rate leakage (L7).
+- **Trigger.** Registration; change of trade or grade.
+- **Preconditions.** An enterprise trade-and-grade schedule with effective dates.
+- **Mandatory.** Record the classification, its evidence (skill test, experience attestation, certification), and its effective date.
+- **Prohibited.** Grade assigned by the Mate or by the worker's own assertion alone; retrospective upgrade applied to already-settled periods.
+- **Exception policy.** Provisional classification for up to one settlement period, recorded, then confirmed or corrected.
+- **Laws.** LAW-5. **Cross-refs.** WGR-02, LAB-06, RSK-31.
+
+**WRK-06 — Engagement type MUST be recorded for every worker and MUST be current.**
+- **Rationale.** Direct, contractor, supplier, and borrowed engagement carry different payment paths, different statutory exposures, and different control requirements. An unknown engagement type means an unknown control set.
+- **Trigger.** Engagement; transfer; change of intermediary.
+- **Preconditions.** WRK-01, WRK-02.
+- **Mandatory.** Record engagement type with effective dates; close the prior engagement on the same date the new one opens.
+- **Prohibited.** Overlapping open engagements for one worker; retrospective change of engagement type over a settled period.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** BRL-02, DEP-04, GP-15.
+
+**WRK-07 — A worker MUST NOT be engaged under two intermediaries simultaneously.**
+- **Rationale.** Dual intermediation is the mechanism by which one person's attendance is billed twice by two suppliers who never meet (L2).
+- **Trigger.** Engagement or supply of a worker already engaged.
+- **Preconditions.** Enterprise-wide identity (WRK-02).
+- **Mandatory.** Reject the second engagement; raise an exception naming both intermediaries.
+- **Prohibited.** Warning-only treatment; resolution by allowing both and reconciling later.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2, LAW-4. **Cross-refs.** BRL-05, ATT-06, LI-16, XCP-02.
+
+**WRK-08 — A blacklisted worker MUST NOT be engaged, deployed, or paid other than for established arrears.**
+- **Rationale.** Blacklisting that does not bind at deployment is a record-keeping gesture.
+- **Trigger.** Deployment; attendance validation; settlement.
+- **Preconditions.** A blacklisting decision with recorded cause and authority.
+- **Mandatory.** Block engagement enterprise-wide; permit settlement of arrears already earned.
+- **Prohibited.** Withholding wages already earned as a punitive measure — that is a statutory matter, not a control matter.
+- **Exception policy.** Revocation of blacklisting by the authority above the one that imposed it, recorded.
+- **Laws.** LAW-2, LAW-8 context. **Cross-refs.** LAB-11, SEC-08.
+
+**WRK-09 — Contractor registration MUST establish legal identity, statutory registration, and banking identity before any engagement instrument becomes ACTIVE.**
+- **Rationale.** The enterprise's principal-employer exposure (§ 4.4) attaches whether or not it verified the counterparty. Verification after award is verification without leverage.
+- **Trigger.** Contractor empanelment; first engagement.
+- **Preconditions.** —
+- **Mandatory.** Record legal constitution, statutory registrations with validity dates, and the banking identity to which disbursement will be made.
+- **Prohibited.** Activation of an instrument against an unverified counterparty; payment to a banking identity not recorded against the contractor.
+- **Exception policy.** **None** for banking identity. Statutory registration may be conditionally accepted for a bounded period, recorded and counted, where the law permits.
+- **Laws.** LAW-4, LAW-5. **Cross-refs.** § 6.2 E-6, SEC-06, RSK-52.
+
+**WRK-10 — A change of contractor banking identity MUST be verified independently of the request.**
+- **Rationale.** Payee substitution is among the highest-value, lowest-effort frauds available to anyone with access to correspondence, and it succeeds because the request looks routine.
+- **Trigger.** Any request to change payee bank details.
+- **Preconditions.** WRK-09.
+- **Mandatory.** Verify through a channel independent of the one that carried the request; record the verification, the verifier, and the prior details; retain the change history permanently.
+- **Prohibited.** Change effected by the actor who received the request; change applied to a voucher already approved (LI-23).
+- **Exception policy.** **None.**
+- **Laws.** LAW-4, LAW-11. **Cross-refs.** LC-10, SEC-07, RSK-46.
+ 
+**WRK-11 — A contractor MUST NOT hold an internal verification, measurement, or approval role.**
+- **Rationale.** SOD-6 stated as an operating rule. A counterparty verifying its own entitlement is not a control weakness; it is the absence of control.
+- **Trigger.** Role assignment; delegation; temporary cover during absence.
+- **Preconditions.** —
+- **Mandatory.** Structurally prevent the assignment.
+- **Prohibited.** Temporary or emergency assignment "because the officer is on leave".
+- **Exception policy.** **None.**
+- **Laws.** LAW-4. **Cross-refs.** SOD-6, SEC-03, GP-24.
+
+**WRK-12 — Suspension of a contractor MUST NOT suspend the enterprise's recovery rights or the contractor's earned entitlement.**
+- **Rationale.** Conflating commercial displeasure with financial control produces both unlawful withholding and abandoned recovery.
+- **Trigger.** Contractor suspension.
+- **Preconditions.** —
+- **Mandatory.** Continue recovery; continue retention accounting; settle entitlement for verified work.
+- **Prohibited.** Using suspension as an undeclared payment-withholding device.
+- **Exception policy.** Withholding is a separate, attributed, recorded act under LC-12.
+- **Laws.** LAW-8. **Cross-refs.** § 6.2, REC-14, CLS-06.
+
+**WRK-13 — The workforce register MUST be reconcilable to physical site presence on demand.**
+- **Rationale.** A register that cannot be walked out to the site and counted is an assertion, not a control. Physical headcount reconciliation is the only detection method that ghost labour cannot survive.
+- **Trigger.** Surprise site verification; audit; any anomaly indicator.
+- **Preconditions.** Deployment records (DEP), attendance records (ATT).
+- **Mandatory.** Produce, for any site and date, the list of workers who should be present, by identity.
+- **Prohibited.** Reporting headcount without identity; reporting gang totals in place of named workers.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2, LAW-5. **Cross-refs.** AUD-05, RSK-01, XCP-01.
+
+**WRK-14 — Worker separation MUST trigger final settlement within the defined period.**
+- **Rationale.** Unsettled dues of departed workers become permanent enterprise liabilities and statutory exposures, and they are the least likely to be claimed — which is precisely why they must be paid without being claimed (GP-12).
+- **Trigger.** Separation; end of engagement; site closure.
+- **Preconditions.** All attendance for the worker validated or resolved.
+- **Mandatory.** Compute and settle final dues; recover outstanding worker advances within the lawful ceiling; issue the wage card record.
+- **Prohibited.** Retaining unsettled dues indefinitely; offsetting unrelated claims against final wages.
+- **Exception policy.** Unlocatable worker — dues held as a liability with a defined escheat/statutory treatment, recorded, never absorbed as income.
+- **Laws.** LAW-8, CP-9. **Cross-refs.** LAB-13, WKS-11, RSK-33.
+
+---
+
+## 9.4 Domain CLB — Company (directly engaged) labour
+
+> *Workers engaged by the enterprise itself. The control set is stronger here because the enterprise
+> observes the worker directly — and weaker in one respect, because there is no intermediary whose
+> commercial interest can be used as a cross-check.*
+
+**CLB-01 — A directly engaged worker MUST be paid by the enterprise, to the worker, without intermediation.**
+- **Rationale.** Direct engagement exists precisely to remove the intermediary; re-inserting one for payment convenience recreates every intermediation risk while retaining the direct-engagement cost.
+- **Trigger.** Wage settlement for a directly engaged worker.
+- **Preconditions.** WRK-06 engagement type = direct.
+- **Mandatory.** Disburse to the worker's own recorded payment channel or to the worker in person against acknowledgement.
+- **Prohibited.** Payment to a Mate, supervisor, or third party on the worker's behalf without a recorded lawful authority.
+- **Exception policy.** Payment to a legally authorised representative, evidenced and recorded per instance.
+- **Laws.** LAW-5, PA-8. **Cross-refs.** DWG-05, LAB-08, RSK-34.
+
+**CLB-02 — Directly engaged labour MUST be deployed against an approved deployment plan and sanctioned strength.**
+- **Rationale.** Unbudgeted direct engagement is the mechanism by which project labour cost escapes control without any single transaction appearing irregular.
+- **Trigger.** Engagement; deployment.
+- **Preconditions.** An approved deployment plan (OBJ-06).
+- **Mandatory.** Test the engagement against sanctioned strength and budgeted cost; record the variance.
+- **Prohibited.** Deployment beyond sanctioned strength without recorded approval.
+- **Exception policy.** Project Manager approval within delegated limit, recorded, reported in period.
+- **Laws.** LAW-2. **Cross-refs.** DEP-02, PRD-07, RSK-25.
+
+**CLB-03 — Attendance of directly engaged labour MUST be recorded by the enterprise's own officer.**
+- **Rationale.** GP-02. Where the enterprise engages directly, it observes directly; delegating observation to a party outside the enterprise's accountability chain forfeits the principal advantage of direct engagement.
+- **Trigger.** Daily attendance capture.
+- **Preconditions.** Deployment; assignment.
+- **Mandatory.** Capture by Site Supervisor or a designated enterprise officer.
+- **Prohibited.** Capture by a Mate, a contractor, or the workers themselves collectively.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** ATT-02, SOD-7.
+
+**CLB-04 — Overtime for directly engaged labour MUST be authorised before it is worked.**
+- **Rationale.** Retrospective overtime authorisation is indistinguishable from invented overtime, and it is a favoured mechanism because it needs no ghost worker — only a real worker and an extra number.
+- **Trigger.** Any work beyond normal hours.
+- **Preconditions.** An authorising officer with delegated authority.
+- **Mandatory.** Record the authorisation, its extent, its reason, and its authoriser before the hours are worked.
+- **Prohibited.** Post-facto authorisation as routine practice.
+- **Exception policy.** Emergency overtime authorised within one working day, recorded as an exception and counted (LAW-12); the hours are paid regardless (OT-1).
+- **Laws.** LAW-2, LAW-12. **Cross-refs.** FM-22, DWG-06, RSK-35.
+
+**CLB-05 — Idle time for directly engaged labour MUST be classified against a recorded cause.**
+- **Rationale.** Unclassified idle time is a payment for absence of work, and DP-9 forbids inferring anything significant from a blank.
+- **Trigger.** Any day recorded as idle, standby, or rain.
+- **Preconditions.** A Hindrance / Idle Time Record (OBJ-28).
+- **Mandatory.** Link the idle day to the hindrance record and its cause classification.
+- **Prohibited.** Idle time recorded without a cause; cause assigned retrospectively to justify payment already made.
+- **Exception policy.** **None.**
+- **Laws.** LAW-5. **Cross-refs.** LR-4, ATT-13, RSK-36.
+
+**CLB-06 — Directly engaged labour cost MUST be attributed to the activity on which it was expended.**
+- **Rationale.** Labour cost pooled at project level cannot be compared to output, so productivity leakage becomes undetectable (GP-23).
+- **Trigger.** Attendance validation.
+- **Preconditions.** Work assignment carrying an activity code (D-4).
+- **Mandatory.** Attribute each validated worker-day to an activity.
+- **Prohibited.** Attribution to a generic or default activity as standard practice.
+- **Exception policy.** A bounded proportion of general-site effort may be attributed to a general activity, declared and monitored.
+- **Laws.** LAW-5. **Cross-refs.** ASG-03, PRD-02, FM-31.
+
+**CLB-07 — A directly engaged worker MUST NOT simultaneously be paid as contractor or supplied labour.**
+- **Rationale.** The same person paid twice through two engagement paths is leakage form L2, and it is invisible unless identity is enterprise-wide (WRK-02).
+- **Trigger.** Attendance validation; settlement.
+- **Preconditions.** WRK-02, WRK-06.
+- **Mandatory.** Test every settlement against all engagement paths for that worker and date.
+- **Prohibited.** Parallel settlement paths for one worker-day.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** LI-16, BRL-05, XCP-02.
+
+**CLB-08 — Statutory obligations for directly engaged labour MUST be discharged by the enterprise itself.**
+- **Rationale.** Direct engagement makes the enterprise the employer in fact and in law; there is no intermediary to whom obligation can pass.
+- **Trigger.** Settlement; statutory period close.
+- **Preconditions.** Statutory parameters consumed from CAP-TAX (I-8).
+- **Mandatory.** Compute, deduct, record, and hand off statutory amounts.
+- **Prohibited.** Treating statutory obligations as discharged by contract with a third party.
+- **Exception policy.** **None.**
+- **Laws.** CP-9. **Cross-refs.** LAB-01, FM-17.
+
+**CLB-09 — Wage rates for directly engaged labour MUST derive from the enterprise's authorised wage schedule.**
+- **Rationale.** Site-negotiated wages produce rate drift, inconsistency between adjacent projects, and an unanswerable grievance when workers compare (§ 1.4.11 applied to labour).
+- **Trigger.** Engagement; wage computation.
+- **Preconditions.** An authorised wage schedule with effective dates.
+- **Mandatory.** Resolve the rate by trade, grade, region, and effective date (GP-17).
+- **Prohibited.** Site-level rate setting; rate negotiated per worker outside the schedule.
+- **Exception policy.** Scarce-trade premium, approved centrally, time-boxed, recorded against the worker and the reason.
+- **Laws.** LAW-5, CP-4. **Cross-refs.** WGR-01, FM-21.
+
+**CLB-10 — Advances to directly engaged workers MUST carry a recovery plan within the lawful deduction ceiling.**
+- **Rationale.** A worker advance with no plan becomes either a permanent enterprise loss or an unlawful deduction when finally recovered in one instalment.
+- **Trigger.** Worker advance request.
+- **Preconditions.** FM-27 lawful deduction ceiling known.
+- **Mandatory.** Bind an instalment plan that respects the ceiling at approval.
+- **Prohibited.** Recovery in excess of the ceiling; recovery from a final settlement that leaves the worker below statutory minimum for the period.
+- **Exception policy.** **None** for the ceiling. Deferral of recovery, recorded.
+- **Laws.** LAW-7, CP-9. **Cross-refs.** ADV-11, FM-26, FM-27.
+
+**CLB-11 — Transfer of a directly engaged worker between projects MUST close and reopen deployment on the same date.**
+- **Rationale.** An open deployment on two projects permits two attendance records, and the reconciliation that would catch it is periodic while the fraud is daily.
+- **Trigger.** Inter-project transfer.
+- **Preconditions.** DEP-05.
+- **Mandatory.** Same-date close and open; raise the borrowed-labour entry where cost is shared.
+- **Prohibited.** Overlapping deployments; transfer recorded retrospectively across a settled period.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** BRL-01, LI-16, DEP-05.
+
+**CLB-12 — A directly engaged worker's wage card MUST be available to that worker.**
+- **Rationale.** CP-10. A worker who can see the derivation of their own wage is the cheapest and most motivated auditor of the attendance record the enterprise holds.
+- **Trigger.** Settlement.
+- **Preconditions.** Wage Card (OBJ-16).
+- **Mandatory.** Make days, rate, gross, deductions, recoveries, and net visible to the worker in a form they can understand.
+- **Prohibited.** Net-only disclosure; disclosure only on request.
+- **Exception policy.** **None.**
+- **Laws.** CP-10, GP-19. **Cross-refs.** LAB-09, WKS-09.
+
+---
+
+## 9.5 Domain CTL — Contractor labour
+
+> *Workers engaged through a contractor executing contracted scope. The enterprise pays for outcomes,
+> not for people — but remains exposed for the people (§ 4.4).*
+
+**CTL-01 — Payment for contracted work MUST be for measured output, never for headcount.**
+- **Rationale.** Paying a contractor by headcount converts an outcome contract into a labour-supply contract at outcome prices, and removes measurement — the only defence against L1 and L3 — from the payment path entirely.
+- **Trigger.** Any claim from a contractor holding an outcome-based instrument.
+- **Preconditions.** Verified measurement (LC-04).
+- **Mandatory.** Value by FM-01 against verified quantities.
+- **Prohibited.** Valuing by worker-days present, by gang strength, or by the contractor's own labour cost.
+- **Exception policy.** Day-work items expressly provided in the instrument, bounded and authorised in advance (UG-3).
+- **Laws.** LAW-1, LAW-5. **Cross-refs.** MSR-01, RBL-02, RSK-11.
+
+**CTL-02 — The enterprise MUST maintain individual visibility of workers deployed by a contractor on its sites.**
+- **Rationale.** Principal-employer exposure (§ 4.4) does not stop at the contract boundary; nor does the enterprise's ability to be presented with a fictitious workforce.
+- **Trigger.** Contractor worker entering site; period close.
+- **Preconditions.** WRK-01, WRK-02.
+- **Mandatory.** Register each contractor worker under enterprise identity; record trade, grade, and the contractor under whom deployed.
+- **Prohibited.** Accepting an aggregate headcount in place of identities.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2, LAW-5. **Cross-refs.** LAB-02, BRL-06, WRK-13.
+
+**CTL-03 — A contractor's claim MUST be treated as a claim and never as evidence.**
+- **Rationale.** GP-13, § 4.3. The claimant's assertion of quantity, attendance, or entitlement carries no evidential weight regardless of the claimant's reputation or the relationship's duration.
+- **Trigger.** Receipt of any contractor claim, bill, or statement.
+- **Preconditions.** —
+- **Mandatory.** Record the claim as a claim; verify independently before any value attaches.
+- **Prohibited.** Certifying a bill from the contractor's own figures; adopting contractor measurements without check.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1, CP-2. **Cross-refs.** MSR-05, RBL-03, EDR-01.
+
+**CTL-04 — Contractor deployment MUST NOT exceed the deployment recorded against the instrument without record.**
+- **Rationale.** Undeclared workforce on site is an uncontrolled statutory exposure and an uncounted population against which ghost labour hides.
+- **Trigger.** Site entry; daily strength return.
+- **Preconditions.** DEP-01.
+- **Mandatory.** Record actual strength daily by contractor; reconcile to gate/entry records where they exist.
+- **Prohibited.** Site access for unregistered workers.
+- **Exception policy.** Same-day registration for genuine new arrivals, recorded.
+- **Laws.** LAW-2. **Cross-refs.** ATT-04, LAB-04, RSK-03.
+
+**CTL-05 — The enterprise MUST verify that the contractor has paid its own workers before releasing subsequent payment where the law imposes principal-employer liability.**
+- **Rationale.** Unpaid workers of a paid contractor become the enterprise's liability, its reputational event, and its site stoppage — in that order and usually in the same week.
+- **Trigger.** Contractor bill approval.
+- **Preconditions.** Wage records from the contractor (LAB-02).
+- **Mandatory.** Obtain and record evidence of wage payment for the preceding period; reconcile to the worker register (RI-8).
+- **Prohibited.** Approving a subsequent payment where the prior period's wage evidence is absent.
+- **Exception policy.** One period's grace, recorded and counted, where the delay is documented and the workers are confirmed paid by direct enquiry.
+- **Laws.** CP-9, PA-8. **Cross-refs.** LAB-05, BRL-09, RSK-32.
+
+**CTL-06 — Where a contractor fails to pay its workers, the enterprise MUST pay them and recover from the contractor.**
+- **Rationale.** PA-8. The worker's hunger is not a lever in a commercial dispute, and the enterprise's statutory position is worse if it waits.
+- **Trigger.** Confirmed non-payment of workers by a contractor.
+- **Preconditions.** Individual worker records (CTL-02); attendance validated by the enterprise.
+- **Mandatory.** Pay validated wages directly to the named workers; record each payment; raise a recovery (LC-07) against the contractor at priority 2 of the waterfall.
+- **Prohibited.** Withholding worker wages pending resolution of the contractor dispute.
+- **Exception policy.** **None.**
+- **Laws.** PA-8, CP-9, LAW-8. **Cross-refs.** FM-13, REC-05, LAB-10.
+
+**CTL-07 — Contractor rates MUST NOT be varied at site level.**
+- **Rationale.** Rate variation at site is invisible per transaction and compounding in aggregate — leakage form L7 in its purest form (§ 1.4.11).
+- **Trigger.** Any application of a rate not in the bound schedule.
+- **Preconditions.** GP-01, FM-00.
+- **Mandatory.** Route every rate not in force to the star-rate procedure (§ 8.10).
+- **Prohibited.** Site agreement on rate; "rate as per market" entries; rate adopted from another contract.
+- **Exception policy.** **None.**
+- **Laws.** LAW-5, CP-4. **Cross-refs.** SR-1, PC-3, RSK-14.
+
+**CTL-08 — Contractor labour MUST NOT perform enterprise-supervisory or verification functions.**
+- **Rationale.** WRK-11 applied at the working level: a contractor's employee recording attendance or assisting measurement has been given custody of the evidence that constrains their employer's payment.
+- **Trigger.** Role or task assignment at site.
+- **Preconditions.** —
+- **Mandatory.** Restrict evidence creation to enterprise officers.
+- **Prohibited.** Contractor staff maintaining musters, measurement books, or issue records.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4, CP-2. **Cross-refs.** SOD-6, MBK-02, SEC-04.
+
+**CTL-09 — Materials, plant, fuel, power, water, and accommodation supplied to a contractor MUST create a recovery at the moment of issue.**
+- **Rationale.** § 1.4.6 and LI-14. The recovery that depends on someone remembering is the recovery that does not happen, and L5 is the largest leakage class in aggregate.
+- **Trigger.** Any issue of enterprise value to a contractor.
+- **Preconditions.** Issue rates bound in the instrument (E-5).
+- **Mandatory.** Raise an Issued Value Record (OBJ-29) and a linked recovery obligation automatically on issue.
+- **Prohibited.** Issue without valuation; recovery raised only at bill time; recovery raised on request.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8. **Cross-refs.** FM-11, REC-02, RI-4, RSK-21.
+
+**CTL-10 — Contractor performance and exposure MUST be visible before further work is awarded.**
+- **Rationale.** Awarding new work to a contractor already carrying unrecovered exposure increases the loss on default; the decision is routinely taken without the number in front of it.
+- **Trigger.** New award; scope increase; variation.
+- **Preconditions.** FM-34 exposure computable.
+- **Mandatory.** Present exposure, recovery status, and dispute history to the awarding authority.
+- **Prohibited.** Award without the exposure figure.
+- **Exception policy.** Recorded override by executive authority.
+- **Laws.** LAW-9 context. **Cross-refs.** integration O-4, CLS-12, RSK-48.
+
+**CTL-11 — Contractor demobilisation MUST crystallise all recoveries before final payment.**
+- **Rationale.** LA-7. The enterprise's leverage is at maximum while it holds money and the contractor is still on site; both conditions end together and never return.
+- **Trigger.** Demobilisation; completion; termination.
+- **Preconditions.** FC-3, FC-4 computable.
+- **Mandatory.** Compute all outstanding advances, issued value, damages, and LD before releasing any final payment.
+- **Prohibited.** Releasing final payment with recoveries "to be settled separately".
+- **Exception policy.** **None.**
+- **Laws.** LAW-8. **Cross-refs.** CLS-04, ADV-09, RSK-22.
+
+**CTL-12 — Contractor-supplied attendance data MUST NOT flow directly into any enterprise financial computation.**
+- **Rationale.** § 4.2 and GP-13. Data supplied by the beneficiary is a claim; using it as input is using the claim as evidence with extra steps.
+- **Trigger.** Ingestion of any contractor-supplied record.
+- **Preconditions.** —
+- **Mandatory.** Mark such data as claimed; require independent validation before it can support value.
+- **Prohibited.** Direct use in wage or bill computation.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2, CP-2. **Cross-refs.** ATT-03, BRL-08, RSK-04.
+
+**CTL-13 — Every contractor engagement MUST have a single accountable enterprise officer.**
+- **Rationale.** Shared accountability is absent accountability; a contractor managed by everyone is managed by no one, and this is where scope creep without variation (§ 1.4.7) lives.
+- **Trigger.** Instrument activation.
+- **Preconditions.** —
+- **Mandatory.** Name the accountable officer on the instrument; record changes with dates.
+- **Prohibited.** Instruments with no named officer or with joint primary accountability.
+- **Exception policy.** **None.**
+- **Laws.** CP-6. **Cross-refs.** § 4.8, AUD-04, ARB-F6.
+
+**CTL-14 — Site instructions to a contractor MUST be recorded on the day they are given.**
+- **Rationale.** § 1.4.7. Verbal instruction followed by executed work followed by a claim is the sequence in which the enterprise loses, because the only record is the claimant's.
+- **Trigger.** Any instruction that changes scope, method, sequence, or quantity.
+- **Preconditions.** —
+- **Mandatory.** Record the instruction, its author, its date, and its expected cost consequence.
+- **Prohibited.** Instructions recorded retrospectively to support a variation already claimed.
+- **Exception policy.** Emergency instruction recorded within one working day, counted.
+- **Laws.** CP-1, LAW-9. **Cross-refs.** LI-20, VAR-03, RSK-41.
+
+---
+
+## 9.6 Domain BRL — Borrowed, supplied and intermediated labour
+
+> *The most exploited surface in the industry (§ 1.4.3) and the domain in which the enterprise pays a
+> person it cannot see, on the word of a party who is paid more when the count is higher.*
+
+**BRL-01 — Borrowed labour MUST create a matched debit and credit on the same date.**
+- **Rationale.** Unmatched transfer entries permit the same worker-day to be borne by two projects or by none — the first inflates cost twice, the second hides it entirely.
+- **Trigger.** Transfer of a worker or gang between projects, sites, or contractors.
+- **Preconditions.** Borrowed Labour Ledger (OBJ-22).
+- **Mandatory.** Raise the ledger entry at transfer; close the lending assignment and open the borrowing one on the same date (LI-04).
+- **Prohibited.** Transfer without a ledger entry; entries raised at period close from memory.
+- **Exception policy.** **None.**
+- **Laws.** LAW-5. **Cross-refs.** FM-30, RI-11, CLB-11, XCP-06.
+
+**BRL-02 — Borrowed labour requires dual accountability: the lending and the borrowing officer are both accountable.**
+- **Rationale.** Transfers fail because each side believes the other is recording it. Making both accountable for the same fact means neither can rely on the other's silence (GP-14).
+- **Trigger.** Transfer.
+- **Preconditions.** Named officers on both sides.
+- **Mandatory.** Both officers acknowledge the transfer, its dates, and its rate.
+- **Prohibited.** Single-sided transfer records.
+- **Exception policy.** **None.**
+- **Laws.** CP-6. **Cross-refs.** EDR-04, DEP-06, RSK-27.
+
+**BRL-03 — The transfer value MUST reconcile to the same validated attendance days that generated the worker's wage.**
+- **Rationale.** BL-1. Two projects claiming the same worker-day is L2; the reconciliation is what makes it detectable, and the identity rule (LI-16) is what makes it impossible.
+- **Trigger.** Period close; transfer settlement.
+- **Preconditions.** Validated attendance.
+- **Mandatory.** Reconcile debits and credits enterprise-wide (RI-11).
+- **Prohibited.** Transfer value computed from planned rather than validated days.
+- **Exception policy.** **None.**
+- **Laws.** LAW-5. **Cross-refs.** FM-30, RI-11, ATT-06.
+
+**BRL-04 — A supplied worker MUST be registered under enterprise identity before first attendance.**
+- **Rationale.** A worker known only to the supplier cannot be counted, cannot be reconciled, and cannot be found when the statutory inspector asks (§ 4.4).
+- **Trigger.** First presentation of a supplied worker.
+- **Preconditions.** WRK-01, WRK-02, WRK-03.
+- **Mandatory.** Register before attendance may be captured.
+- **Prohibited.** Attendance capture against an unregistered supplied worker.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** CTL-02, LAB-02, XCP-01.
+
+**BRL-05 — One worker MUST NOT appear on two musters, two suppliers, or two projects for the same date.**
+- **Rationale.** The single-occupancy invariant (LI-16) stated as an operating rule. This is the highest-value single control in the labour path.
+- **Trigger.** Attendance validation.
+- **Preconditions.** WRK-02 enterprise-wide identity.
+- **Mandatory.** Test enterprise-wide at validation; reject the second occurrence; raise an exception naming both sources.
+- **Prohibited.** Detection deferred to reporting; resolution by accepting both and adjusting later.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** LI-16, ATT-06, WRK-07, XCP-02.
+
+**BRL-06 — Payment through an intermediary MUST NOT extinguish individual wage records.**
+- **Rationale.** LR-2. Gang-level payment with no individual record is the condition under which the enterprise cannot prove it discharged its principal-employer obligation, and cannot detect that it did not.
+- **Trigger.** Any intermediated wage settlement.
+- **Preconditions.** Individual identities and validated attendance.
+- **Mandatory.** Maintain a Wage Card per worker; compute the individual allocation (FM-29); obtain acknowledgement by the named worker.
+- **Prohibited.** Settlement recorded only at gang or supplier level.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2, LAW-5, CP-9. **Cross-refs.** GNG-05, FM-29, LAB-08, RSK-05.
+
+**BRL-07 — The intermediary's margin MUST be visible and MUST NOT be funded from the worker's statutory entitlement.**
+- **Rationale.** § 4.4 boundary ruling: the supplier's margin is in scope insofar as it affects minimum-wage pass-through. A margin taken out of the worker's wage is an enterprise statutory breach wearing a commercial costume.
+- **Trigger.** Supplier rate agreement; settlement.
+- **Preconditions.** Statutory minimum known for trade, grade, region, date.
+- **Mandatory.** Decompose the supplied-labour rate into wage component and margin; test the wage component against the statutory minimum (FM-25).
+- **Prohibited.** Opaque all-in rates that cannot be decomposed; margin that reduces the worker below the floor.
+- **Exception policy.** **None.**
+- **Laws.** CP-9, PA-8. **Cross-refs.** MW-2, LAB-06, RSK-30.
+
+**BRL-08 — Mate-reported attendance MUST be independently validated before it can support payment.**
+- **Rationale.** § 4.2 conflict declaration: the Mate is paid more when the count is higher. Their report is a claim (GP-13), and a claim validated by its own author is not validated.
+- **Trigger.** Attendance capture through a Mate or gang leader.
+- **Preconditions.** —
+- **Mandatory.** Validate by an enterprise officer who is not the Mate (SOD-7); corroborate by an independent signal where available.
+- **Prohibited.** Direct flow of mate-reported attendance into wage computation.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2, CP-2. **Cross-refs.** SOD-7, ATT-03, GNG-04, XCP-01.
+
+**BRL-09 — The enterprise MUST obtain evidence that supplied workers received their wages.**
+- **Rationale.** The supplier's invoice proves the supplier was paid. It proves nothing about the worker, which is the only fact that discharges the enterprise's exposure.
+- **Trigger.** Settlement of a supplier claim.
+- **Preconditions.** Individual wage records (BRL-06).
+- **Mandatory.** Obtain acknowledgement or payment evidence per named worker; reconcile to the enterprise's own attendance (RI-8).
+- **Prohibited.** Accepting the supplier's aggregate declaration as evidence of worker payment.
+- **Exception policy.** Bounded grace, recorded and counted, with direct worker enquiry as compensating control.
+- **Laws.** CP-9, PA-8. **Cross-refs.** CTL-05, RI-8, LAB-05.
+
+**BRL-10 — A supplier MUST NOT supply workers already engaged elsewhere in the enterprise.**
+- **Rationale.** WRK-07 applied at supply. The supplier has no visibility of the enterprise's other engagements; the enterprise does, and therefore the test belongs to the enterprise.
+- **Trigger.** Worker presentation.
+- **Preconditions.** WRK-02.
+- **Mandatory.** Test at registration and at each attendance validation.
+- **Prohibited.** Reliance on the supplier's declaration.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** BRL-05, WRK-07.
+
+**BRL-11 — Borrowed labour rates MUST be bound before transfer, not agreed at settlement.**
+- **Rationale.** A transfer priced after the fact is priced by whichever party has the stronger position at that moment, which is a negotiation dressed as an accounting entry.
+- **Trigger.** Transfer initiation.
+- **Preconditions.** An enterprise transfer-rate basis.
+- **Mandatory.** Bind `rate_transfer` at transfer with its effective date.
+- **Prohibited.** Rate determined at period close.
+- **Exception policy.** **None.**
+- **Laws.** CP-4, GP-01. **Cross-refs.** FM-30, BRL-02.
+
+**BRL-12 — Statutory obligations MUST NOT be lost at the intermediation boundary.**
+- **Rationale.** Every intermediation layer is a place where a statutory obligation can be assumed to belong to the other party. Principal-employer liability does not accept that assumption.
+- **Trigger.** Engagement of any intermediary; statutory period close.
+- **Preconditions.** Statutory registration status of the intermediary (WRK-09).
+- **Mandatory.** Record which party discharges each obligation; verify discharge; retain evidence.
+- **Prohibited.** Assuming discharge from the existence of a contract clause.
+- **Exception policy.** **None.**
+- **Laws.** CP-9. **Cross-refs.** LAB-01, LAB-12, RSK-49.
+
+**BRL-13 — Termination of an intermediary MUST NOT strand the workers' entitlement.**
+- **Rationale.** When a supplier abandons a site, the workers remain and are owed. The enterprise that treats this as the supplier's problem acquires a site stoppage and a statutory finding.
+- **Trigger.** Supplier termination, abandonment, or insolvency.
+- **Preconditions.** Individual records (BRL-06).
+- **Mandatory.** Settle validated worker entitlement directly; recover from amounts due to the intermediary at waterfall priority 2.
+- **Prohibited.** Suspension of worker settlement pending commercial resolution.
+- **Exception policy.** **None.**
+- **Laws.** PA-8. **Cross-refs.** CTL-06, FM-13, RSK-33.
+
+**BRL-14 — Intermediated labour cost MUST be attributable to activity and output like any other labour cost.**
+- **Rationale.** Intermediation is a commercial arrangement, not an accounting exemption. Cost that cannot be attributed cannot be compared to output, and productivity leakage becomes structurally undetectable.
+- **Trigger.** Settlement; period close.
+- **Preconditions.** Assignment carrying activity (ASG-03).
+- **Mandatory.** Attribute supplied worker-days to activities.
+- **Prohibited.** Booking supplied labour as an undifferentiated service cost.
+- **Exception policy.** **None.**
+- **Laws.** LAW-5. **Cross-refs.** CLB-06, PRD-02, MR-6.
+
+---
+
+## 9.7 Domain GNG — Gang management
+
+> *A gang is an operational convenience and a financial hazard: it aggregates individuals into a
+> number, and numbers are easier to inflate than people.*
+
+**GNG-01 — A gang MUST have a named leader and a recorded composition at every point in time.**
+- **Rationale.** Accountability for ghost labour attaches to the gang leader (§ 4.2). An unnamed leader or an unrecorded composition removes the accountable party from the record.
+- **Trigger.** Gang formation; composition change.
+- **Preconditions.** WRK-01 for every member.
+- **Mandatory.** Record leader, members, trade, and effective dates; retain composition history.
+- **Prohibited.** Gangs defined by strength alone; composition inferred from attendance.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** § 5.4, GNG-02, XCP-01.
+
+**GNG-02 — Gang composition changes MUST be recorded on the date of change.**
+- **Rationale.** Retrospective composition is composition fitted to attendance, which reverses the evidential order (CP-1).
+- **Trigger.** Member joins or leaves.
+- **Preconditions.** GNG-01.
+- **Mandatory.** Same-date recording with the authorising supervisor.
+- **Prohibited.** Composition reconstructed at settlement.
+- **Exception policy.** Same-day-plus-one recording, counted.
+- **Laws.** CP-1. **Cross-refs.** ATT-05, GNG-01.
+
+**GNG-03 — A worker MUST belong to at most one gang on any date.**
+- **Rationale.** Multi-gang membership is the gang-level equivalent of duplicate attendance, and it produces double allocation under FM-29 even where total attendance is correct.
+- **Trigger.** Gang assignment.
+- **Preconditions.** WRK-02.
+- **Mandatory.** Enforce single membership per date.
+- **Prohibited.** Concurrent memberships.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** LI-16, FM-29.
+
+**GNG-04 — The gang leader MUST NOT validate the gang's own attendance.**
+- **Rationale.** SOD-7. The party whose payment increases with the count cannot be the party who confirms the count.
+- **Trigger.** Attendance validation.
+- **Preconditions.** —
+- **Mandatory.** Validation by an enterprise officer.
+- **Prohibited.** Self-validation in any form, including countersignature presented as validation.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2, CP-2. **Cross-refs.** SOD-7, BRL-08, ATT-03.
+
+**GNG-05 — Gang-level payment MUST be allocated to named individuals.**
+- **Rationale.** BRL-06 at the gang level. Without allocation, the enterprise cannot demonstrate that any individual was paid anything.
+- **Trigger.** Gang settlement.
+- **Preconditions.** Validated attendance per member.
+- **Mandatory.** Allocate by validated worker-days (FM-29); record on each Wage Card.
+- **Prohibited.** Settlement recorded only as a gang total.
+- **Exception policy.** **None.**
+- **Laws.** LAW-5, CP-9. **Cross-refs.** FM-29, GA-1, LAB-08.
+
+**GNG-06 — Gang output MUST be measurable and attributable to the gang.**
+- **Rationale.** A gang whose output cannot be measured cannot be assessed for productivity, and productivity variance is a primary detector of both ghost labour and over-measurement (MR-6).
+- **Trigger.** Assignment of work to a gang.
+- **Preconditions.** Activity and measurable item.
+- **Mandatory.** Assign gangs to work fronts whose output is measurable.
+- **Prohibited.** Standing general-duties assignment as the normal pattern.
+- **Exception policy.** Bounded general-duty proportion, declared and monitored.
+- **Laws.** LAW-5. **Cross-refs.** PRD-03, MR-6, CLB-06.
+
+**GNG-07 — A gang MUST NOT be paid for a day on which its assigned work front was closed.**
+- **Rationale.** Attendance on a closed front is either misattributed or fictitious; both are detectable only if front status is recorded.
+- **Trigger.** Attendance validation.
+- **Preconditions.** Site and front calendar; hindrance records (OBJ-28).
+- **Mandatory.** Test attendance against front status; classify legitimate idle time (CLB-05).
+- **Prohibited.** Validation against a closed front without an idle-time classification.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2, LAW-3. **Cross-refs.** ATT-12, CLB-05, RSK-06.
+
+**GNG-08 — Gang strength MUST be reconcilable to physical presence on demand.**
+- **Rationale.** WRK-13 at gang level; the surprise count is the control that ghost labour cannot survive.
+- **Trigger.** Site verification; audit.
+- **Preconditions.** GNG-01.
+- **Mandatory.** Produce named members expected on site for any date.
+- **Prohibited.** Strength reported without identities.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** WRK-13, AUD-05.
+
+**GNG-09 — Gang leader remuneration MUST NOT vary with reported headcount alone.**
+- **Rationale.** § 4.2. Where the Mate's earnings rise with the count they report, the enterprise has paid someone to inflate its own records. Remuneration linked to measured output inverts that incentive.
+- **Trigger.** Agreement of gang leader remuneration.
+- **Preconditions.** Measurable output (GNG-06).
+- **Mandatory.** Link remuneration to verified output or to a fixed engagement, not to reported presence.
+- **Prohibited.** Per-head commission on reported attendance.
+- **Exception policy.** Recorded executive approval where market practice compels it, with compensating attendance controls declared.
+- **Laws.** CP-2. **Cross-refs.** § 4.2, RSK-04, EDR-06.
+
+**GNG-10 — Ghost labour discovered in a gang MUST be attributed to the gang leader and the supervising officer.**
+- **Rationale.** § 4.2 and § 4.5 both make this attribution explicit. Accountability that attaches to no one deters no one.
+- **Trigger.** Detection of ghost labour.
+- **Preconditions.** —
+- **Mandatory.** Record the finding against both parties; raise an exception; recover the value.
+- **Prohibited.** Treating discovery as a correction without attribution.
+- **Exception policy.** **None.**
+- **Laws.** LAW-12. **Cross-refs.** § 4.5, RSK-01, AUD-10.
+
+---
+
+## 9.8 Domain DEP — Deployment
+
+> *Deployment is the enterprise's statement of who it intends to have, where, at what cost. It bounds
+> everything downstream: a worker cannot be assigned outside deployment, and cannot be paid outside
+> assignment.*
+
+**DEP-01 — Every worker on site MUST be covered by an approved deployment for that date.**
+- **Rationale.** Deployment is the outer boundary of the payable population. A worker outside it is either an unbudgeted cost or a fiction, and the enterprise cannot tell which.
+- **Trigger.** Site presence; attendance capture.
+- **Preconditions.** Approved deployment plan (OBJ-06).
+- **Mandatory.** Test presence against deployment; reject capture outside it.
+- **Prohibited.** Attendance validated for an undeployed worker.
+- **Exception policy.** Same-day deployment amendment by the Project Manager, recorded.
+- **Laws.** LAW-2. **Cross-refs.** LI-04, ATT-04, CTL-04.
+
+**DEP-02 — Deployment MUST be approved against sanctioned strength and budgeted cost.**
+- **Rationale.** Labour cost escapes control through accumulation of individually reasonable decisions; the sanctioned-strength test is where accumulation becomes visible.
+- **Trigger.** Deployment planning; amendment.
+- **Preconditions.** Sanctioned strength and labour budget.
+- **Mandatory.** Record planned strength, budgeted cost, and variance at approval.
+- **Prohibited.** Deployment approved without the budget comparison.
+- **Exception policy.** Documented approval above the exceeded limit.
+- **Laws.** LAW-9 context. **Cross-refs.** CLB-02, PRD-07.
+
+**DEP-03 — Deployment MUST name the project, site, and work front.**
+- **Rationale.** MP-7 applied to people. Deployment to "the project" cannot be reconciled to a front, a gang, or an output, so no productivity or presence test is possible.
+- **Trigger.** Deployment creation.
+- **Preconditions.** Project/site/front structure (D-3).
+- **Mandatory.** Record to work-front granularity.
+- **Prohibited.** Project-level-only deployment as standard practice.
+- **Exception policy.** Mobilisation period, bounded and declared.
+- **Laws.** LAW-2. **Cross-refs.** I-3, ASG-02.
+
+**DEP-04 — Deployment MUST record the engagement type under which the worker is deployed.**
+- **Rationale.** The control set differs by engagement type (WRK-06); a deployment that does not carry it cannot invoke the right controls.
+- **Trigger.** Deployment.
+- **Preconditions.** WRK-06.
+- **Mandatory.** Carry engagement type and intermediary identity onto the deployment.
+- **Prohibited.** Deployment silent as to engagement type.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** BRL-04, CTL-02.
+
+**DEP-05 — Deployments for one worker MUST NOT overlap.**
+- **Rationale.** Overlapping deployment is the precondition for duplicate attendance; closing the door here is cheaper than detecting the consequence downstream.
+- **Trigger.** Deployment creation; transfer.
+- **Preconditions.** WRK-02.
+- **Mandatory.** Close the prior deployment on the date the new one opens.
+- **Prohibited.** Concurrent open deployments.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** LI-16, CLB-11, BRL-01.
+
+**DEP-06 — Inter-project deployment transfer MUST be acknowledged by both projects.**
+- **Rationale.** BRL-02 dual accountability. Single-sided transfers leave cost on the wrong project and attendance on both.
+- **Trigger.** Transfer.
+- **Preconditions.** Named officers on both sides.
+- **Mandatory.** Both acknowledge; ledger entry raised (BRL-01).
+- **Prohibited.** Transfer effected by the receiving project alone.
+- **Exception policy.** **None.**
+- **Laws.** CP-6. **Cross-refs.** BRL-02, RI-11.
+
+**DEP-07 — Deployment MUST end on a recorded date.**
+- **Rationale.** An open-ended deployment is a permanent authorisation, and permanent authorisations survive the people and the reasons that created them (LA-4).
+- **Trigger.** Deployment creation.
+- **Preconditions.** —
+- **Mandatory.** Record an expected end date; require positive extension.
+- **Prohibited.** Indefinite deployment.
+- **Exception policy.** **None.**
+- **Laws.** DP-12. **Cross-refs.** GP-20, SEC-09.
+
+**DEP-08 — Deployment beyond sanctioned strength MUST be visible in period reporting.**
+- **Rationale.** GP-21. An exceeded limit that is approved and then forgotten is a limit that has been abolished quietly.
+- **Trigger.** Period close.
+- **Preconditions.** DEP-02.
+- **Mandatory.** Report strength variance by project and period to the accountable officer.
+- **Prohibited.** Variance visible only on request.
+- **Exception policy.** **None.**
+- **Laws.** CP-11. **Cross-refs.** AUD-08, PRD-08.
+
+**DEP-09 — Deployment MUST NOT be created retrospectively over a settled period.**
+- **Rationale.** Retrospective deployment legitimises attendance that was invalid when captured, which converts a detection into a correction and destroys the audit signal.
+- **Trigger.** Deployment creation with a past effective date.
+- **Preconditions.** Period status (PG-1).
+- **Mandatory.** Reject where the period is closed; route through exception with restatement where genuinely required.
+- **Prohibited.** Silent backdating.
+- **Exception policy.** Finance Controller, recorded, counted, with the affected settlements restated visibly.
+- **Laws.** LAW-11. **Cross-refs.** PG-2, PG-4, OVR-06.
+
+**DEP-10 — Deployment records MUST support surprise verification.**
+- **Rationale.** WRK-13. The value of a deployment record is realised only when someone walks the site with it.
+- **Trigger.** Verification.
+- **Preconditions.** DEP-01, DEP-03.
+- **Mandatory.** Produce expected presence by identity, site, front, and date.
+- **Prohibited.** —
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** AUD-05, GNG-08.
+
+**DEP-11 — Demobilisation MUST close deployments and trigger settlement.**
+- **Rationale.** Open deployments after demobilisation permit attendance capture for workers who have left, and unsettled workers who have left are the least likely to claim (WRK-14).
+- **Trigger.** Demobilisation; front completion; site closure.
+- **Preconditions.** —
+- **Mandatory.** Close deployments; settle validated attendance; record unsettled dues as liabilities.
+- **Prohibited.** Deployments left open after demobilisation.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8. **Cross-refs.** WRK-14, CLS-08.
+
+---
+
+## 9.9 Domain ASG — Work assignment
+
+> *Assignment is the second limb of LAW-2 and the answer to the question "who told this person to do
+> this work?" Without it, effort claimed after the fact cannot be distinguished from effort invented
+> after the fact.*
+
+**ASG-01 — Work MUST be assigned before it is performed.**
+- **Rationale.** LI-03. Assignment created after the work date is a reconstruction, and reconstruction by an interested party is the definition of a fabricated authority.
+- **Trigger.** Allocation of a worker or gang to work.
+- **Preconditions.** Deployment (DEP-01).
+- **Mandatory.** Record the assignment with its date, before the work date.
+- **Prohibited.** Routine retrospective assignment.
+- **Exception policy.** Retrospective assignment flagged, justified by an actor other than its creator, counted (LI-03).
+- **Laws.** LAW-2. **Cross-refs.** LI-03, ATT-07, RSK-07.
+
+**ASG-02 — Every assignment MUST name a work location to re-verifiable granularity.**
+- **Rationale.** MP-7 applied to labour. "Site" is not a location; a location that cannot be visited cannot be verified, and unverifiable assignment supports unverifiable attendance.
+- **Trigger.** Assignment.
+- **Preconditions.** Site/front structure.
+- **Mandatory.** Record project, site, front, and where relevant grid or level.
+- **Prohibited.** Assignment to a project without a front.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** DEP-03, MP-7.
+
+**ASG-03 — Every assignment MUST carry an activity code.**
+- **Rationale.** Activity is the join between labour cost and measured output; without it, productivity (FM-31) and MR-6 are both unavailable.
+- **Trigger.** Assignment.
+- **Preconditions.** WBS/activity definition (D-4).
+- **Mandatory.** Record the activity against which effort will be attributed.
+- **Prohibited.** Assignment to an undefined or default activity as standard practice.
+- **Exception policy.** Bounded general activity, declared and monitored.
+- **Laws.** LAW-2, LAW-5. **Cross-refs.** CLB-06, PRD-02, MR-6.
+
+**ASG-04 — Assignment MUST be to a defined and open work front.**
+- **Rationale.** Assignment to a closed or non-existent front is a control failure that produces payable attendance against work that cannot have occurred (LAW-3).
+- **Trigger.** Assignment.
+- **Preconditions.** Front status; calendar (D-10).
+- **Mandatory.** Reject assignment to closed or undefined fronts.
+- **Prohibited.** —
+- **Exception policy.** **None.**
+- **Laws.** LAW-3. **Cross-refs.** GNG-07, I-3.
+
+**ASG-05 — An assignment MUST name its issuing authority.**
+- **Rationale.** CP-6. An instruction with no author is an instruction no one is accountable for, and § 1.4.7 is the consequence.
+- **Trigger.** Assignment issue.
+- **Preconditions.** —
+- **Mandatory.** Record the issuing supervisor or engineer.
+- **Prohibited.** System- or role-issued assignments with no named person.
+- **Exception policy.** **None.**
+- **Laws.** CP-6. **Cross-refs.** CTL-13, AUD-04.
+
+**ASG-06 — Assignment MUST NOT exceed the scope of the governing engagement instrument.**
+- **Rationale.** Assigning a contractor's gang to work outside their instrument creates executed work with no rate and no authority — the origin of the star-rate-under-duress problem (SR-3).
+- **Trigger.** Assignment of contracted labour.
+- **Preconditions.** Instrument scope.
+- **Mandatory.** Test the activity against instrument scope; route out-of-scope work to LC-09 before execution.
+- **Prohibited.** Out-of-scope assignment resolved by a later variation.
+- **Exception policy.** Emergency work under recorded site instruction (CTL-14), variation raised within a bounded period.
+- **Laws.** LAW-9, PA-1. **Cross-refs.** VAR-02, LI-20, RSK-41.
+
+**ASG-07 — Assignment status MUST be maintained through to completion or abandonment.**
+- **Rationale.** GP-20. An assignment that is never closed is an authority that never expires and an output that is never compared to its effort.
+- **Trigger.** Work progress; period close.
+- **Preconditions.** —
+- **Mandatory.** Move assignments to `COMPLETED`, `ABANDONED`, `SUSPENDED`, or `REASSIGNED`; age open assignments.
+- **Prohibited.** Assignments left `IN_PROGRESS` indefinitely.
+- **Exception policy.** **None.**
+- **Laws.** CP-11. **Cross-refs.** § 5.8, GP-20.
+
+**ASG-08 — Reassignment MUST close the prior assignment on the same date.**
+- **Rationale.** Overlapping assignments permit one worker-day to be attributed to two activities, which corrupts both productivity figures and any cost attribution built on them.
+- **Trigger.** Reassignment.
+- **Preconditions.** —
+- **Mandatory.** Same-date close and open.
+- **Prohibited.** Overlapping open assignments for one worker.
+- **Exception policy.** **None.**
+- **Laws.** LAW-5. **Cross-refs.** DEP-05, LI-16.
+
+**ASG-09 — Assignment MUST be visible to the worker or gang it directs.**
+- **Rationale.** A worker who does not know what they were assigned to cannot dispute an attendance or productivity record built on it, and CP-10 requires that they can.
+- **Trigger.** Assignment issue.
+- **Preconditions.** —
+- **Mandatory.** Communicate the assignment in a form the assignee can understand.
+- **Prohibited.** Assignments held only in enterprise records.
+- **Exception policy.** **None.**
+- **Laws.** CP-10. **Cross-refs.** GP-19, CLB-12.
+
+**ASG-10 — Assignment records MUST be retained for the life of the contract and its limitation period.**
+- **Rationale.** § 3.4.4. Assignment is the evidence that defeats a later claim that work was directed; it is needed precisely when the people who issued it have gone (O-9).
+- **Trigger.** —
+- **Preconditions.** —
+- **Mandatory.** Retain per the evidence-retention schedule.
+- **Prohibited.** Purging assignment records at project close.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** AUD-12, LI-33.
+
+**ASG-11 — Work performed without assignment MUST be recorded as an exception, not silently paid or silently refused.**
+- **Rationale.** Both silent outcomes are wrong: silent payment defeats LAW-2; silent refusal takes the worker's labour without payment. The honest treatment is an attributed exception (GP-10).
+- **Trigger.** Attendance or measurement with no covering assignment.
+- **Preconditions.** —
+- **Mandatory.** Raise an exception; decide explicitly; record the decision and its authority.
+- **Prohibited.** Quiet inclusion; quiet exclusion.
+- **Exception policy.** —
+- **Laws.** LAW-2, LAW-12, PA-8. **Cross-refs.** OT-1, EXC-02, RSK-08.
+
+---
+
+## 9.10 Domain ATT — Attendance
+
+> *The highest-frequency evidentiary act in the enterprise, performed by the least senior actor, at
+> the greatest distance from the money. § 1.4.1 in a single domain.*
+
+**ATT-01 — Attendance MUST be captured at the point and time of occurrence.**
+- **Rationale.** DP-5. Attendance reconstructed in an office at week's end is testimony about the past, and testimony from an interested party is not evidence.
+- **Trigger.** Daily work.
+- **Preconditions.** Deployment; assignment.
+- **Mandatory.** Capture at site on the day.
+- **Prohibited.** Bulk retrospective capture as routine practice.
+- **Exception policy.** Connectivity or emergency failure — capture within one working day, recorded as delayed, counted (GP-10).
+- **Laws.** LAW-2, CP-1. **Cross-refs.** GP-02, MP-2, RSK-09.
+
+**ATT-02 — Attendance MUST be captured by an enterprise officer, never by the beneficiary.**
+- **Rationale.** GP-13 and SOD-7. The party paid by the count cannot create the count.
+- **Trigger.** Capture.
+- **Preconditions.** —
+- **Mandatory.** Capture by Site Supervisor or designated officer.
+- **Prohibited.** Capture by Mate, contractor, supplier, or the workers collectively.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2, CP-2. **Cross-refs.** CLB-03, BRL-08, GNG-04.
+
+**ATT-03 — Attendance reported by an intermediary is a claim and MUST be validated independently.**
+- **Rationale.** § 4.2 conflict declaration. Where operational reality requires the Mate to report first, the report enters as a claim and is converted to evidence only by an independent act.
+- **Trigger.** Intermediated reporting.
+- **Preconditions.** —
+- **Mandatory.** Mark as claimed; validate by an enterprise officer; retain both records.
+- **Prohibited.** Claim flowing directly into computation.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** CTL-12, BRL-08, GP-13.
+
+**ATT-04 — Attendance MUST NOT be captured for a worker without a covering deployment.**
+- **Rationale.** DEP-01. The deployment is the payable population; capture outside it creates payable evidence for an unauthorised person.
+- **Trigger.** Capture.
+- **Preconditions.** DEP-01.
+- **Mandatory.** Test at capture, not at settlement.
+- **Prohibited.** Capture first, deploy later.
+- **Exception policy.** Same-day deployment amendment (DEP-01), recorded.
+- **Laws.** LAW-2. **Cross-refs.** DEP-01, ATT-07.
+
+**ATT-05 — Attendance MUST identify the individual, never a headcount.**
+- **Rationale.** A headcount cannot be reconciled, cannot be paid individually, and cannot be proven. Every phantom-labour scenario depends on aggregation.
+- **Trigger.** Capture.
+- **Preconditions.** WRK-01.
+- **Mandatory.** Record worker identity per day.
+- **Prohibited.** Gang totals as the primary attendance record.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2, LAW-5. **Cross-refs.** GNG-05, BRL-06, XCP-01.
+
+**ATT-06 — One worker MUST have at most one validated attendance record per date, enterprise-wide.**
+- **Rationale.** LI-16, restated as the operating rule of this domain. It is enforced at validation, not discovered in reporting.
+- **Trigger.** Validation.
+- **Preconditions.** WRK-02.
+- **Mandatory.** Test across all projects, contractors, suppliers, and engagement types; reject the second.
+- **Prohibited.** Post-hoc reconciliation in place of prevention.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** LI-16, BRL-05, XCP-02, RSK-02.
+
+**ATT-07 — Attendance MUST be validated against a covering work assignment.**
+- **Rationale.** LAW-2 requires both limbs. Attendance alone establishes presence, not entitlement.
+- **Trigger.** Validation.
+- **Preconditions.** ASG-01.
+- **Mandatory.** Test date against assignment window (SY-9).
+- **Prohibited.** Validation on presence alone.
+- **Exception policy.** ASG-11 exception route.
+- **Laws.** LAW-2. **Cross-refs.** SY-9, ASG-01.
+
+**ATT-08 — The validator MUST NOT be the reporter.**
+- **Rationale.** CP-2 at the highest-frequency control point in the capability.
+- **Trigger.** Validation.
+- **Preconditions.** —
+- **Mandatory.** Structural separation of capture and validation.
+- **Prohibited.** Self-validation; validation by the same officer as routine.
+- **Exception policy.** Single-officer sites — validation by an officer outside the site (§ 4.14.1), recorded as a standing exception and counted.
+- **Laws.** LAW-2, LAW-4. **Cross-refs.** SOD-4, SOD-7, § 4.14.1.
+
+**ATT-09 — Attendance MUST record the attendance type explicitly.**
+- **Rationale.** DP-9. Full, half, absent, idle, rain, hindrance, leave, and overtime carry different entitlements; an unclassified day is an undefined term and therefore a leakage site.
+- **Trigger.** Capture.
+- **Preconditions.** Defined attendance-type vocabulary (CP-4).
+- **Mandatory.** Record type per worker-day.
+- **Prohibited.** Blank treated as present; blank treated as absent.
+- **Exception policy.** **None.**
+- **Laws.** LAW-5. **Cross-refs.** CLB-05, ATT-13, DP-9.
+
+**ATT-10 — Attendance evidence method MUST be recorded.**
+- **Rationale.** § 5.10: capture method determines evidential weight (Part 11). A biometric record and a supervisor's recollection are not interchangeable, and the record must say which it is.
+- **Trigger.** Capture.
+- **Preconditions.** —
+- **Mandatory.** Record method: biometric, photographic, gate record, supervisor observation, intermediary report.
+- **Prohibited.** Method unrecorded.
+- **Exception policy.** **None.**
+- **Laws.** CP-7. **Cross-refs.** Part 11 § 11.3, EV-1.
+
+**ATT-11 — Attendance MUST NOT be capturable for a future date.**
+- **Rationale.** LAW-3 applied to presence. Anticipated attendance is not attendance, and its existence in the record is an invitation to settle it.
+- **Trigger.** Capture.
+- **Preconditions.** —
+- **Mandatory.** Structurally prevent future-dated capture.
+- **Prohibited.** —
+- **Exception policy.** **None.**
+- **Laws.** LAW-3. **Cross-refs.** AF-2, MSR-04.
+
+**ATT-12 — Attendance MUST be tested against site and front status for the date.**
+- **Rationale.** Presence on a closed site is either misrecorded or fictitious; the calendar is the independent record that makes the test possible (D-10).
+- **Trigger.** Validation.
+- **Preconditions.** Calendar; hindrance records.
+- **Mandatory.** Test against declared closures, holidays, and rain days.
+- **Prohibited.** Validation ignoring site status.
+- **Exception policy.** Genuine work on a declared closure day — recorded with authorisation.
+- **Laws.** LAW-3. **Cross-refs.** GNG-07, CLB-05, I-9.
+
+**ATT-13 — Idle, rain, and hindrance days MUST link to a hindrance record.**
+- **Rationale.** LR-4. Payable non-work requires a positive cause; without it the enterprise is paying for absence and cannot later defend the cost or claim against the cause.
+- **Trigger.** Capture of a non-working payable day.
+- **Preconditions.** OBJ-28.
+- **Mandatory.** Link cause; record who declared it.
+- **Prohibited.** Idle days recorded without cause.
+- **Exception policy.** **None.**
+- **Laws.** LAW-5. **Cross-refs.** CLB-05, LD-2, RSK-36.
+
+**ATT-14 — Overtime hours MUST be recorded separately and only where authorised.**
+- **Rationale.** Overtime is the leakage that needs no ghost: a real worker and a larger number. Separation makes it visible; prior authorisation makes it defensible.
+- **Trigger.** Capture.
+- **Preconditions.** CLB-04 authorisation.
+- **Mandatory.** Record hours, authorisation reference, and authoriser.
+- **Prohibited.** Overtime merged into day count; unauthorised overtime paid silently or refused silently.
+- **Exception policy.** OT-1 route — paid, recorded as exception, counted.
+- **Laws.** LAW-12, PA-8. **Cross-refs.** FM-22, OT-1, RSK-35.
+
+**ATT-15 — A disputed attendance record MUST NOT be settled while disputed.**
+- **Rationale.** Settling a disputed day forecloses the dispute in the enterprise's favour by default, which is exactly the outcome CP-10 exists to prevent.
+- **Trigger.** Dispute raised by worker or contractor.
+- **Preconditions.** —
+- **Mandatory.** Move to `DISPUTED`; resolve; supersede with a corrected record.
+- **Prohibited.** Settlement while disputed; silent resolution in favour of the record holder.
+- **Exception policy.** **None.**
+- **Laws.** CP-10, LAW-11. **Cross-refs.** § 5.10, MD-1.
+
+**ATT-16 — Attendance correction MUST supersede, never overwrite.**
+- **Rationale.** LR-5. The original record is the evidence of what was first claimed, which is exactly what an investigation needs.
+- **Trigger.** Correction.
+- **Preconditions.** —
+- **Mandatory.** Create a corrected record referencing the original; retain both; record the corrector and reason.
+- **Prohibited.** In-place edit; deletion.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** GP-08, MBK-03.
+
+**ATT-17 — A closed muster MUST NOT accept further capture.**
+- **Rationale.** The close is the point at which the population becomes fixed and computation may begin; a muster that accepts late entries has no such point.
+- **Trigger.** Period close.
+- **Preconditions.** PG-3.
+- **Mandatory.** Reject capture after close; route late facts through LC-12 with restatement.
+- **Prohibited.** Silent late insertion.
+- **Exception policy.** LR-6 reopening — Finance Controller, recorded, counted.
+- **Laws.** LAW-11, LAW-12. **Cross-refs.** LR-6, PG-4, OVR-05.
+
+**ATT-18 — Attendance MUST be reconcilable to independent presence signals where they exist.**
+- **Rationale.** GP-23. Gate records, biometric logs, transport manifests, canteen counts, and safety inductions are created for other purposes and therefore make excellent independent checks.
+- **Trigger.** Period close; audit; anomaly.
+- **Preconditions.** Availability of an independent signal.
+- **Mandatory.** Reconcile and investigate variance beyond tolerance.
+- **Prohibited.** Treating variance as noise without investigation.
+- **Exception policy.** **None** where a signal exists.
+- **Laws.** CP-2. **Cross-refs.** RI-7, AUD-06, RSK-01.
+
+**ATT-19 — Attendance patterns MUST be monitored for anomaly signatures.**
+- **Rationale.** GP-21 and DP-6. Ghost labour has statistical signatures — perfect attendance, identical patterns across workers, strength unchanged through weather events, new workers appearing only in the final week of a period.
+- **Trigger.** Period close; continuous monitoring.
+- **Preconditions.** —
+- **Mandatory.** Compute and report anomaly indicators to Internal Audit (AF-11).
+- **Prohibited.** Reports routed only to the site that generated the data.
+- **Exception policy.** **None.**
+- **Laws.** CP-11. **Cross-refs.** AF-11, AUD-07, RSK-01.
+
+**ATT-20 — Validated attendance is consumed on settlement and MUST NOT be settled again.**
+- **Rationale.** GP-04 and SY-2. Re-settlement of a consumed day is duplicate payment (L2) and is prevented structurally, not detected by reconciliation.
+- **Trigger.** Settlement.
+- **Preconditions.** —
+- **Mandatory.** Mark `SETTLED`; block further consumption.
+- **Prohibited.** Re-opening a settled day for re-payment; parallel settlement through a second path.
+- **Exception policy.** **None.** Arrears are a new record referencing the settled one.
+- **Laws.** LAW-11, LAW-6 context. **Cross-refs.** LM-6, CLB-07, RI-7.
+
+---
+
+## 9.11 Domain LAB — Statutory labour obligations and welfare
+
+> *CP-9: where enterprise rule and statute conflict, statute prevails. This domain is where the
+> enterprise's commercial interest and its legal obligation are most often assumed to be the same
+> thing, and are not.*
+
+**LAB-01 — Statutory obligations MUST be identified, owned, and evidenced for every engagement type.**
+- **Rationale.** Obligations that no one owns are discharged by no one, and principal-employer liability does not accept "we assumed the contractor did it".
+- **Trigger.** Engagement; statutory period close.
+- **Preconditions.** Statutory parameters from CAP-TAX/CAP-LEG (D-8).
+- **Mandatory.** Record which party discharges each obligation and the evidence of discharge.
+- **Prohibited.** Obligation assumed discharged from a contract clause alone.
+- **Exception policy.** **None.**
+- **Laws.** CP-9. **Cross-refs.** BRL-12, CLB-08, RSK-49.
+
+**LAB-02 — The enterprise MUST hold wage records for every worker on its sites, including intermediated workers.**
+- **Rationale.** § 4.4. The enterprise is asked, by inspectors and by courts, to produce records for workers it did not pay directly. The answer "the supplier holds them" is not an answer.
+- **Trigger.** Engagement; period close.
+- **Preconditions.** CTL-02, BRL-04.
+- **Mandatory.** Maintain or obtain per-worker wage records; retain per the statutory schedule.
+- **Prohibited.** Reliance on the intermediary's undertaking to maintain records.
+- **Exception policy.** **None.**
+- **Laws.** CP-9. **Cross-refs.** BRL-06, LAB-14, RI-8.
+
+**LAB-03 — Absence of documentary identity MUST NOT result in non-payment.**
+- **Rationale.** WRK-03. Non-payment of an undocumented worker who has worked is both a statutory breach and an unrecorded enterprise gain, which is worse than the documentation problem it purports to solve.
+- **Trigger.** Settlement of an undocumented worker.
+- **Preconditions.** Alternative identity established (WRK-03).
+- **Mandatory.** Pay validated attendance; record the identity basis used.
+- **Prohibited.** Withholding wages pending documentation.
+- **Exception policy.** **None.**
+- **Laws.** CP-9, PA-8. **Cross-refs.** WRK-03, RSK-30.
+
+**LAB-04 — Statutory registers MUST be maintained from the operational record, not reconstructed for inspection.**
+- **Rationale.** A register assembled for an inspection is a document about an inspection, not about the workforce. It also diverges from the payment record, and the divergence is what an inspector looks for.
+- **Trigger.** Continuous; inspection.
+- **Preconditions.** Attendance and wage records.
+- **Mandatory.** Derive registers from the same records that drove payment.
+- **Prohibited.** Parallel register maintenance.
+- **Exception policy.** **None.**
+- **Laws.** CP-9, CP-4. **Cross-refs.** integration O-6, AUD-11.
+
+**LAB-05 — Evidence that intermediated workers were paid MUST be obtained before the intermediary's next settlement.**
+- **Rationale.** CTL-05. The only moment at which the enterprise has leverage over an intermediary's wage discipline is while it still holds the next payment.
+- **Trigger.** Intermediary settlement.
+- **Preconditions.** LAB-02.
+- **Mandatory.** Obtain, reconcile, and record.
+- **Prohibited.** Settlement without prior-period wage evidence.
+- **Exception policy.** Bounded grace, counted, with direct worker enquiry.
+- **Laws.** CP-9, PA-8. **Cross-refs.** BRL-09, RI-8, LA-7.
+
+**LAB-06 — Every worker's effective wage MUST be tested against the statutory minimum for trade, grade, region, and date.**
+- **Rationale.** FM-25. Minimum-wage compliance is not an average or an aggregate property; it is a per-worker, per-period test, and it is failed one worker at a time.
+- **Trigger.** Wage computation.
+- **Preconditions.** Statutory minima by effective date (I-8).
+- **Mandatory.** Apply FM-25 per worker; block settlement on failure.
+- **Prohibited.** Aggregate or gang-average compliance testing.
+- **Exception policy.** **None.**
+- **Laws.** CP-9. **Cross-refs.** MW-1, MW-2, WGR-05.
+
+**LAB-07 — A below-minimum wage MUST NOT be corrected silently.**
+- **Rationale.** MW-1. A silent top-up conceals that the enterprise or its supplier attempted to pay below the floor, and conceals the pattern that would reveal a systemic rate error.
+- **Trigger.** FM-25 failure.
+- **Preconditions.** —
+- **Mandatory.** Raise the failure; correct the rate as an attributed act; record the reason; report the frequency.
+- **Prohibited.** Automatic silent adjustment.
+- **Exception policy.** **None.**
+- **Laws.** CP-9, CP-11. **Cross-refs.** MW-1, PC-10, RSK-30.
+
+**LAB-08 — Wages MUST be paid to the worker, and receipt MUST be acknowledged by the worker.**
+- **Rationale.** Payment to an intermediary discharges the enterprise's commercial obligation and none of its statutory one. Acknowledgement by the named worker is the only evidence that closes the gap.
+- **Trigger.** Disbursement of wages.
+- **Preconditions.** Individual wage records.
+- **Mandatory.** Obtain acknowledgement per worker, by signature, thumb impression, biometric, or bank credit confirmation.
+- **Prohibited.** Bulk acknowledgement by an intermediary on the workers' behalf.
+- **Exception policy.** **None.**
+- **Laws.** CP-9, PA-8. **Cross-refs.** BRL-06, CLB-01, RI-8.
+
+**LAB-09 — Every worker MUST be able to see the computation of their own wage.**
+- **Rationale.** CP-10 and GP-19. Transparency to the worker is the cheapest audit of the attendance record the enterprise holds, and the most reliable detector of intermediary skimming.
+- **Trigger.** Settlement.
+- **Preconditions.** Wage Card.
+- **Mandatory.** Present days, rate, gross, deductions, and net in an intelligible form.
+- **Prohibited.** Net-only disclosure.
+- **Exception policy.** **None.**
+- **Laws.** CP-10. **Cross-refs.** CLB-12, WKS-09.
+
+**LAB-10 — Wage payment MUST NOT be delayed beyond the statutory or contractual period.**
+- **Rationale.** Delay is both a statutory breach and the mechanism by which a workforce becomes dependent on advances, which then become recoveries, which then become disputes.
+- **Trigger.** Settlement period end.
+- **Preconditions.** —
+- **Mandatory.** Settle within the period; where a commercial dispute exists with an intermediary, pay the workers regardless (CTL-06).
+- **Prohibited.** Wage delay used as commercial leverage.
+- **Exception policy.** **None.**
+- **Laws.** CP-9, PA-8. **Cross-refs.** CTL-06, BRL-13, RSK-33.
+
+**LAB-11 — Deductions from wages MUST be lawful, authorised, and within the statutory ceiling.**
+- **Rationale.** FM-27. Recovery discipline is a virtue up to the lawful ceiling and an offence beyond it; the ceiling is not a guideline.
+- **Trigger.** Wage computation.
+- **Preconditions.** Statutory deduction ceiling by date.
+- **Mandatory.** Test every deduction set against FM-27; carry the excess forward.
+- **Prohibited.** Deduction beyond the ceiling; unauthorised deduction of any kind.
+- **Exception policy.** **None.**
+- **Laws.** CP-9. **Cross-refs.** CLB-10, REC-13, PC-9.
+
+**LAB-12 — Welfare obligations that create a recovery MUST be valued and recorded like any other recovery.**
+- **Rationale.** § 2.2.1 boundary ruling: welfare is in scope only where it creates a recovery or affects payment. Where it does, informality is the leakage.
+- **Trigger.** Provision of food, housing, transport, or utilities against wages.
+- **Preconditions.** Contractual or statutory basis for the recovery.
+- **Mandatory.** Value at the agreed basis; record; apply within the lawful ceiling.
+- **Prohibited.** Ad hoc site-level deduction for welfare provision.
+- **Exception policy.** **None.**
+- **Laws.** CP-9. **Cross-refs.** REC-06, LAB-11.
+
+**LAB-13 — A departing worker MUST be settled without requiring a claim.**
+- **Rationale.** GP-12. The dues least likely to be claimed are the ones most likely to be retained, and retention of unclaimed wages is an unrecorded gain to the enterprise.
+- **Trigger.** Separation; demobilisation; site closure.
+- **Preconditions.** Attendance resolved.
+- **Mandatory.** Compute and settle; record unlocatable-worker dues as liabilities.
+- **Prohibited.** Settlement conditional on the worker asking.
+- **Exception policy.** **None.**
+- **Laws.** CP-9, PA-8. **Cross-refs.** WRK-14, DEP-11, CLS-09.
+
+**LAB-14 — Statutory records MUST be retained for the statutory period regardless of project closure.**
+- **Rationale.** § 3.4.4 temporal boundary. Obligations outlive projects, and the record is demanded when the project team no longer exists (objective O-9).
+- **Trigger.** Project or contract closure.
+- **Preconditions.** —
+- **Mandatory.** Retain and keep reconstructible; transfer custody on closure.
+- **Prohibited.** Purge at project close; custody left with a demobilised team.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11, CP-9. **Cross-refs.** LI-33, AUD-12, CLS-14.
+
+---
+
+## 9.12 Domain WGR — Wage rates
+
+> *A rate is an instrument, not a number. Every rule in this domain exists because a rate applied
+> without authority is indistinguishable from a rate applied with one, until an audit.*
+
+**WGR-01 — Every wage rate MUST derive from an authorised schedule with an effective date.**
+- **Rationale.** GP-01 and CP-4. A rate with no instrument behind it cannot be defended, reconciled, or applied consistently across two adjacent sites.
+- **Trigger.** Wage computation; engagement.
+- **Preconditions.** Authorised wage schedule.
+- **Mandatory.** Resolve by trade, grade, region, and effective date.
+- **Prohibited.** Site-set rates; rates carried over from another project by assumption.
+- **Exception policy.** Centrally approved premium, time-boxed and recorded.
+- **Laws.** CP-4, LAW-5. **Cross-refs.** CLB-09, FM-21, GP-17.
+
+**WGR-02 — Rate MUST follow the worker's evidenced classification, not their claimed one.**
+- **Rationale.** WRK-05. Grade inflation is silent, permanent, and compounding — leakage form L7 in the labour path.
+- **Trigger.** Wage computation.
+- **Preconditions.** WRK-05 classification with evidence.
+- **Mandatory.** Apply the rate for the evidenced grade.
+- **Prohibited.** Grade asserted by the Mate, the supplier, or the worker without evidence.
+- **Exception policy.** Provisional grade for one period, recorded.
+- **Laws.** LAW-5. **Cross-refs.** WRK-05, RSK-31.
+
+**WGR-03 — Wage rates MUST be time-versioned and never edited in place.**
+- **Rationale.** GP-08 and RR-2. Editing a rate silently restates every past settlement computed from it, and no one can see that it happened.
+- **Trigger.** Rate revision.
+- **Preconditions.** —
+- **Mandatory.** Create a new version with its own effective date; retain prior versions.
+- **Prohibited.** In-place edit; retrospective application without restatement.
+- **Exception policy.** Restatement by executive authority, applied visibly.
+- **Laws.** LAW-11. **Cross-refs.** RR-2, FIN-07.
+
+**WGR-04 — Work MUST be valued at the rate in force on the work date.**
+- **Rationale.** DP-12, FM-00. Valuing at the computation date transfers the benefit of every rate movement to whichever party the timing favours, invisibly.
+- **Trigger.** Wage computation.
+- **Preconditions.** WGR-03.
+- **Mandatory.** Resolve by work date.
+- **Prohibited.** Resolution by payment date, approval date, or current date.
+- **Exception policy.** **None.**
+- **Laws.** DP-12. **Cross-refs.** FM-00, GP-17, PC-2.
+
+**WGR-05 — Every wage rate MUST be at or above the statutory minimum for its classification and date.**
+- **Rationale.** A schedule that permits a sub-minimum rate has institutionalised a statutory breach and will produce it consistently.
+- **Trigger.** Rate schedule approval; statutory revision.
+- **Preconditions.** Statutory minima by effective date.
+- **Mandatory.** Test the schedule on approval and on every statutory revision; correct forward.
+- **Prohibited.** Schedule rates below the floor "to be topped up in computation".
+- **Exception policy.** **None.**
+- **Laws.** CP-9. **Cross-refs.** LAB-06, MW-1.
+
+**WGR-06 — A statutory minimum revision MUST be applied from its own effective date.**
+- **Rationale.** I-8 and II-3. Late application creates arrears the enterprise owes and did not record; early application misstates cost.
+- **Trigger.** Statutory notification.
+- **Preconditions.** —
+- **Mandatory.** Apply from the effective date; compute and settle arrears where the notification is late.
+- **Prohibited.** Application from the notification date where the statute says otherwise.
+- **Exception policy.** **None.**
+- **Laws.** CP-9, DP-12. **Cross-refs.** II-3, LAB-06.
+
+**WGR-07 — Overtime multipliers MUST be the higher of statutory and contractual.**
+- **Rationale.** FM-22. The enterprise may be more generous than the statute; it may never be less, and the computation must not require anyone to remember which applies.
+- **Trigger.** Overtime computation.
+- **Preconditions.** Both values known by date.
+- **Mandatory.** Apply the higher.
+- **Prohibited.** Contractual multiplier applied where lower than statutory.
+- **Exception policy.** **None.**
+- **Laws.** CP-9. **Cross-refs.** FM-22, ATT-14.
+
+**WGR-08 — Piece rates MUST be authorised centrally and reconcilable to a day-rate equivalent.**
+- **Rationale.** A piece rate that yields less than the minimum wage for a normal day's output is a minimum-wage breach expressed as productivity, and it is invisible unless the equivalence is computed.
+- **Trigger.** Piece-rate agreement; settlement.
+- **Preconditions.** Norm output for the item.
+- **Mandatory.** Compute the day-rate equivalent at norm output; test against the statutory minimum.
+- **Prohibited.** Site-agreed piece rates; piece rates with no norm.
+- **Exception policy.** **None.**
+- **Laws.** CP-9, CP-4. **Cross-refs.** PCR-02, PCR-06, LAB-06.
+
+**WGR-09 — Scarce-trade premiums MUST be time-boxed, attributed, and reviewed.**
+- **Rationale.** LA-5. A premium granted for a genuine scarcity becomes a permanent rate the moment no one reviews it, and it propagates by comparison to workers who were never scarce.
+- **Trigger.** Premium grant.
+- **Preconditions.** Central approval.
+- **Mandatory.** Record reason, authority, expiry; review at expiry.
+- **Prohibited.** Open-ended premiums.
+- **Exception policy.** Extension by the granting authority, recorded and counted.
+- **Laws.** LAW-12. **Cross-refs.** WGR-01, GP-10.
+
+**WGR-10 — Rate exceptions MUST be reported by frequency and by authoriser.**
+- **Rationale.** GP-10 and LI-30. An exception that is recorded but never counted has not been recorded.
+- **Trigger.** Period close.
+- **Preconditions.** —
+- **Mandatory.** Report count and value of rate exceptions by authoriser.
+- **Prohibited.** Exception data available only on request.
+- **Exception policy.** **None.**
+- **Laws.** LAW-12. **Cross-refs.** EXC-08, AUD-08.
+
+**WGR-11 — Rate schedules MUST be consistent across projects within a region and period.**
+- **Rationale.** Inconsistent rates for identical work in the same labour market produce grievance, attrition to the higher-paying site, and an unanswerable question in an inspection.
+- **Trigger.** Schedule approval; periodic review.
+- **Preconditions.** —
+- **Mandatory.** Test for cross-project inconsistency; justify or correct.
+- **Prohibited.** Unexplained divergence.
+- **Exception policy.** Documented local-market justification.
+- **Laws.** CP-4. **Cross-refs.** WGR-01, PRD-09.
+
+**WGR-12 — Applied rates MUST be visible on the worker's wage record.**
+- **Rationale.** CP-10. A worker who cannot see the rate cannot detect that the wrong one was applied, and the wrong rate is the most common silent error in this domain.
+- **Trigger.** Settlement.
+- **Preconditions.** —
+- **Mandatory.** Show rate and its basis on the Wage Card.
+- **Prohibited.** Rate withheld from the worker's record.
+- **Exception policy.** **None.**
+- **Laws.** CP-10. **Cross-refs.** LAB-09, CLB-12.
+
+---
+
+## 9.13 Domain DWG — Daily wages
+
+> *Daily-wage engagement is the simplest payment path in the capability and therefore the one where
+> controls are most often assumed to be unnecessary.*
+
+**DWG-01 — A daily wage MUST be payable only against a validated attendance day.**
+- **Rationale.** LAW-2. The day is the unit of entitlement; without validation there is no unit, only an assertion.
+- **Trigger.** Wage computation.
+- **Preconditions.** ATT-06, ATT-07.
+- **Mandatory.** Count only `VALIDATED` or `LOCKED` days (FM-20).
+- **Prohibited.** Payment from captured-but-unvalidated attendance.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** FM-20, PEL-02.
+
+**DWG-02 — Half-day and part-day treatment MUST follow a defined rule, not site discretion.**
+- **Rationale.** LA-2. "Half day" undefined is a leakage site repeated thousands of times per period.
+- **Trigger.** Attendance capture.
+- **Preconditions.** Defined attendance-type vocabulary.
+- **Mandatory.** Define thresholds; apply uniformly (FM-20).
+- **Prohibited.** Site-level interpretation.
+- **Exception policy.** **None.**
+- **Laws.** CP-4. **Cross-refs.** ATT-09, FM-20.
+
+**DWG-03 — Daily wage computation MUST be reproducible by hand.**
+- **Rationale.** SC-10 and CP-10. A daily wage the worker cannot recompute is a wage the worker cannot dispute, and a wage no auditor can verify without the system.
+- **Trigger.** Settlement.
+- **Preconditions.** —
+- **Mandatory.** Present days × rate + additions − deductions.
+- **Prohibited.** Composite figures with no derivation.
+- **Exception policy.** **None.**
+- **Laws.** CP-7, CP-10. **Cross-refs.** FM-21, LAB-09.
+
+**DWG-04 — Daily-wage engagement MUST NOT be used to circumvent measurement for contracted work.**
+- **Rationale.** UG-3. Day work is the weakest contractual basis; used at scale it converts an outcome contract into an unmeasured time contract and removes LAW-1 from the payment path.
+- **Trigger.** Day-work authorisation.
+- **Preconditions.** Instrument provision for day work.
+- **Mandatory.** Authorise in advance; cap; reconcile to output.
+- **Prohibited.** Unbounded day work; day work substituted for measurable items.
+- **Exception policy.** Executive approval, time-boxed, counted.
+- **Laws.** LAW-1. **Cross-refs.** UG-3, CTL-01, RSK-13.
+
+**DWG-05 — Daily wages MUST be disbursed to the worker within the defined cycle.**
+- **Rationale.** LAB-10. Daily-wage workers are, by definition, those least able to absorb delay.
+- **Trigger.** Cycle end.
+- **Preconditions.** —
+- **Mandatory.** Disburse within the cycle; record acknowledgement.
+- **Prohibited.** Rolling delay; payment contingent on the contractor's own receipt.
+- **Exception policy.** **None.**
+- **Laws.** PA-8, CP-9. **Cross-refs.** CLB-01, LAB-08.
+
+**DWG-06 — Overtime on daily-wage engagement MUST be authorised, recorded, and paid at the correct multiplier.**
+- **Rationale.** ATT-14 and WGR-07 combined at the point where they are most often ignored.
+- **Trigger.** Overtime worked.
+- **Preconditions.** CLB-04.
+- **Mandatory.** Authorise, record, compute by FM-22.
+- **Prohibited.** Overtime absorbed into the day rate.
+- **Exception policy.** OT-1.
+- **Laws.** CP-9, LAW-12. **Cross-refs.** FM-22, WGR-07.
+
+**DWG-07 — Daily-wage cost MUST be attributed to an activity.**
+- **Rationale.** CLB-06. Unattributed daily wages are the fastest route to a project whose labour cost cannot be explained.
+- **Trigger.** Validation.
+- **Preconditions.** ASG-03.
+- **Mandatory.** Attribute.
+- **Prohibited.** Blanket attribution as routine.
+- **Exception policy.** Bounded general activity.
+- **Laws.** LAW-5. **Cross-refs.** ASG-03, PRD-02.
+
+**DWG-08 — Advances against daily wages MUST be recovered within the lawful ceiling.**
+- **Rationale.** CLB-10 and FM-27. The daily-wage worker is the most likely to take an advance and the least able to survive an unlawful recovery.
+- **Trigger.** Settlement.
+- **Preconditions.** Recovery plan bound at advance approval.
+- **Mandatory.** Apply FM-27; carry excess forward.
+- **Prohibited.** Full recovery in one cycle where it breaches the ceiling.
+- **Exception policy.** **None.**
+- **Laws.** CP-9, LAW-7. **Cross-refs.** ADV-11, LAB-11.
+
+**DWG-09 — Daily-wage rosters MUST be reconcilable to the muster and to disbursement.**
+- **Rationale.** GP-23 and RI-8. Three records of the same population, created for different purposes, is a control; one record is a claim.
+- **Trigger.** Period close.
+- **Preconditions.** —
+- **Mandatory.** Reconcile roster, muster, and disbursement; investigate variance.
+- **Prohibited.** Single-source reporting.
+- **Exception policy.** **None.**
+- **Laws.** CP-2. **Cross-refs.** RI-7, RI-8, AUD-06.
+
+**DWG-10 — Cash disbursement of daily wages MUST carry compensating controls.**
+- **Rationale.** § 1.4.10: informality is not fraud, but it is an environment in which fraud is undetectable. Cash is often unavoidable; uncontrolled cash is not.
+- **Trigger.** Cash wage disbursement.
+- **Preconditions.** —
+- **Mandatory.** Independent witness to disbursement; per-worker acknowledgement; surprise verification of a sample; segregation of the officer who computes from the officer who disburses.
+- **Prohibited.** Cash disbursed by the officer who validated the attendance.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4, CP-3. **Cross-refs.** SOD-3, LAB-08, RSK-34.
+
+---
+
+## 9.14 Domain WKS — Weekly and periodic settlement
+
+> *Settlement is where accumulated evidence becomes a single number. It is the last point at which
+> an error is cheap to correct.*
+
+**WKS-01 — A settlement MUST be computed only from a closed muster.**
+- **Rationale.** Computing from an open population produces a figure that changes after it is approved, which makes the approval meaningless.
+- **Trigger.** Settlement computation.
+- **Preconditions.** ATT-17 muster closed.
+- **Mandatory.** Close first, compute second.
+- **Prohibited.** Computation on an open muster.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** § 6.4.1, PG-3.
+
+**WKS-02 — Settlement arithmetic MUST be independently verified before approval.**
+- **Rationale.** GP-03 and SC-10. The originator's arithmetic is the originator's claim about arithmetic.
+- **Trigger.** Settlement `COMPUTED → VERIFIED`.
+- **Preconditions.** —
+- **Mandatory.** Independent recomputation reproducing the figure exactly.
+- **Prohibited.** Verification by the computing officer; verification by sampling only.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4. **Cross-refs.** SC-10, G-8.
+
+**WKS-03 — Settlement MUST reconcile to the muster day count.**
+- **Rationale.** RI-7. Days settled that exceed days validated is duplicate payment; days validated that are never settled is worker detriment. Both are found by the same test.
+- **Trigger.** Settlement.
+- **Preconditions.** —
+- **Mandatory.** Reconcile both directions; investigate either variance.
+- **Prohibited.** One-directional reconciliation.
+- **Exception policy.** **None.**
+- **Laws.** LAW-5. **Cross-refs.** RI-7, ATT-20.
+
+**WKS-04 — The statutory minimum test MUST pass before approval.**
+- **Rationale.** LAB-06. Approving a settlement that fails the floor commits the enterprise to a breach it has already detected.
+- **Trigger.** Approval.
+- **Preconditions.** FM-25 evaluated.
+- **Mandatory.** Block approval on failure.
+- **Prohibited.** Approval with a flagged failure "to be corrected next period".
+- **Exception policy.** **None.**
+- **Laws.** CP-9. **Cross-refs.** MW-1, LAB-07.
+
+**WKS-05 — Recoveries due in the period MUST be applied before approval.**
+- **Rationale.** LAW-8 and G-3 at the labour path. A settlement approved without recovery has forfeited the deduction opportunity for that period.
+- **Trigger.** Settlement.
+- **Preconditions.** Recovery schedule.
+- **Mandatory.** Apply; where deferred, record the deferral as an exception with authority.
+- **Prohibited.** Silent omission.
+- **Exception policy.** Deferral, attributed and counted (LI-12).
+- **Laws.** LAW-8. **Cross-refs.** REC-09, FM-26.
+
+**WKS-06 — Settlement approval MUST be by an actor who neither computed nor verified it.**
+- **Rationale.** GP-03, LAW-4, SOD-4.
+- **Trigger.** Approval.
+- **Preconditions.** —
+- **Mandatory.** Structural separation.
+- **Prohibited.** Any two of compute/verify/approve by one actor.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4. **Cross-refs.** SOD-4, SOD-10, § 6.14.
+
+**WKS-07 — Approved settlement MUST NOT be altered.**
+- **Rationale.** LI-23 applied to the labour path. An alterable approval is not an approval.
+- **Trigger.** Post-approval change request.
+- **Preconditions.** —
+- **Mandatory.** Cancel and re-originate, with both records retained.
+- **Prohibited.** Amount, payee, or period edited after approval.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** LI-23, FIN-05.
+
+**WKS-08 — Settlement MUST consume the attendance days it settles.**
+- **Rationale.** GP-04, SY-2, ATT-20. Consumption is what prevents the same day funding two settlements.
+- **Trigger.** Settlement.
+- **Preconditions.** —
+- **Mandatory.** Mark `SETTLED`; block re-consumption.
+- **Prohibited.** —
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** LM-6, RI-7.
+
+**WKS-09 — Every settlement MUST produce an individual wage record.**
+- **Rationale.** BRL-06, LAB-02. A settlement that produces only a total has settled a number, not a workforce.
+- **Trigger.** Settlement.
+- **Preconditions.** —
+- **Mandatory.** Wage Card per worker, with derivation.
+- **Prohibited.** Aggregate-only settlement records.
+- **Exception policy.** **None.**
+- **Laws.** LAW-5, CP-9. **Cross-refs.** GNG-05, LAB-09.
+
+**WKS-10 — Failed or returned wage disbursement MUST reinstate the worker's entitlement.**
+- **Rationale.** LI-24. A failed wage payment that disappears is an unrecorded enterprise gain and an unpaid worker, simultaneously.
+- **Trigger.** Disbursement failure.
+- **Preconditions.** —
+- **Mandatory.** Reinstate automatically; re-attempt; record.
+- **Prohibited.** Silent absorption.
+- **Exception policy.** **None.**
+- **Laws.** PA-8. **Cross-refs.** LI-24, I-10.
+
+**WKS-11 — Unsettled entitlement MUST age and escalate.**
+- **Rationale.** GP-20 and RI-12's labour equivalent. Entitlement that sits unsettled becomes untraceable as the workforce disperses.
+- **Trigger.** Period close.
+- **Preconditions.** —
+- **Mandatory.** Report unsettled validated attendance by age; escalate beyond threshold.
+- **Prohibited.** Unsettled entitlement invisible in reporting.
+- **Exception policy.** **None.**
+- **Laws.** CP-11, PA-8. **Cross-refs.** RI-12, WRK-14.
+
+**WKS-12 — Settlement periods MUST be closed positively and MUST NOT reopen silently.**
+- **Rationale.** PG-3, PG-4. A period that closes by the calendar and reopens by convenience has no closing point at all.
+- **Trigger.** Period close.
+- **Preconditions.** Checklist satisfied.
+- **Mandatory.** Positive close with checklist evidence; reopening only by LC-12.
+- **Prohibited.** Silent reopening; retrospective insertion.
+- **Exception policy.** Finance Controller, recorded, counted.
+- **Laws.** LAW-11, LAW-12. **Cross-refs.** PG-3, PG-4, ATT-17.
+
+---
+
+## 9.15 Domain PCR — Piece-rate work
+
+> *Piece rate pays for output rather than presence. It is the most honest labour arrangement in
+> construction and the one most easily converted into an unmeasured payment.*
+
+**PCR-01 — Piece-rate payment MUST be against measured output.**
+- **Rationale.** FM-23. Piece rate does not escape LAW-1; it uses measurement to price labour instead of contract work. Unmeasured piece rate is simply an unsupported payment.
+- **Trigger.** Piece-rate settlement.
+- **Preconditions.** Verified measurement of the output.
+- **Mandatory.** Measure and verify output before valuation.
+- **Prohibited.** Payment on the gang leader's declared output.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1, LAW-5. **Cross-refs.** FM-23, MSR-01, GP-13.
+
+**PCR-02 — Piece rates MUST be centrally authorised with a defined norm output.**
+- **Rationale.** WGR-08. Without a norm, the rate cannot be tested against the statutory minimum, and the arrangement becomes a lawful-looking route below the floor.
+- **Trigger.** Rate setting.
+- **Preconditions.** Norm schedule.
+- **Mandatory.** Record rate, norm, and effective date.
+- **Prohibited.** Site-agreed piece rates.
+- **Exception policy.** **None.**
+- **Laws.** CP-4, CP-9. **Cross-refs.** WGR-08, PCR-06.
+
+**PCR-03 — Piece-rate output MUST be attributable to identified workers.**
+- **Rationale.** Output attributed to a gang without allocation cannot be tested against any individual's statutory entitlement (GNG-05).
+- **Trigger.** Settlement.
+- **Preconditions.** Gang composition; attendance.
+- **Mandatory.** Allocate by FM-29 or by an evidenced individual output record.
+- **Prohibited.** Gang-total-only settlement.
+- **Exception policy.** **None.**
+- **Laws.** LAW-5, CP-9. **Cross-refs.** FM-29, BRL-06.
+
+**PCR-04 — Piece-rate output MUST NOT be measured by the party paid for it.**
+- **Rationale.** GP-13 at its sharpest: the measurer's own earnings rise with the measurement.
+- **Trigger.** Measurement of piece-rate output.
+- **Preconditions.** —
+- **Mandatory.** Measurement by an enterprise officer; check per § 8.8.
+- **Prohibited.** Self-measurement; measurement by the Mate.
+- **Exception policy.** **None.**
+- **Laws.** CP-2, LAW-4. **Cross-refs.** SOD-1, GNG-04.
+
+**PCR-05 — Piece-rate output MUST NOT be counted twice against contract measurement.**
+- **Rationale.** The same physical work paid once as piece-rate labour and once as a contractor's measured item is leakage form L2 across two payment paths, and neither path sees the other.
+- **Trigger.** Measurement; billing.
+- **Preconditions.** —
+- **Mandatory.** Mark output consumed by the path that settled it; reconcile paths at period close.
+- **Prohibited.** Parallel valuation of one quantity on both paths.
+- **Exception policy.** **None.**
+- **Laws.** LAW-5. **Cross-refs.** GP-04, SY-1, RSK-16.
+
+**PCR-06 — Piece-rate earnings MUST be tested against the statutory minimum for the period.**
+- **Rationale.** FM-25 applies to effective receipt regardless of the payment basis. Low output does not license sub-minimum payment.
+- **Trigger.** Settlement.
+- **Preconditions.** Days worked; statutory minimum.
+- **Mandatory.** Compute effective daily wage; block settlement on failure; correct as an attributed act.
+- **Prohibited.** "Output was low" as justification for sub-minimum receipt.
+- **Exception policy.** **None.**
+- **Laws.** CP-9. **Cross-refs.** LAB-06, MW-1.
+
+**PCR-07 — Rejected or defective output MUST NOT be paid at piece rate.**
+- **Rationale.** MP-9 and LI-07. Paying for rejected output funds rework twice — once to produce the defect and once to correct it.
+- **Trigger.** Quality rejection.
+- **Preconditions.** CAP-QLT acceptance record (I-4).
+- **Mandatory.** Exclude rejected output from measurement.
+- **Prohibited.** Paying at a discounted rate for rejected work.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1. **Cross-refs.** LI-07, MSR-08.
+
+**PCR-08 — Rework MUST NOT be paid as new output.**
+- **Rationale.** Rework re-executes work already paid; measuring it as fresh output is duplicate payment for a single unit of value delivered.
+- **Trigger.** Rework execution.
+- **Preconditions.** Identification of the original output.
+- **Mandatory.** Record rework against the original; recover where the fault is the executor's.
+- **Prohibited.** Rework measured as new production.
+- **Exception policy.** Enterprise-caused rework — payable, recorded with cause.
+- **Laws.** LAW-1, LAW-8. **Cross-refs.** REC-07, RSK-17.
+
+**PCR-09 — Piece-rate arrangements MUST NOT displace attendance recording.**
+- **Rationale.** Attendance remains the statutory record and the productivity denominator even where payment is by output. Abandoning it removes both the compliance evidence and the anomaly detector.
+- **Trigger.** Piece-rate engagement.
+- **Preconditions.** —
+- **Mandatory.** Capture attendance normally.
+- **Prohibited.** "Piece rate, therefore no muster".
+- **Exception policy.** **None.**
+- **Laws.** LAW-2, CP-9. **Cross-refs.** ATT-01, PRD-04.
+
+**PCR-10 — Piece-rate productivity outliers MUST be investigated, in both directions.**
+- **Rationale.** MR-6. Impossible output signals over-measurement; collapsed output signals ghost labour or misattribution. A one-sided check finds only the second.
+- **Trigger.** Period close.
+- **Preconditions.** Norms.
+- **Mandatory.** Report and investigate variance beyond tolerance either way.
+- **Prohibited.** Investigating only underperformance.
+- **Exception policy.** **None.**
+- **Laws.** CP-11. **Cross-refs.** MR-6, PRD-06, AUD-07.
+
+---
+
+## 9.16 Domain PRD — Productivity
+
+> *Productivity is analytical, never financial (PD-1). Its value to this capability is as a detector:
+> it is the only control that compares two independent records — effort and output — that were
+> created by different actors for different purposes.*
+
+**PRD-01 — Productivity MUST NOT adjust entitlement.**
+- **Rationale.** PD-1. Entitlement follows measured work at contracted rates. Adjusting payment for productivity converts a contract into a performance opinion.
+- **Trigger.** Any proposal to vary payment on productivity grounds.
+- **Preconditions.** —
+- **Mandatory.** Route productivity findings to award, forecasting, and investigation.
+- **Prohibited.** Productivity-based payment adjustment.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1, LAW-5. **Cross-refs.** PD-1, PC-11.
+
+**PRD-02 — Effort MUST be attributable to the activity whose output is measured.**
+- **Rationale.** FM-31 requires a shared denominator. Effort on one activity and output on another produce a meaningless ratio that will be relied upon anyway.
+- **Trigger.** Attendance validation; measurement.
+- **Preconditions.** ASG-03.
+- **Mandatory.** Common activity coding across effort and output.
+- **Prohibited.** Productivity computed across mismatched activity sets.
+- **Exception policy.** **None.**
+- **Laws.** LAW-5. **Cross-refs.** ASG-03, CLB-06.
+
+**PRD-03 — Productivity MUST be computed for every activity with a defined norm.**
+- **Rationale.** GP-21. A control that is computed selectively is a control that can be avoided by selection.
+- **Trigger.** Period close.
+- **Preconditions.** Norms; measured output.
+- **Mandatory.** Compute and report; record where a norm is absent.
+- **Prohibited.** Computation only where results are expected to be favourable.
+- **Exception policy.** **None.**
+- **Laws.** CP-11. **Cross-refs.** FM-31, FM-33.
+
+**PRD-04 — Productivity MUST use validated attendance, not planned deployment.**
+- **Rationale.** Planned effort measures intent; validated effort measures reality. Using the former produces a figure that cannot detect ghost labour, because ghosts are not in the plan.
+- **Trigger.** Computation.
+- **Preconditions.** Validated attendance.
+- **Mandatory.** Use validated worker-days.
+- **Prohibited.** Deployment strength as the denominator.
+- **Exception policy.** **None.**
+- **Laws.** LAW-5. **Cross-refs.** FM-31, MR-6.
+
+**PRD-05 — Favourable productivity anomalies MUST be treated as leakage signals.**
+- **Rationale.** PD-1's constitutional note: a sudden improvement in measured output per worker-day is more often over-measurement than genius.
+- **Trigger.** Variance beyond tolerance.
+- **Preconditions.** —
+- **Mandatory.** Investigate as a potential measurement anomaly; route to Internal Audit.
+- **Prohibited.** Reporting favourable variance as achievement without verification.
+- **Exception policy.** **None.**
+- **Laws.** CP-11. **Cross-refs.** MR-6, AF-11, RSK-15.
+
+**PRD-06 — Productivity norms MUST be authorised, versioned, and reviewed.**
+- **Rationale.** A norm nobody owns drifts to match whatever is being achieved, at which point it detects nothing.
+- **Trigger.** Norm setting; periodic review.
+- **Preconditions.** —
+- **Mandatory.** Central authorisation with effective dates; periodic review against evidence.
+- **Prohibited.** Site-adjusted norms; norms revised to eliminate a variance.
+- **Exception policy.** **None.**
+- **Laws.** CP-4. **Cross-refs.** WGR-08, PCR-02.
+
+**PRD-07 — Labour cost per unit MUST be reported against budget by activity.**
+- **Rationale.** § 2.1.11 cost intelligence: the enterprise cannot forecast exposure it cannot decompose.
+- **Trigger.** Period close.
+- **Preconditions.** Attributed cost; measured output.
+- **Mandatory.** Report `C_unit` (FM-32) against budget.
+- **Prohibited.** Project-level-only cost reporting.
+- **Exception policy.** **None.**
+- **Laws.** LAW-5. **Cross-refs.** FM-32, CLB-02.
+
+**PRD-08 — Productivity reporting MUST reach the officer accountable for the cost.**
+- **Rationale.** GP-21. A metric that reaches only its own producer changes nothing.
+- **Trigger.** Period close.
+- **Preconditions.** —
+- **Mandatory.** Route to Project Manager, Finance Controller, and Internal Audit.
+- **Prohibited.** Circulation limited to the site.
+- **Exception policy.** **None.**
+- **Laws.** CP-11. **Cross-refs.** AF-11, R-13.
+
+**PRD-09 — Productivity comparison across projects MUST account for declared conditions.**
+- **Rationale.** Comparing unlike sites produces conclusions that are wrong and confident, and the response — pressure on the measurer — damages exactly the control that matters (§ 4.6).
+- **Trigger.** Cross-project reporting.
+- **Preconditions.** Recorded site conditions, hindrances, and access constraints.
+- **Mandatory.** Normalise or disclose the conditions alongside the comparison.
+- **Prohibited.** Ranking sites on unadjusted productivity.
+- **Exception policy.** **None.**
+- **Laws.** CP-8. **Cross-refs.** ATT-13, § 4.6.
+
+---
+
+## 9.17 Domain MSR — Measurement
+
+> *Part 8 defines the engine. This domain states the rules the enterprise obeys when operating it.*
+
+**MSR-01 — Value MUST NOT attach to unmeasured work.**
+- **Rationale.** LAW-1 stated as the operating rule of the domain. Every other rule here is a defence of this one.
+- **Trigger.** Any valuation of contracted work.
+- **Preconditions.** —
+- **Mandatory.** Require a measurement entry for every valued quantity.
+- **Prohibited.** Valuation from a claim, a schedule, a programme, or a percentage-complete assertion.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1. **Cross-refs.** G-1, CTL-01, EDR-02.
+
+**MSR-02 — Measurement MUST be performed by an enterprise officer competent in the item measured.**
+- **Rationale.** MP-4. Accountability requires competence; a measurement taken by someone who cannot read the item description is an accountable error waiting to be attributed.
+- **Trigger.** Measurement.
+- **Preconditions.** —
+- **Mandatory.** Record the measurer; maintain competence records.
+- **Prohibited.** Measurement by contractor staff (CTL-08).
+- **Exception policy.** **None.**
+- **Laws.** LAW-1, CP-6. **Cross-refs.** § 4.6, CTL-08.
+
+**MSR-03 — Measurement MUST record the work as executed, against the item as described.**
+- **Rationale.** MP-8. Misclassification is leakage forms L3 and L7 simultaneously, and it is invisible because the quantity is correct.
+- **Trigger.** Measurement.
+- **Preconditions.** Rate schedule item in force.
+- **Mandatory.** Record both the item and the description of work as executed (ME-2).
+- **Prohibited.** Classification chosen for rate advantage; description copied from the item without observation.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1, LAW-5. **Cross-refs.** ME-2, AF-6, RSK-12.
+
+**MSR-04 — Future-dated measurement MUST be structurally impossible.**
+- **Rationale.** LAW-3, LI-05, AF-2. Certainty that work will be completed is not a substitute for its completion.
+- **Trigger.** Measurement entry.
+- **Preconditions.** —
+- **Mandatory.** Prevent at entry.
+- **Prohibited.** Warning-only treatment.
+- **Exception policy.** **None.**
+- **Laws.** LAW-3. **Cross-refs.** LI-05, ATT-11.
+
+**MSR-05 — Contractor-supplied measurements MUST be re-measured, not adopted.**
+- **Rationale.** GP-13, CTL-03. Adopting the claimant's measurement removes the only independent step in the contract path.
+- **Trigger.** Receipt of contractor measurement.
+- **Preconditions.** —
+- **Mandatory.** Treat as a claim; measure independently.
+- **Prohibited.** Adoption with a countersignature.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1, CP-2. **Cross-refs.** CTL-03, JM-4.
+
+**MSR-06 — Every measurement MUST be checked by an actor who did not measure it.**
+- **Rationale.** SOD-1, CK-1. The check is the structural embodiment of CP-2 and the primary defence against L3.
+- **Trigger.** Measurement verification.
+- **Preconditions.** Declared check percentage.
+- **Mandatory.** Apply the declared check; record its extent (CK-6).
+- **Prohibited.** Verification by the measurer; check omitted for low value without a declared policy.
+- **Exception policy.** Reduced independence in small teams — recorded as a standing exception, counted (CK-7).
+- **Laws.** LAW-4, CP-2. **Cross-refs.** CK-1…CK-7, § 4.14.1.
+
+**MSR-07 — The checker MUST NOT increase a measurement.**
+- **Rationale.** LI-06. The asymmetry removes the progress-pressure incentive (§ 1.4.4) from the verification step; an increase requires a fresh measurement that is itself checked.
+- **Trigger.** Check.
+- **Preconditions.** —
+- **Mandatory.** Confirm or reduce; route increases to re-measurement.
+- **Prohibited.** Upward adjustment at check.
+- **Exception policy.** **None.**
+- **Laws.** CP-2. **Cross-refs.** LI-06, MSR-06.
+
+**MSR-08 — Work not accepted by quality MUST be excluded from measurement, not discounted.**
+- **Rationale.** LI-07, MP-9. A discounted measurement is a negotiated quantity, and negotiated quantities are the mechanism of § 1.4.12.
+- **Trigger.** Measurement of work with an open quality finding.
+- **Preconditions.** CAP-QLT status (I-4).
+- **Mandatory.** Exclude; re-measure after acceptance.
+- **Prohibited.** Measuring at a reduced quantity to reflect quality.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1. **Cross-refs.** LI-07, PCR-07.
+
+**MSR-09 — Work that will become concealed MUST be jointly measured before concealment.**
+- **Rationale.** GP-22, JM-2. Once concealed, the enterprise's only options are the contractor's record or destructive verification.
+- **Trigger.** Imminent concealment.
+- **Preconditions.** —
+- **Mandatory.** Joint measurement with the contractor; 100% check (CK-2).
+- **Prohibited.** Billing concealed work measured only after concealment.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1, LAW-3. **Cross-refs.** JM-2, AF-3, MI-11.
+
+**MSR-10 — Measurement MUST record location to re-measurable granularity.**
+- **Rationale.** MP-7. A quantity that cannot be re-found cannot be re-measured, and an unverifiable measurement is not billable.
+- **Trigger.** Measurement.
+- **Preconditions.** Site structure.
+- **Mandatory.** Record to grid, level, face, or chainage as the work requires.
+- **Prohibited.** Building- or floor-level-only location.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1. **Cross-refs.** ME-3, MI-4.
+
+**MSR-11 — Measurement evidence MUST be captured at the time of measurement.**
+- **Rationale.** MP-6, EV-2. Evidence assembled afterwards to support a recorded quantity is testimony about a claim.
+- **Trigger.** Measurement.
+- **Preconditions.** —
+- **Mandatory.** Attach artefacts at entry; record any later attachment as later (EV-2).
+- **Prohibited.** Bulk evidence attachment at bill time.
+- **Exception policy.** **None.**
+- **Laws.** CP-1. **Cross-refs.** EV-2, MBK-06.
+
+**MSR-12 — A measurement MUST NOT be edited; corrections supersede.**
+- **Rationale.** MP-12, MB-3, LAW-11. The original is the record of what was first asserted, which is the fact an investigation needs most.
+- **Trigger.** Correction.
+- **Preconditions.** —
+- **Mandatory.** Revision referencing the original, with reason; both retained and visible.
+- **Prohibited.** In-place edit; deletion; silent cancellation.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** RV-1, MBK-03.
+
+**MSR-13 — A verified measurement MUST be consumed by exactly one bill.**
+- **Rationale.** LM-6, SY-1, AF-1. This is the structural prevention of duplicate billing (L2).
+- **Trigger.** Billing.
+- **Preconditions.** —
+- **Mandatory.** Mark consumed; block re-consumption enterprise-wide.
+- **Prohibited.** Re-billing after cancellation of a bill without restoring and re-verifying the entry.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11, LAW-6. **Cross-refs.** SY-1, XCP-03, RSK-18.
+
+**MSR-14 — Measurement MUST NOT be performed against an item with no rate in force.**
+- **Rationale.** RR-1, SR-1. Measuring first and pricing later transfers the pricing decision to the moment of least leverage (SR-3).
+- **Trigger.** Measurement.
+- **Preconditions.** Rate resolution (FM-00).
+- **Mandatory.** Route to the star-rate procedure before measurement wherever practicable.
+- **Prohibited.** Measuring against an analogous or approximate item.
+- **Exception policy.** Measurement recorded as non-scheduled pending rate approval; not billable until SR-4 is satisfied.
+- **Laws.** LAW-5, CP-4. **Cross-refs.** SR-1…SR-4, PC-3.
+
+**MSR-15 — Part-rate measurement MUST record the stage reached.**
+- **Rationale.** PT-3. A fraction claimed without a stage is a number with no referent, and it will be settled anyway.
+- **Trigger.** Part-rate measurement.
+- **Preconditions.** Bound stage schedule (PT-2).
+- **Mandatory.** Record stage and its evidence.
+- **Prohibited.** Percentage-complete assertions in place of stages.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1. **Cross-refs.** FM-03, PT-1…PT-4.
+
+**MSR-16 — Measurement MUST be reconciled against independent consumption and design records.**
+- **Rationale.** MR-1…MR-8. Re-measurement checks the measurer; reconciliation checks the measurement against a different universe of facts, and catches what re-measurement cannot.
+- **Trigger.** Period close; bill preparation.
+- **Preconditions.** Material issue, batching, weighbridge, and design records.
+- **Mandatory.** Perform the applicable reconciliations; block on variance beyond tolerance (MR-9).
+- **Prohibited.** Annotating a variance and proceeding.
+- **Exception policy.** **None.**
+- **Laws.** CP-2. **Cross-refs.** MR-1…MR-9, GP-23.
+
+**MSR-17 — Measurement timing patterns MUST be monitored.**
+- **Rationale.** AF-8, MR-8. Measurement clustered immediately before bills, or long after execution, are both fabrication signatures.
+- **Trigger.** Continuous.
+- **Preconditions.** ME-6 dates recorded.
+- **Mandatory.** Report execution-to-measurement and measurement-to-bill intervals to Internal Audit.
+- **Prohibited.** —
+- **Exception policy.** **None.**
+- **Laws.** CP-11. **Cross-refs.** AF-8, AUD-07.
+
+**MSR-18 — Disputed measurement MUST NOT block undisputed value.**
+- **Rationale.** MD-1. Holding a whole bill over one item creates precisely the payment pressure (§ 1.4.8) that produces "just this once" releases.
+- **Trigger.** Dispute.
+- **Preconditions.** —
+- **Mandatory.** Bill the undisputed entries; hold the disputed entry; age and escalate (MD-4).
+- **Prohibited.** Whole-bill suspension over a single disputed item.
+- **Exception policy.** **None.**
+- **Laws.** CP-10. **Cross-refs.** MD-1…MD-4, GP-20.
+
+---
+
+## 9.18 Domain MBK — Measurement Book
+
+> *The MB is the enterprise's primary evidentiary record of physical execution. Its integrity
+> properties are constitutional, not clerical (§ 8.3).*
+
+**MBK-01 — Every Measurement Book MUST be issued to a named officer and its custody recorded.**
+- **Rationale.** MB-1. An MB in unrecorded custody has no evidentiary weight, because no one can say who could have written in it.
+- **Trigger.** Issue; transfer; return.
+- **Preconditions.** —
+- **Mandatory.** Record issue, custody transfers, and return with dates and names.
+- **Prohibited.** Unissued or unattributed books in use.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11, CP-6. **Cross-refs.** MB-1, AUD-03.
+
+**MBK-02 — The MB MUST NOT be maintained by, or accessible for entry to, a contractor.**
+- **Rationale.** CTL-08, SOD-6. Custody of the evidence that constrains one's own payment is not a control arrangement.
+- **Trigger.** —
+- **Preconditions.** —
+- **Mandatory.** Restrict entry rights to enterprise officers.
+- **Prohibited.** Contractor entries, contractor custody, contractor-held digital access.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4, CP-2. **Cross-refs.** CTL-08, SEC-04.
+
+**MBK-03 — MB entries MUST be indelible; corrections are struck through, initialled, and superseded.**
+- **Rationale.** MB-3. The physical difficulty of erasing ink is a control, and its replacement must be at least as hard to defeat (MB-9).
+- **Trigger.** Correction.
+- **Preconditions.** —
+- **Mandatory.** Strike through legibly; initial; date; record the superseding entry.
+- **Prohibited.** Erasure; obliteration; page removal; overwriting.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** MB-3, MSR-12.
+
+**MBK-04 — MB entries MUST be sequential and gap-free.**
+- **Rationale.** MB-2. A gap is where a removed or unrecorded measurement would be; it is a control event, not a clerical untidiness.
+- **Trigger.** Entry; audit.
+- **Preconditions.** —
+- **Mandatory.** Maintain sequence; explain and record any gap.
+- **Prohibited.** Unexplained gaps; renumbering.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** MB-2, AUD-03.
+
+**MBK-05 — Every entry MUST carry item, location, dimensions, computation, quantity, and unit.**
+- **Rationale.** MB-5, ME-4. A bare total is an assertion; the dimensions and their arithmetic are what make it reproducible.
+- **Trigger.** Entry.
+- **Preconditions.** —
+- **Mandatory.** Record all six.
+- **Prohibited.** Totals without derivation.
+- **Exception policy.** **None.**
+- **Laws.** CP-7. **Cross-refs.** ME-1…ME-11, SC-10.
+
+**MBK-06 — Entries MUST record both the work date and the measurement date.**
+- **Rationale.** ME-6. Rate resolution uses the work date (FM-00); the interval between the two is itself an anomaly signal (AF-8).
+- **Trigger.** Entry.
+- **Preconditions.** —
+- **Mandatory.** Record both.
+- **Prohibited.** Single-date entries.
+- **Exception policy.** **None.**
+- **Laws.** DP-12. **Cross-refs.** FM-00, MSR-17.
+
+**MBK-07 — Cumulative quantities MUST carry forward with a visible reference to the prior entry.**
+- **Rationale.** MB-6, LAW-6. Continuity is what makes the running account auditable across books and periods.
+- **Trigger.** Entry.
+- **Preconditions.** —
+- **Mandatory.** Reference the prior cumulative position.
+- **Prohibited.** Period-only entries with no cumulative link.
+- **Exception policy.** **None.**
+- **Laws.** LAW-6. **Cross-refs.** MB-6, EVL-03.
+
+**MBK-08 — A closed MB MUST NOT accept further entry.**
+- **Rationale.** MB-7. A book that reopens has no closing point, and its sequence guarantee is void.
+- **Trigger.** Closure.
+- **Preconditions.** —
+- **Mandatory.** Formal closure with date and officer.
+- **Prohibited.** Post-closure entries.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** MB-7, ATT-17.
+
+**MBK-09 — A digital MB MUST be append-only and MUST NOT permit silent modification.**
+- **Rationale.** MB-9. A digital book that permits silent edit is weaker than paper and therefore non-conformant, regardless of convenience gained.
+- **Trigger.** —
+- **Preconditions.** —
+- **Mandatory.** Append-only records; attributed entries; superseded entries permanently visible; version history retained.
+- **Prohibited.** In-place update; hard delete; administrative edit without a visible superseding record.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** MB-9, Part 11 § 11.7, SEC-10.
+
+**MBK-10 — MB entries MUST be attributable to a person, never to a role or a system.**
+- **Rationale.** CP-6, MB-4. Accountability that cannot be attributed to a human being is not accountability.
+- **Trigger.** Entry.
+- **Preconditions.** Individual credentials (SEC-01).
+- **Mandatory.** Record the individual.
+- **Prohibited.** Shared accounts; role-based attribution; system-generated entries with no responsible officer.
+- **Exception policy.** **None.**
+- **Laws.** CP-6. **Cross-refs.** SEC-01, AUD-04.
+
+**MBK-11 — MBs MUST be retained for the statutory and limitation period.**
+- **Rationale.** MB-8, § 3.4.4. The MB is demanded in arbitration years after the project team has dispersed (objective O-9).
+- **Trigger.** Closure; project close.
+- **Preconditions.** —
+- **Mandatory.** Retain and keep reconstructible; transfer custody formally.
+- **Prohibited.** Disposal at project close; custody left with a demobilised team.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** LI-33, LAB-14, CLS-14.
+
+**MBK-12 — MB integrity MUST be verified independently and periodically.**
+- **Rationale.** GP-21. Integrity properties that are never tested are assumptions, and assumptions fail silently.
+- **Trigger.** Audit cycle.
+- **Preconditions.** —
+- **Mandatory.** Verify custody, sequence, indelibility, attribution, and closure; report findings.
+- **Prohibited.** Verification by the custodian.
+- **Exception policy.** **None.**
+- **Laws.** CP-11, CP-2. **Cross-refs.** AUD-03, SOD-5.
+
+---
+
+## 9.19 Domain RBL — Running bills
+
+> *The running bill is the instrument through which almost all contract money leaves the enterprise.
+> Every control in Parts 1–8 either feeds this domain or constrains it.*
+
+**RBL-01 — A running bill is a claim until it is certified; it is never an entitlement on submission.**
+- **Rationale.** GP-13, CTL-03. Treating a submitted bill as a debt from the moment of receipt inverts the burden of proof and creates the payment pressure described in § 1.4.8.
+- **Trigger.** Bill submission.
+- **Preconditions.** —
+- **Mandatory.** Record as a claim; establish entitlement by verification.
+- **Prohibited.** Ageing a submitted bill as a payable before certification.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1, CP-1. **Cross-refs.** EDR-01, § 6.6.
+
+**RBL-02 — Every billed quantity MUST trace to a verified, unconsumed measurement entry.**
+- **Rationale.** G-1, MSR-13. This is the single test that connects money to physical reality.
+- **Trigger.** Bill preparation and verification.
+- **Preconditions.** LC-04 complete for the quantities billed.
+- **Mandatory.** Trace each line; reject the bill on any untraceable line.
+- **Prohibited.** Partial pass of a bill containing untraceable lines.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1, LAW-5. **Cross-refs.** G-1, SY-1, RSK-11.
+
+**RBL-03 — Bills MUST NOT be prepared from the contractor's figures.**
+- **Rationale.** CTL-03. A bill prepared from the claimant's data and then "checked" is a claim with a signature on it.
+- **Trigger.** Bill preparation.
+- **Preconditions.** Enterprise measurement records.
+- **Mandatory.** Prepare from the enterprise's own verified measurements.
+- **Prohibited.** Importing contractor quantities as the basis.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1, CP-2. **Cross-refs.** MSR-05, GP-13.
+
+**RBL-04 — Every bill MUST be cumulative and MUST reconcile to the Contractor Account.**
+- **Rationale.** LAW-6, LI-10, G-7. The cumulative form is what makes prior error self-correcting rather than compounding.
+- **Trigger.** Bill computation.
+- **Preconditions.** Prior settled position.
+- **Mandatory.** Compute by FM-19; reconcile to OBJ-25.
+- **Prohibited.** Period-only bills, even where the arithmetic would agree.
+- **Exception policy.** **None.**
+- **Laws.** LAW-6. **Cross-refs.** FM-19, PC-4, EVL-01.
+
+**RBL-05 — The ceiling test MUST be applied before any other financial step and MUST stop the bill on failure.**
+- **Rationale.** G-2, FM-07, LAW-9. A ceiling that is tested after recovery and retention has already been computed invites the arithmetic to be adjusted until it passes.
+- **Trigger.** Bill computation, step 6 (§ 7.8).
+- **Preconditions.** Sanctioned value and sanctioned variations to date.
+- **Mandatory.** Apply FM-07; reject on breach.
+- **Prohibited.** Approval at a higher level; part-passing to the ceiling; deferral of the excess to a later bill.
+- **Exception policy.** **None.**
+- **Laws.** LAW-9. **Cross-refs.** FM-07, VAR-01, RSK-19.
+
+**RBL-06 — Rates applied MUST be those in force at the work date.**
+- **Rationale.** FM-00, WGR-04, PC-2. Billing-date rate resolution silently transfers the value of every rate movement.
+- **Trigger.** Valuation.
+- **Preconditions.** Versioned rate schedule.
+- **Mandatory.** Resolve by work date per line.
+- **Prohibited.** Uniform current-rate application across a period spanning a rate change.
+- **Exception policy.** **None.**
+- **Laws.** DP-12, CP-4. **Cross-refs.** FM-00, GP-17.
+
+**RBL-07 — All recoveries due in the period MUST be applied before the bill can be verified.**
+- **Rationale.** G-3, LAW-8, LI-12. The bill is the enterprise's recovery opportunity; a bill that passes without recovery has forfeited it for that period.
+- **Trigger.** Verification.
+- **Preconditions.** Recovery schedule; issued-value records.
+- **Mandatory.** Assemble and apply per FM-13.
+- **Prohibited.** Silent omission; recovery "to be adjusted later".
+- **Exception policy.** Deferral by LC-12, attributed and counted.
+- **Laws.** LAW-8. **Cross-refs.** FM-13, REC-09, RSK-20.
+
+**RBL-08 — Retention MUST be withheld in the same act that certifies the value it applies to.**
+- **Rationale.** SY-6. Retention computed separately from certification drifts from it, and the drift is discovered at release when the money has gone.
+- **Trigger.** Certification.
+- **Preconditions.** Retention terms bound (E-3).
+- **Mandatory.** Compute FM-15 on the same certified value; record as liability.
+- **Prohibited.** Retention computed in a separate later process.
+- **Exception policy.** **None.**
+- **Laws.** LAW-10. **Cross-refs.** SY-6, RET-01.
+
+**RBL-09 — Bill arithmetic MUST be independently reproduced before certification.**
+- **Rationale.** G-8, SC-10. Reproduction is the only verification that does not depend on trusting the preparer's process.
+- **Trigger.** Verification.
+- **Preconditions.** —
+- **Mandatory.** Recompute independently; reconcile exactly; record the verifier.
+- **Prohibited.** Review by inspection; sampling of lines in place of recomputation of the total.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4, CP-4. **Cross-refs.** SC-10, DT-1.
+
+**RBL-10 — Origination, verification, certification, and approval MUST be four different actors.**
+- **Rationale.** G-5, LAW-4, SOD-2, SOD-10. Four separated acts is the structural definition of a bill the enterprise can defend.
+- **Trigger.** Each transition.
+- **Preconditions.** —
+- **Mandatory.** Enforce structurally.
+- **Prohibited.** Any two roles held by one actor on one bill.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4. **Cross-refs.** § 6.14, SOD-2, SOD-10.
+
+**RBL-11 — Approval MUST be within the approver's delegated limit, valid at the approval date.**
+- **Rationale.** G-6, GP-17. A limit that is not tested by date is a limit that survives the delegation that created it.
+- **Trigger.** Approval.
+- **Preconditions.** Delegation register with validity dates (D-9).
+- **Mandatory.** Test amount against limit and validity.
+- **Prohibited.** Approval outside limit; approval under a lapsed delegation.
+- **Exception policy.** **None.** Escalate to a higher authority instead.
+- **Laws.** LAW-4. **Cross-refs.** SEC-05, RSK-40.
+
+**RBL-12 — Bills MUST NOT be split to remain within a delegated limit.**
+- **Rationale.** GP-18, PC-13, XCP-16. Splitting is the same offence as breaching, performed with more steps.
+- **Trigger.** Approval; monitoring.
+- **Preconditions.** —
+- **Mandatory.** Test cumulative position, not instance size; monitor for split patterns (AF-5).
+- **Prohibited.** Sequential same-period bills that individually clear a limit the aggregate would breach.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4. **Cross-refs.** AF-5, PEL-09, RSK-40.
+
+**RBL-13 — A returned bill MUST re-enter at the step that failed.**
+- **Rationale.** LI-08. Resuming at certification means certifying on a superseded set of facts.
+- **Trigger.** Resubmission.
+- **Preconditions.** Recorded failure point.
+- **Mandatory.** Restart from the failed step; re-verify everything downstream of it.
+- **Prohibited.** Resumption at the point of return.
+- **Exception policy.** **None.**
+- **Laws.** CP-1. **Cross-refs.** LI-08, § 6.6.
+
+**RBL-14 — Part payment MUST leave the bill live and the residual visible.**
+- **Rationale.** LI-09. A part-paid bill closed as paid conceals a liability that will resurface at the final account.
+- **Trigger.** Part disbursement.
+- **Preconditions.** —
+- **Mandatory.** State `PART_PAID`; carry the residual in the Contractor Account.
+- **Prohibited.** Closing a part-paid bill.
+- **Exception policy.** **None.**
+- **Laws.** LAW-6. **Cross-refs.** LI-09, FIN-11.
+
+**RBL-15 — A bill is PAID only on confirmed disbursement.**
+- **Rationale.** SY-7, LI-25. Marking paid on instruction records an outcome that has not happened and may not.
+- **Trigger.** Disbursement confirmation.
+- **Preconditions.** —
+- **Mandatory.** Transition on confirmation; reinstate on failure (LI-24).
+- **Prohibited.** `PAID` on approval or instruction.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** SY-7, LC-10.
+
+**RBL-16 — Every bill MUST be drillable to primary evidence without human explanation.**
+- **Rationale.** CP-7, GP-11. A bill that requires its preparer to explain it cannot be audited after that person leaves (objective O-9).
+- **Trigger.** Any presentation of the bill.
+- **Preconditions.** —
+- **Mandatory.** Decompose to measurement, evidence, rate authority, recovery source, and approval.
+- **Prohibited.** Summary figures with no traceable derivation.
+- **Exception policy.** **None.**
+- **Laws.** CP-7. **Cross-refs.** SC-10, Part 11 § 11.5.
+
+**RBL-17 — The contractor MUST be able to see the derivation of their own bill.**
+- **Rationale.** CP-10, GP-19. A contractor who can verify the computation disputes less; a contractor who cannot disputes everything, indiscriminately.
+- **Trigger.** Certification.
+- **Preconditions.** —
+- **Mandatory.** Provide quantities, rates, recoveries, retention, and deductions with their bases.
+- **Prohibited.** Net-only communication.
+- **Exception policy.** **None.**
+- **Laws.** CP-10. **Cross-refs.** objective O-10, MD-1.
+
+**RBL-18 — Negative net payable MUST be presented, posted, and pursued.**
+- **Rationale.** NEG-1, NEG-2. A suppressed negative is an over-certification made permanent.
+- **Trigger.** FM-19 yields a negative.
+- **Preconditions.** —
+- **Mandatory.** Present as negative; post as receivable to the Contractor Account; recover.
+- **Prohibited.** Flooring at zero; deferring the negative silently to the next bill.
+- **Exception policy.** **None.**
+- **Laws.** LAW-6, LAW-8. **Cross-refs.** NEG-1…NEG-3, PC-5, FIN-09.
+
+---
+
+## 9.20 Domain EVL — Earned value
+
+> *Earned value is the enterprise's statement of what the contractor has become entitled to, before
+> anything is deducted. It is the bridge between measurement and money.*
+
+**EVL-01 — Earned value MUST be computed cumulatively from verified quantities at bound rates.**
+- **Rationale.** FM-02, FM-06, LAW-6. Earned value assembled from period figures loses the self-correction property that makes the running account safe.
+- **Trigger.** Bill computation; period close.
+- **Preconditions.** Verified measurement; rate versions.
+- **Mandatory.** Compute per FM-01/FM-02/FM-06.
+- **Prohibited.** Progress-percentage-based earned value on measurable items.
+- **Exception policy.** **None.**
+- **Laws.** LAW-6, LAW-1. **Cross-refs.** FM-06, RBL-04.
+
+**EVL-02 — Earned value MUST NOT include unverified, disputed, cancelled, or superseded measurement.**
+- **Rationale.** Each of those states exists precisely to keep a quantity out of value until a condition is met.
+- **Trigger.** Computation.
+- **Preconditions.** —
+- **Mandatory.** Include only `VERIFIED` or `REDUCED` entries not yet consumed.
+- **Prohibited.** Provisional inclusion pending verification.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1. **Cross-refs.** § 5.13, EVL-01.
+
+**EVL-03 — Earned value MUST reconcile to the Measurement Book.**
+- **Rationale.** RI-1, MBK-07. Two records of the same fact that do not reconcile mean one of them is wrong and no one knows which.
+- **Trigger.** Period close; bill verification.
+- **Preconditions.** —
+- **Mandatory.** Reconcile; investigate any variance.
+- **Prohibited.** Reporting earned value without reconciliation.
+- **Exception policy.** **None.**
+- **Laws.** CP-7. **Cross-refs.** RI-1, GP-23.
+
+**EVL-04 — Earned value MUST NOT exceed the authorised ceiling.**
+- **Rationale.** RI-2, LAW-9. The ceiling binds the earned figure, not merely the paid one; certifying beyond it creates an obligation the enterprise has not authorised.
+- **Trigger.** Computation.
+- **Preconditions.** Sanctioned value and variations.
+- **Mandatory.** Test at computation, not only at payment.
+- **Prohibited.** Certifying beyond ceiling with payment withheld.
+- **Exception policy.** **None.**
+- **Laws.** LAW-9. **Cross-refs.** FM-07, RBL-05.
+
+**EVL-05 — Escalation MUST NOT be estimated.**
+- **Rationale.** ESC-1, PC-12. An estimated index becomes a paid amount, and correcting it later requires recovering money already disbursed.
+- **Trigger.** Escalation computation.
+- **Preconditions.** Published index.
+- **Mandatory.** Compute only on published indices; carry the period forward at nil until publication.
+- **Prohibited.** Provisional escalation payment.
+- **Exception policy.** **None.**
+- **Laws.** CP-8. **Cross-refs.** FM-05, ESC-1, ESC-2.
+
+**EVL-06 — Variation value MUST enter earned value only when the variation is sanctioned.**
+- **Rationale.** SY-5, LI-21. Proposed variations are not authority; paying against them funds a decision that has not been taken.
+- **Trigger.** Computation.
+- **Preconditions.** LC-09 state.
+- **Mandatory.** Include only `SANCTIONED` variations effective on or before the bill date.
+- **Prohibited.** Provisional inclusion of proposed variations.
+- **Exception policy.** **None.**
+- **Laws.** LAW-9. **Cross-refs.** SY-5, VAR-06.
+
+**EVL-07 — Part-rate earned value MUST be superseded, not supplemented, on completion.**
+- **Rationale.** PR-2, PT-4. Adding completion value to part value pays the same work twice.
+- **Trigger.** Item completion.
+- **Preconditions.** Prior part certification recorded.
+- **Mandatory.** Compute full value less part value already certified.
+- **Prohibited.** Additive treatment.
+- **Exception policy.** **None.**
+- **Laws.** LAW-6. **Cross-refs.** PR-2, MSR-15.
+
+**EVL-08 — A reduction in earned value MUST be visible, not netted silently.**
+- **Rationale.** FM-08. A negative period movement is the running account doing its job; hiding it removes the evidence that a prior certification was wrong.
+- **Trigger.** Cumulative value falls below the prior position.
+- **Preconditions.** —
+- **Mandatory.** Present the negative movement with its cause.
+- **Prohibited.** Suppression; offsetting against new work to produce a positive.
+- **Exception policy.** **None.**
+- **Laws.** LAW-6, LAW-11. **Cross-refs.** FM-08, RBL-18.
+
+**EVL-09 — Earned value MUST be reported against physical progress to CAP-PPM.**
+- **Rationale.** Integration O-3: measured quantity is the authoritative progress fact. Divergence between reported progress and measured value is a leading indicator of both over-measurement and programme misreporting.
+- **Trigger.** Measurement verification; period close.
+- **Preconditions.** —
+- **Mandatory.** Publish measured progress; investigate divergence.
+- **Prohibited.** Parallel progress reporting inconsistent with measurement.
+- **Exception policy.** **None.**
+- **Laws.** CP-4. **Cross-refs.** integration O-3, MR-7.
+
+**EVL-10 — Unbilled verified value MUST be visible and aged.**
+- **Rationale.** RI-12, GP-20. Verified work not billed is a liability the enterprise has incurred and not recorded, and it is contractor detriment.
+- **Trigger.** Period close.
+- **Preconditions.** —
+- **Mandatory.** Report verified-but-unbilled value by age and reason.
+- **Prohibited.** Carrying verified value indefinitely without reason.
+- **Exception policy.** **None.**
+- **Laws.** CP-11. **Cross-refs.** RI-12, FC-9.
+
+---
+
+## 9.21 Domain PEL — Payment eligibility
+
+> *Eligibility is the final gate. Everything upstream produces a number; this domain decides whether
+> the number may be released. PA-6: by this point every question must already be answered.*
+
+**PEL-01 — Payment MUST be a consequence of a complete chain, never an independent act.**
+- **Rationale.** § 1.6, PA-1. A payment originated at eligibility is a payment that entered the chain sideways.
+- **Trigger.** Any payment request.
+- **Preconditions.** The Payment Chain (§ 1.6).
+- **Mandatory.** Verify the chain backwards from the payment to the physical quantity or validated day (PA-2).
+- **Prohibited.** Payment initiated from an amount rather than from evidence.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1, LAW-2, LAW-5. **Cross-refs.** PA-1…PA-3, EDR-02.
+
+**PEL-02 — Labour payment MUST satisfy both limbs of LAW-2.**
+- **Rationale.** Attendance alone establishes presence; assignment alone establishes intent. Only both establish entitlement.
+- **Trigger.** Wage settlement.
+- **Preconditions.** ATT-06, ATT-07.
+- **Mandatory.** Test both.
+- **Prohibited.** Payment on either limb alone.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** DWG-01, ASG-11.
+
+**PEL-03 — Contract payment MUST satisfy LAW-1 without substitution.**
+- **Rationale.** No document, certificate, relationship, or urgency substitutes for verified measurement.
+- **Trigger.** Contract payment.
+- **Preconditions.** LC-04 complete.
+- **Mandatory.** Verified measurement for every valued quantity.
+- **Prohibited.** Payment against progress reports, photographs, or contractor certificates alone.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1. **Cross-refs.** RBL-02, MSR-01.
+
+**PEL-04 — A broken chain MUST stop the payment, not relax the rule.**
+- **Rationale.** PA-3. The rule that bends under pressure is not a rule; it is a default that can be argued away.
+- **Trigger.** Any missing link.
+- **Preconditions.** —
+- **Mandatory.** Hold the payment; record the gap; resolve the gap.
+- **Prohibited.** Conditional release pending later evidence.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1, LAW-2. **Cross-refs.** PA-3, DP-3.
+
+**PEL-05 — Recovery MUST precede disbursement.**
+- **Rationale.** LAW-8, PA-5, LA-7. Recovery before payment is arithmetic; recovery after payment is litigation.
+- **Trigger.** Eligibility computation.
+- **Preconditions.** Recovery set assembled.
+- **Mandatory.** Deduct at source per FM-13.
+- **Prohibited.** Gross payment with an intention to invoice back.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8. **Cross-refs.** FM-13, RBL-07.
+
+**PEL-06 — The computed figure is the maximum payable; approval may reduce it but never increase it.**
+- **Rationale.** The settlement computation is the enterprise's arithmetic statement of entitlement. An approval that increases it has substituted judgement for evidence, which is the precise definition of an unsupported payment.
+- **Trigger.** Approval.
+- **Preconditions.** Computed net (FM-19 or FM-28).
+- **Mandatory.** Cap the payable at the computed figure; record any reduction and its reason.
+- **Prohibited.** Approval above the computed figure by any authority.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1, LAW-4, LAW-5. **Cross-refs.** EDR-05, FIN-02, RSK-39.
+
+**PEL-07 — Eligibility MUST be re-tested if any input changes after computation.**
+- **Rationale.** An approval given on one set of facts does not carry to another. Silent input drift between computation and disbursement is a known fraud vector.
+- **Trigger.** Any change to quantities, rates, recoveries, or payee after computation.
+- **Preconditions.** —
+- **Mandatory.** Invalidate the approval; recompute; re-approve.
+- **Prohibited.** Post-approval input changes carried into disbursement.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** WKS-07, LI-23, RSK-38.
+
+**PEL-08 — Payment MUST NOT proceed where a control could not execute.**
+- **Rationale.** DP-3, GP-16, DT-4. A missing recovery input treated as zero is leakage arriving through the arithmetic.
+- **Trigger.** Any unavailable input or unreachable control.
+- **Preconditions.** —
+- **Mandatory.** Fail closed; record the failure (CP-11).
+- **Prohibited.** Defaulting a missing value to nil, zero, or "none outstanding".
+- **Exception policy.** **None.**
+- **Laws.** LAW-8. **Cross-refs.** II-4, DT-4, RSK-24.
+
+**PEL-09 — Cumulative position, not instance size, MUST govern every threshold test.**
+- **Rationale.** GP-18, SD-1, PC-13. Thresholds tested per instance are thresholds defeated by division.
+- **Trigger.** Any limit or threshold test.
+- **Preconditions.** —
+- **Mandatory.** Test against cumulative position for the relevant period and counterparty.
+- **Prohibited.** Per-instance testing where a cumulative rule applies.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4, LAW-9. **Cross-refs.** RBL-12, SD-1.
+
+**PEL-10 — Emergency and out-of-turn payment MUST NOT bypass evidence; it may only bypass sequence.**
+- **Rationale.** LI-32. Urgency can justify reordering administrative steps; it can never justify paying for work that has not been verified.
+- **Trigger.** Emergency payment request.
+- **Preconditions.** Verified evidence exists.
+- **Mandatory.** Record the exception, authority, reason, and expiry; count it (LAW-12).
+- **Prohibited.** Emergency payment against unverified measurement or unvalidated attendance.
+- **Exception policy.** Executive authority, time-boxed, counted, reported.
+- **Laws.** LAW-1, LAW-2, LAW-12. **Cross-refs.** LI-32, EXC-04, RSK-42.
+
+**PEL-11 — Payment MUST NOT be made to a party other than the entitled payee.**
+- **Rationale.** WRK-10, LI-23. Payee substitution is the highest-value, lowest-effort fraud available to anyone with access to correspondence.
+- **Trigger.** Disbursement.
+- **Preconditions.** Verified payee record.
+- **Mandatory.** Pay to the recorded payee; verify any change independently.
+- **Prohibited.** Payment to a third party on instruction, without recorded lawful authority.
+- **Exception policy.** Legal assignment or attachment, verified and recorded.
+- **Laws.** LAW-5, LAW-11. **Cross-refs.** WRK-10, RSK-46.
+
+**PEL-12 — Eligibility decisions MUST be recorded with their basis, including refusals.**
+- **Rationale.** CP-6, GP-09. A refusal that leaves no record cannot be reviewed for consistency, and inconsistent refusal is how relationship-based payment discipline emerges.
+- **Trigger.** Any eligibility decision.
+- **Preconditions.** —
+- **Mandatory.** Record decision, actor, basis, and date.
+- **Prohibited.** Undocumented refusal; undocumented release.
+- **Exception policy.** **None.**
+- **Laws.** CP-6, CP-11. **Cross-refs.** AUD-04, EXC-09.
+
+**PEL-13 — Payment eligibility MUST be independent of the contractor's operational pressure.**
+- **Rationale.** § 1.4.8, LA-6. "The slab must be poured tomorrow" is a programme fact, not an evidentiary one; treating it as the latter is how the exception becomes the process.
+- **Trigger.** Payment pressure of any kind.
+- **Preconditions.** —
+- **Mandatory.** Decide on evidence; where the enterprise chooses to relieve pressure, do so by advance (LC-06) with a recovery plan, recorded.
+- **Prohibited.** Releasing an unverified payment to maintain progress.
+- **Exception policy.** **None** for evidence. Advance is the legitimate instrument.
+- **Laws.** LAW-1, LAW-7. **Cross-refs.** LA-6, ADV-01, RSK-43.
+
+**PEL-14 — The disburser MUST verify chain completeness and MUST NOT exercise financial judgement.**
+- **Rationale.** § 1.6, LI-22, CP-3. The disbursing officer is the final check that the chain is complete, not a second approver — and never a first one.
+- **Trigger.** Disbursement.
+- **Preconditions.** Approved voucher.
+- **Mandatory.** Verify completeness; execute or refuse; record either.
+- **Prohibited.** Disburser altering amount or payee; disburser approving.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4, CP-3. **Cross-refs.** SOD-3, LI-22, LI-23.
+
+---
+
+## 9.22 Domain ADV — Advances
+
+> *§ 1.4.5: advances are structural, not exceptional. Unrecovered advance is the most common single
+> leakage in Indian construction, and it is usually discovered when the contractor abandons the site.*
+
+**ADV-01 — An advance MUST NOT be issued without a bound, enforceable recovery plan.**
+- **Rationale.** LAW-7, LI-11. An advance without a recovery plan is not an advance; it is an unauthorised payment with a friendly name.
+- **Trigger.** Advance approval.
+- **Preconditions.** Instrument advance terms (E-4).
+- **Mandatory.** Bind basis, rate or instalments, start point, and completion condition at approval.
+- **Prohibited.** Approval with recovery "to be decided"; recovery plan created at first recovery.
+- **Exception policy.** **None.**
+- **Laws.** LAW-7. **Cross-refs.** LI-11, FM-09, RSK-20.
+
+**ADV-02 — An advance MUST be classified by type.**
+- **Rationale.** Mobilisation, material, secured, and ad-hoc advances carry different security, different recovery priority (FM-13), and different treatment on termination. An unclassified advance gets the weakest treatment of all by default.
+- **Trigger.** Advance request.
+- **Preconditions.** —
+- **Mandatory.** Record type and its contractual basis.
+- **Prohibited.** Generic advances with no type.
+- **Exception policy.** **None.**
+- **Laws.** LAW-7, LAW-5. **Cross-refs.** FM-13, § 5.18.
+
+**ADV-03 — Advances MUST NOT exceed the limit set by the instrument.**
+- **Rationale.** GP-07. An advance ceiling behaves exactly like a contract ceiling: it rises by instrument or not at all.
+- **Trigger.** Approval.
+- **Preconditions.** Advance limit in the instrument.
+- **Mandatory.** Test cumulative advances against the limit.
+- **Prohibited.** Exceeding by seniority; multiple advances aggregating past the limit.
+- **Exception policy.** Formal amendment of the instrument.
+- **Laws.** LAW-7, LAW-9 analogue. **Cross-refs.** GP-18, PEL-09.
+
+**ADV-04 — A secured advance MUST be secured, and the security MUST be live.**
+- **Rationale.** A secured advance whose bank guarantee has expired is an unsecured advance that everyone believes is secured — the most dangerous state available.
+- **Trigger.** Approval; guarantee expiry.
+- **Preconditions.** Security instrument with validity dates.
+- **Mandatory.** Record security, its value, and expiry; monitor and escalate before expiry.
+- **Prohibited.** Advance continuing past security expiry without action.
+- **Exception policy.** **None.**
+- **Laws.** LAW-7. **Cross-refs.** GP-20, RSK-23.
+
+**ADV-05 — Material advances MUST be tied to materials actually procured and secured.**
+- **Rationale.** A material advance against materials never bought is a cash advance with extra paperwork, and the enterprise has no lien over anything.
+- **Trigger.** Material advance request.
+- **Preconditions.** Evidence of procurement or delivery.
+- **Mandatory.** Verify existence, location, and title; inspect where material; record.
+- **Prohibited.** Advance on invoices alone.
+- **Exception policy.** **None.**
+- **Laws.** LAW-7, CP-1. **Cross-refs.** EV-1, RSK-23.
+
+**ADV-06 — Recovery MUST commence at the defined point and MUST NOT be silently deferred.**
+- **Rationale.** LI-12. The deferral that is never recorded is indistinguishable from the recovery that never happened.
+- **Trigger.** Each bill or settlement after the commencement point.
+- **Preconditions.** ADV-01.
+- **Mandatory.** Apply per FM-09/FM-10; where deferred, raise LC-12 with authority, reason, and expiry.
+- **Prohibited.** Silent omission from a bill's recovery set.
+- **Exception policy.** Deferral, attributed and counted; bounded in number of periods.
+- **Laws.** LAW-8. **Cross-refs.** LI-12, REC-10, RSK-20.
+
+**ADV-07 — Recovery MUST accelerate, never decelerate.**
+- **Rationale.** AR-1. Where both a percentage and a minimum instalment apply, taking the lesser converts a recovery schedule into an aspiration.
+- **Trigger.** Recovery computation.
+- **Preconditions.** Both bases known.
+- **Mandatory.** Apply the greater, capped at outstanding.
+- **Prohibited.** Applying the lesser; renegotiating the rate downward at bill time.
+- **Exception policy.** Executive authority, recorded, counted.
+- **Laws.** LAW-8. **Cross-refs.** AR-1, FM-09.
+
+**ADV-08 — Suspension or termination MUST make the entire outstanding advance immediately recoverable.**
+- **Rationale.** AR-2, LA-7. The schedule assumed a continuing relationship; when that ends, so does the assumption.
+- **Trigger.** Instrument suspension or termination.
+- **Preconditions.** —
+- **Mandatory.** Crystallise the outstanding; recover from any payment due; pursue security.
+- **Prohibited.** Continuing the original instalment schedule after termination.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8. **Cross-refs.** AR-2, CTL-11, CLS-04.
+
+**ADV-09 — Final payment MUST NOT be released while an advance is outstanding.**
+- **Rationale.** LA-7 at its sharpest: after final payment, the enterprise has no leverage and no money to deduct from.
+- **Trigger.** Final bill; closure.
+- **Preconditions.** FC-3.
+- **Mandatory.** Recover in full or record a formal write-off decision before release.
+- **Prohibited.** Final release with an advance "to be recovered separately".
+- **Exception policy.** **None.**
+- **Laws.** LAW-8. **Cross-refs.** FC-3, CLS-04, RSK-22.
+
+**ADV-10 — Advance outstanding MUST appear in contractor exposure continuously.**
+- **Rationale.** FM-34, CTL-10. An exposure figure that omits advances understates the loss on default by exactly the amount most likely to be lost.
+- **Trigger.** Continuous.
+- **Preconditions.** —
+- **Mandatory.** Include in exposure; report by age.
+- **Prohibited.** Exposure reported net of expected recovery.
+- **Exception policy.** **None.**
+- **Laws.** LAW-7. **Cross-refs.** FM-34, EX-1.
+
+**ADV-11 — Worker advances MUST respect the lawful deduction ceiling on recovery.**
+- **Rationale.** CLB-10, FM-27. Recovering an advance in one instalment from a worker's wage is a statutory breach committed in pursuit of good discipline.
+- **Trigger.** Wage settlement.
+- **Preconditions.** Ceiling known.
+- **Mandatory.** Apply FM-27; carry excess forward.
+- **Prohibited.** Ceiling breach; recovery that takes net receipt below statutory minimum.
+- **Exception policy.** **None.**
+- **Laws.** CP-9, LAW-7. **Cross-refs.** FM-27, LAB-11, PC-9.
+
+**ADV-12 — Write-off MUST be an executive act producing a permanent loss record.**
+- **Rationale.** LI-13. Write-off is the honest recognition of a loss; used as a housekeeping route it silently removes the evidence of a control failure.
+- **Trigger.** Irrecoverable advance.
+- **Preconditions.** Recovery attempts recorded.
+- **Mandatory.** Executive approval; permanent loss record; report in control-health reporting; root-cause review.
+- **Prohibited.** Write-off by the officer who approved the advance; write-off to clear an ageing report.
+- **Exception policy.** **None.**
+- **Laws.** LAW-7, LAW-12. **Cross-refs.** LI-13, SOD-8, AUD-10.
+
+**ADV-13 — The advance authoriser MUST NOT authorise waiver or write-off of the same advance.**
+- **Rationale.** SOD-8. Otherwise an actor can create an exposure and extinguish the evidence of their own decision.
+- **Trigger.** Waiver or write-off.
+- **Preconditions.** —
+- **Mandatory.** Route to an authority above and independent of the original approver.
+- **Prohibited.** Self-waiver in any form.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4, LAW-7. **Cross-refs.** SOD-8, GP-24, REC-12.
+
+**ADV-14 — Advance ageing MUST be reported and MUST escalate automatically.**
+- **Rationale.** GP-20, LA-3. An advance that ages quietly for two years is the leakage that no one will ever notice until abandonment.
+- **Trigger.** Period close.
+- **Preconditions.** —
+- **Mandatory.** Report by age, contractor, and type; escalate beyond threshold.
+- **Prohibited.** Ageing visible only on request.
+- **Exception policy.** **None.**
+- **Laws.** CP-11. **Cross-refs.** GP-20, RI-3, AUD-08.
+
+---
+
+## 9.23 Domain REC — Recoveries
+
+> *L5 and L6 are the largest leakage classes in aggregate and the least policed, because nothing
+> visibly goes wrong — a deduction simply never happens (§ 1.5).*
+
+**REC-01 — Every recovery obligation MUST be created by the event that gives rise to it.**
+- **Rationale.** LI-14, LA-4. A recovery that depends on someone remembering will fail within one personnel change.
+- **Trigger.** Material issue, plant hire, fuel issue, utility supply, accommodation, damage, LD accrual.
+- **Preconditions.** Recovery bases bound in the instrument (E-5).
+- **Mandatory.** Raise the obligation automatically at the event.
+- **Prohibited.** Recovery raised at bill time; recovery raised on request; recovery raised by the party who will pay it.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8. **Cross-refs.** LI-14, I-5, I-6, RSK-21.
+
+**REC-02 — Issued value MUST be valued at the issue date and at the contracted issue rate.**
+- **Rationale.** IR-1, FM-11. Valuing at bill date transfers price movement to whichever party the timing favours, and the enterprise is usually the loser because the issue precedes the bill.
+- **Trigger.** Issue.
+- **Preconditions.** Issue rate schedule with effective dates.
+- **Mandatory.** Value at issue with the applicable handling or wastage uplift.
+- **Prohibited.** Deferred valuation; market-rate valuation where a contracted rate exists.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8, DP-12. **Cross-refs.** FM-11, IR-1.
+
+**REC-03 — Recovery obligations MUST be visible as receivables from creation, not from application.**
+- **Rationale.** IR-2. An obligation invisible until it is deducted cannot be aged, reported, or pursued if no bill ever arrives.
+- **Trigger.** Creation.
+- **Preconditions.** —
+- **Mandatory.** Post to the Contractor Account; include in exposure (FM-34).
+- **Prohibited.** Off-ledger tracking; site-level registers as the only record.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8. **Cross-refs.** FM-34, RI-4, FIN-08.
+
+**REC-04 — All recoveries due in a period MUST be applied in that period's payment.**
+- **Rationale.** G-3, SY-4. The payment is the recovery opportunity; missing it converts arithmetic into pursuit.
+- **Trigger.** Bill or settlement.
+- **Preconditions.** Recovery schedule.
+- **Mandatory.** Apply; block verification if unapplied.
+- **Prohibited.** Silent omission.
+- **Exception policy.** Recorded deferral (REC-10).
+- **Laws.** LAW-8. **Cross-refs.** RBL-07, WKS-05.
+
+**REC-05 — The recovery waterfall MUST be applied in its constitutional order.**
+- **Rationale.** FM-13, WF-2, PC-8. Reordering to produce a positive net payment subordinates statutory and worker claims to the enterprise's own convenience.
+- **Trigger.** Insufficient payable amount.
+- **Preconditions.** —
+- **Mandatory.** Apply priorities 1–9 in order; carry the unsatisfied remainder forward.
+- **Prohibited.** Reordering by agreement, preference, or convenience.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8, CP-9, PA-8. **Cross-refs.** FM-13, WF-1, WF-2.
+
+**REC-06 — Every recovery MUST reference its source instrument.**
+- **Rationale.** CP-7, LAW-5. A deduction the contractor cannot trace to an issue note or a hire record is a deduction that will be disputed and probably reversed.
+- **Trigger.** Application.
+- **Preconditions.** —
+- **Mandatory.** Reference the issue note, hire record, damage assessment, or statutory basis.
+- **Prohibited.** Lump-sum recoveries with no source; "sundry recoveries".
+- **Exception policy.** **None.**
+- **Laws.** LAW-5, CP-7. **Cross-refs.** RBL-17, MD-1.
+
+**REC-07 — Damage, loss, and rework recovery MUST be assessed, not estimated as a percentage.**
+- **Rationale.** FM-12. A percentage applied at settlement is a negotiated number wearing an arithmetic costume, and it will not survive challenge.
+- **Trigger.** Damage, loss, or rejected work.
+- **Preconditions.** —
+- **Mandatory.** Assess with a recorded basis and an attributed assessor; notify the contractor.
+- **Prohibited.** Blanket percentage deductions.
+- **Exception policy.** Contractual liquidated rates where the instrument provides them.
+- **Laws.** LAW-8, CP-10. **Cross-refs.** FM-12, PCR-08.
+
+**REC-08 — Liquidated damages MUST accrue automatically by the instrument's terms.**
+- **Rationale.** LD-1. LD abandoned by inaction is leakage form L6, and it is invisible precisely because nothing appears to go wrong.
+- **Trigger.** Delay established against the contractual programme.
+- **Preconditions.** LD terms; hindrance records.
+- **Mandatory.** Accrue per FM-18; net recorded hindrance (LD-2); notify the contractor.
+- **Prohibited.** LD raised only when the relationship deteriorates; LD forgotten at final account.
+- **Exception policy.** Non-levy is a waiver under REC-12.
+- **Laws.** LAW-8. **Cross-refs.** FM-18, RI-10, FC-7, RSK-26.
+
+**REC-09 — Recovery completeness MUST be verified before any bill is certified.**
+- **Rationale.** § 4.9: an unrecovered advance is the Accountant's accountability. Verification is the act by which that accountability is discharged.
+- **Trigger.** Bill verification.
+- **Preconditions.** Full recovery set retrievable.
+- **Mandatory.** Confirm every open obligation has been considered and applied or formally deferred.
+- **Prohibited.** Certification without the completeness check.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8. **Cross-refs.** § 4.9, RI-3, RI-4.
+
+**REC-10 — Deferral MUST be bounded, attributed, and escalated by frequency.**
+- **Rationale.** LI-15's companion rule. An implementation that lets deferral repeat indefinitely has created a silent waiver.
+- **Trigger.** Deferral request.
+- **Preconditions.** —
+- **Mandatory.** Record authority, reason, and expiry; escalate automatically beyond a bounded number of periods.
+- **Prohibited.** Rolling deferral; deferral by the officer who benefits from the payment proceeding.
+- **Exception policy.** —
+- **Laws.** LAW-8, LAW-12. **Cross-refs.** LI-15, LA-5, EXC-06.
+
+**REC-11 — A disputed recovery MUST NOT be silently dropped.**
+- **Rationale.** GP-20. A dispute that ages out of the record is a waiver granted by the passage of time and no one's decision.
+- **Trigger.** Contractor disputes a recovery.
+- **Preconditions.** —
+- **Mandatory.** Move to `DISPUTED`; age; escalate; resolve by decision.
+- **Prohibited.** Removal from the recovery set without a decision.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8. **Cross-refs.** MD-4, RI-4.
+
+**REC-12 — Waiver MUST be an executive act, separated from the origination of the obligation.**
+- **Rationale.** LI-15, SOD-8. Otherwise the actor who issued the advance or the material can extinguish the evidence of their decision.
+- **Trigger.** Waiver request.
+- **Preconditions.** —
+- **Mandatory.** Authority above the payment approver and different from the obligation's originator; stated reason; permanent loss record; counted.
+- **Prohibited.** Waiver by the originating authority; waiver recorded as an adjustment.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8, LAW-12. **Cross-refs.** SOD-8, ADV-13, RSK-28.
+
+**REC-13 — Recovery from wages MUST respect the lawful ceiling.**
+- **Rationale.** FM-27, LAB-11. Enterprise recovery discipline never justifies a statutory breach against the worker.
+- **Trigger.** Wage settlement.
+- **Preconditions.** Ceiling known.
+- **Mandatory.** Apply FM-27; carry excess.
+- **Prohibited.** Ceiling breach for any reason.
+- **Exception policy.** **None.**
+- **Laws.** CP-9. **Cross-refs.** LAB-11, ADV-11.
+
+**REC-14 — Recovery rights MUST survive suspension, dispute, and termination.**
+- **Rationale.** WRK-12, AR-2. Recovery rights are the enterprise's residual position; forfeiting them during a dispute is forfeiting the position that resolves it.
+- **Trigger.** Suspension; dispute; termination.
+- **Preconditions.** —
+- **Mandatory.** Continue accrual and tracking; crystallise on termination.
+- **Prohibited.** Suspension of recovery tracking during a commercial dispute.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8. **Cross-refs.** WRK-12, CTL-11.
+
+**REC-15 — Recovery reconciliation MUST balance to zero unexplained residue.**
+- **Rationale.** RI-3, RI-4, FC-3, FC-4. Issued value that neither returns nor stands outstanding has disappeared, and disappearance is the definition of leakage.
+- **Trigger.** Period close; closure.
+- **Preconditions.** —
+- **Mandatory.** Reconcile issued = recovered + outstanding + returned + written off; investigate residue.
+- **Prohibited.** Tolerance for unexplained residue.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8. **Cross-refs.** RI-3, RI-4, FC-3, FC-4.
+
+**REC-16 — Non-recovery MUST be treated with the same severity as overpayment.**
+- **Rationale.** § 1.5: they are financially identical, and the enterprise's instincts are not. Severity parity is what makes the L5/L6 controls survive contact with a busy period.
+- **Trigger.** Governance; reporting; investigation.
+- **Preconditions.** —
+- **Mandatory.** Report L5/L6 events alongside overpayment events with equal prominence and escalation.
+- **Prohibited.** Classifying non-recovery as an administrative lapse.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8. **Cross-refs.** § 1.5, AUD-08, RSK-21.
+
+---
+
+## 9.24 Domain RET — Retention
+
+> *§ 1.4.9: retention is treated as a discount rather than a liability. Years later the liability
+> surfaces, unfunded and unreconciled — a financial misstatement and a legal exposure at once.*
+
+**RET-01 — Retention MUST be withheld at the rate and cap bound in the instrument.**
+- **Rationale.** E-3, GP-01. Retention decided at bill time is retention negotiated at bill time.
+- **Trigger.** Certification.
+- **Preconditions.** Retention terms bound.
+- **Mandatory.** Apply FM-15 on cumulative certified value, capped.
+- **Prohibited.** Site-varied retention; retention omitted for relationship reasons.
+- **Exception policy.** **None.**
+- **Laws.** LAW-10. **Cross-refs.** FM-15, RBL-08.
+
+**RET-02 — Retention MUST be recorded as a liability from the instant it is withheld.**
+- **Rationale.** LAW-10, RT-2. Retention recorded as reduced cost is a misstatement that grows silently and surfaces unfunded.
+- **Trigger.** Withholding.
+- **Preconditions.** —
+- **Mandatory.** Post as liability; report as liability; hand off to CAP-FIN as liability (integration O-1).
+- **Prohibited.** Netting against project cost; presenting as a saving or a margin.
+- **Exception policy.** **None.**
+- **Laws.** LAW-10. **Cross-refs.** LI-17, RT-2, RSK-29.
+
+**RET-03 — Retention MUST be computed cumulatively, not per period.**
+- **Rationale.** FM-15 and the worked example (§ 7.13): period-percentage computation diverges the moment the cap binds part-way.
+- **Trigger.** Certification.
+- **Preconditions.** —
+- **Mandatory.** `Ret_cum` then `Ret_period = Ret_cum − Ret_prev`.
+- **Prohibited.** Period-rate application.
+- **Exception policy.** **None.**
+- **Laws.** LAW-6, LAW-10. **Cross-refs.** FM-15, § 7.13.
+
+**RET-04 — Release conditions MUST be bound at engagement and tested positively.**
+- **Rationale.** LI-18, DP-9. Release on the absence of an objection is release by default, and defaults favour whoever is asking.
+- **Trigger.** Release request.
+- **Preconditions.** Conditions recorded at engagement.
+- **Mandatory.** Test each condition and record the evidence of satisfaction.
+- **Prohibited.** Release because no defect was reported; release because the period elapsed without review.
+- **Exception policy.** **None.**
+- **Laws.** LAW-10. **Cross-refs.** LI-18, GP-14.
+
+**RET-05 — Retention MUST NOT be released early to relieve contractor cash pressure.**
+- **Rationale.** LI-17. Early release removes the enterprise's residual security exactly before the period in which defects appear.
+- **Trigger.** Early release request.
+- **Preconditions.** —
+- **Mandatory.** Refuse; where the enterprise chooses to assist, use an advance with a recovery plan (LC-06).
+- **Prohibited.** Early release for operational or relationship reasons.
+- **Exception policy.** Executive authority with recorded justification, security substitution, and a counted exception.
+- **Laws.** LAW-10. **Cross-refs.** LI-17, PEL-13, RSK-29.
+
+**RET-06 — Release MUST be net of outstanding recovery.**
+- **Rationale.** FM-16, LAW-8. Recovery precedes even the release of the contractor's own money, because the leverage does not return afterwards.
+- **Trigger.** Release.
+- **Preconditions.** Recovery position computed.
+- **Mandatory.** Deduct outstanding recoveries from the release.
+- **Prohibited.** Gross release with recovery pursued separately.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8. **Cross-refs.** FM-16, LA-7.
+
+**RET-07 — Retention substituted by a guarantee MUST be monitored for validity.**
+- **Rationale.** ADV-04's logic applied to retention. An expired guarantee held in place of cash is neither.
+- **Trigger.** Substitution; approach of expiry.
+- **Preconditions.** Guarantee with validity dates.
+- **Mandatory.** Record value and expiry; escalate before expiry; reinstate cash retention on lapse.
+- **Prohibited.** Substitution without monitoring.
+- **Exception policy.** **None.**
+- **Laws.** LAW-10. **Cross-refs.** ADV-04, GP-20.
+
+**RET-08 — Retention liability MUST be reconciled every period.**
+- **Rationale.** RI-5, FC-5. A liability that is not reconciled is a liability whose true size is unknown, and it is always larger than assumed.
+- **Trigger.** Period close.
+- **Preconditions.** —
+- **Mandatory.** Accrued = held + released + forfeited; investigate residue.
+- **Prohibited.** Reconciliation at closure only.
+- **Exception policy.** **None.**
+- **Laws.** LAW-10. **Cross-refs.** RI-5, FC-5.
+
+**RET-09 — Forfeiture MUST be contractual, attributed, and exceptional.**
+- **Rationale.** LAW-10: retention remains the contractor's money. Forfeiture is a contractual remedy, not an accounting convenience for an aged balance.
+- **Trigger.** Forfeiture.
+- **Preconditions.** Contractual ground.
+- **Mandatory.** Cite the ground; attribute the decision; notify the contractor; record permanently.
+- **Prohibited.** Forfeiture to clear an ageing liability; forfeiture without notice.
+- **Exception policy.** **None.**
+- **Laws.** LAW-10, CP-10. **Cross-refs.** RI-5, CLS-07.
+
+**RET-10 — Retention MUST survive project closure until its release conditions expire.**
+- **Rationale.** § 3.4.4 temporal boundary, LI-27. The defect liability period outlives the project team, and the liability outlives the project's accounts.
+- **Trigger.** Project closure.
+- **Preconditions.** —
+- **Mandatory.** Carry the liability; assign custody; monitor release conditions.
+- **Prohibited.** Closing the liability with the project.
+- **Exception policy.** **None.**
+- **Laws.** LAW-10. **Cross-refs.** LI-27, CLS-11.
+
+**RET-11 — The contractor MUST be able to see their retention position.**
+- **Rationale.** CP-10, GP-19. Disputes over retention are disproportionately about the contractor's inability to see what is held and why.
+- **Trigger.** Continuous; on request; at each bill.
+- **Preconditions.** —
+- **Mandatory.** Present withheld, released, held, and release conditions.
+- **Prohibited.** Position disclosed only at closure.
+- **Exception policy.** **None.**
+- **Laws.** CP-10. **Cross-refs.** RBL-17, objective O-10.
+
+**RET-12 — Unreleased retention MUST age and escalate.**
+- **Rationale.** GP-20, § 1.4.9: the characteristic failure is retention that is never released because no one owns the release, which converts into an unpaid liability and a legal exposure.
+- **Trigger.** Period close.
+- **Preconditions.** —
+- **Mandatory.** Report by age and contractor; escalate past the release date.
+- **Prohibited.** Retention ageing invisibly.
+- **Exception policy.** **None.**
+- **Laws.** LAW-10, CP-11. **Cross-refs.** GP-20, RSK-29.
+
+---
+
+## 9.25 Domain VAR — Variation orders
+
+> *§ 1.4.7: instructions are given verbally at site, work is executed, the variation is raised months
+> later or never. The contractor claims; the enterprise cannot disprove; the enterprise pays.*
+
+**VAR-01 — The contract ceiling MUST rise only by a sanctioned variation.**
+- **Rationale.** LAW-9, LI-19. There is exactly one mechanism, and seniority is not it.
+- **Trigger.** Any requirement to certify beyond the current ceiling.
+- **Preconditions.** —
+- **Mandatory.** Raise, evaluate, and sanction a variation before certification.
+- **Prohibited.** Ceiling raised by approval authority, by urgency, or by adjustment at final account.
+- **Exception policy.** **None.**
+- **Laws.** LAW-9. **Cross-refs.** LI-19, RBL-05, FM-07.
+
+**VAR-02 — Work outside instrument scope MUST NOT be executed without an instruction record.**
+- **Rationale.** ASG-06, CTL-14. Executed out-of-scope work creates an entitlement argument the enterprise cannot win without a contemporaneous record.
+- **Trigger.** Identification of out-of-scope work.
+- **Preconditions.** —
+- **Mandatory.** Record the site instruction before execution; raise the variation.
+- **Prohibited.** Execution first, variation later, as normal practice.
+- **Exception policy.** Emergency and safety work under recorded instruction, variation raised within a bounded period, counted.
+- **Laws.** LAW-9, CP-1. **Cross-refs.** CTL-14, LI-20.
+
+**VAR-03 — A variation whose executed work predates its instruction record MUST be flagged.**
+- **Rationale.** LI-20. The sequence instruction → execution → claim is the enterprise's defence; the reverse sequence is the claimant's opportunity.
+- **Trigger.** Variation evaluation.
+- **Preconditions.** Instruction and execution dates recorded.
+- **Mandatory.** Compare dates; flag; require justification recorded by an actor other than the originator.
+- **Prohibited.** Silent acceptance of retrospective instruction.
+- **Exception policy.** **None.**
+- **Laws.** CP-1. **Cross-refs.** LI-20, CTL-14, RSK-41.
+
+**VAR-04 — Variation rates MUST be derived by the instrument's stated method.**
+- **Rationale.** SR-2. A variation priced by negotiation under schedule pressure is priced at the moment of least leverage.
+- **Trigger.** Variation pricing.
+- **Preconditions.** Rate derivation method in the instrument.
+- **Mandatory.** Follow the preference order: comparable-item adjustment, first-principles build-up, then negotiation.
+- **Prohibited.** Negotiated rate where a derivable rate exists.
+- **Exception policy.** Documented, at the highest approval level.
+- **Laws.** CP-4, LAW-5. **Cross-refs.** SR-2, SR-3, CTL-07.
+
+**VAR-05 — Variation rates MUST be recorded as new rate-schedule versions.**
+- **Rationale.** SR-4, CP-4. A one-off number on a bill is invisible to every future computation and every reconciliation.
+- **Trigger.** Rate sanction.
+- **Preconditions.** —
+- **Mandatory.** Create a versioned item with authority, effective date, and derivation record.
+- **Prohibited.** Rates existing only inside a bill.
+- **Exception policy.** **None.**
+- **Laws.** CP-4. **Cross-refs.** SR-4, RBL-06.
+
+**VAR-06 — Only SANCTIONED variations MUST enter valuation, effective on or before the bill date.**
+- **Rationale.** SY-5, EVL-06. Paying against a proposed variation funds a decision that has not been taken.
+- **Trigger.** Bill computation.
+- **Preconditions.** —
+- **Mandatory.** Test sanction state and effective date.
+- **Prohibited.** Provisional inclusion; inclusion of variations sanctioned after the bill date.
+- **Exception policy.** **None.**
+- **Laws.** LAW-9. **Cross-refs.** SY-5, EVL-06.
+
+**VAR-07 — Variation approval MUST be within the approver's delegated limit for variations.**
+- **Rationale.** GP-07. Variation authority is a distinct delegation from payment authority, and conflating them lets a payment approver expand their own ceiling.
+- **Trigger.** Sanction.
+- **Preconditions.** Delegation register.
+- **Mandatory.** Test variation value against the variation limit, cumulatively per instrument (GP-18).
+- **Prohibited.** Splitting a variation to stay within a limit (§ 5.25 note, XCP-16).
+- **Exception policy.** **None.**
+- **Laws.** LAW-4, LAW-9. **Cross-refs.** § 5.25, AF-5, RSK-40.
+
+**VAR-08 — A rejected or withdrawn variation MUST NOT create entitlement.**
+- **Rationale.** LI-21. The commercial consequence of work executed under a rejected variation is a dispute, not a measurement adjustment.
+- **Trigger.** Rejection or withdrawal.
+- **Preconditions.** —
+- **Mandatory.** Exclude from valuation; route the commercial consequence to CAP-LEG.
+- **Prohibited.** Absorbing the value into another item; "adjusting" a related rate to compensate.
+- **Exception policy.** **None.**
+- **Laws.** LAW-9, LAW-1. **Cross-refs.** LI-21, RSK-14.
+
+**VAR-09 — Scope reduction MUST be processed as a variation, not left implicit.**
+- **Rationale.** Omitted work that remains in the ceiling inflates the contractor's headroom and understates the enterprise's savings; it also survives to the final account as a claim.
+- **Trigger.** Descoping.
+- **Preconditions.** —
+- **Mandatory.** Raise a negative variation; adjust the ceiling downward.
+- **Prohibited.** Descoping recorded only in correspondence.
+- **Exception policy.** **None.**
+- **Laws.** LAW-9. **Cross-refs.** FM-06, CLS-03.
+
+**VAR-10 — Cumulative variation value MUST be monitored against the original sanction.**
+- **Rationale.** MR-7. A contract whose variations approach or exceed its original value has ceased to be the contract that was awarded, and that fact should reach a decision-maker before the final account does.
+- **Trigger.** Each sanction; period close.
+- **Preconditions.** —
+- **Mandatory.** Report cumulative variation as a proportion of original sanction; escalate beyond threshold.
+- **Prohibited.** Monitoring only against the revised ceiling.
+- **Exception policy.** **None.**
+- **Laws.** LAW-9, CP-11. **Cross-refs.** MR-7, CTL-10, RSK-44.
+
+**VAR-11 — Variation evaluation MUST consider time as well as value.**
+- **Rationale.** A variation that extends the programme without a recorded extension of time leaves LD accruing against a delay the enterprise itself caused (LD-2).
+- **Trigger.** Evaluation.
+- **Preconditions.** Programme data (CAP-PPM).
+- **Mandatory.** Record the time consequence; adjust the LD baseline where extension is granted.
+- **Prohibited.** Value-only evaluation.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8 context. **Cross-refs.** LD-2, REC-08.
+
+**VAR-12 — Variation records MUST be retained and drillable at closure.**
+- **Rationale.** FC-2, CLS-03. The final account's ceiling test depends entirely on a complete, dated variation record.
+- **Trigger.** Closure; audit.
+- **Preconditions.** —
+- **Mandatory.** Retain sanction, derivation, dates, and authority.
+- **Prohibited.** Variation records held only in project correspondence.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** FC-2, CLS-03.
+
+---
+
+## 9.26 Domain OVR — Manual overrides
+
+> *LA-5: any bypass used more than twice ceases to be an exception. This domain exists to make that
+> arithmetic visible before the bypass becomes the process.*
+
+**OVR-01 — An override MUST NOT relax an Immutable Law.**
+- **Rationale.** LI-32. There is no authority in the enterprise — executive, emergency, or contractual — that can authorise payment without measurement, beyond ceiling, or by self-approval.
+- **Trigger.** Any override request.
+- **Preconditions.** —
+- **Mandatory.** Refuse; record the refusal and its requester.
+- **Prohibited.** Granting; treating the request as routine.
+- **Exception policy.** **None.**
+- **Laws.** § 1.8 entire. **Cross-refs.** LI-32, EXC-01.
+
+**OVR-02 — Every override MUST name a person, not a role or a system.**
+- **Rationale.** CP-6, MBK-10. An override attributed to a role is an override no human being answers for.
+- **Trigger.** Override.
+- **Preconditions.** Individual credentials.
+- **Mandatory.** Record the individual, their authority, and the delegation relied upon.
+- **Prohibited.** Shared or generic credentials for override actions.
+- **Exception policy.** **None.**
+- **Laws.** CP-6, LAW-12. **Cross-refs.** SEC-01, AUD-04.
+
+**OVR-03 — Every override MUST state a reason in the authoriser's own terms.**
+- **Rationale.** GP-10. A reason selected from a list is a category, not a reason, and categories cannot be investigated.
+- **Trigger.** Override.
+- **Preconditions.** —
+- **Mandatory.** Free-text justification recorded and retained; category optional in addition.
+- **Prohibited.** Code-only justification.
+- **Exception policy.** **None.**
+- **Laws.** LAW-12. **Cross-refs.** EXC-03, AUD-07.
+
+**OVR-04 — Every override MUST be time-boxed.**
+- **Rationale.** LI-29. An override without expiry is a permanent rule change made without governance.
+- **Trigger.** Override.
+- **Preconditions.** —
+- **Mandatory.** Record expiry; expire automatically; require positive renewal.
+- **Prohibited.** Open-ended overrides; renewal by inaction.
+- **Exception policy.** **None.**
+- **Laws.** LAW-12. **Cross-refs.** LI-29, GP-14.
+
+**OVR-05 — Overrides that alter a closed period MUST additionally require period reopening.**
+- **Rationale.** PG-2, PG-4. Two controls guard the closed period, and an override of one must not silently satisfy the other.
+- **Trigger.** Override affecting a closed period.
+- **Preconditions.** —
+- **Mandatory.** Require both authorisations; restate affected figures visibly.
+- **Prohibited.** Single authorisation covering both.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11, LAW-12. **Cross-refs.** PG-4, WKS-12, ATT-17.
+
+**OVR-06 — Backdating MUST be recorded as backdating.**
+- **Rationale.** DEP-09, ATT-01. A record whose effective date precedes its creation date is legitimate; a record that conceals that fact is not.
+- **Trigger.** Any record with an effective date before its creation date.
+- **Preconditions.** —
+- **Mandatory.** Record both dates; flag; report the frequency by actor.
+- **Prohibited.** Effective-date-only records.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** MBK-06, AF-8, RSK-38.
+
+**OVR-07 — Overrides MUST be counted against the authoriser and reported.**
+- **Rationale.** LI-30, LAW-12. An exception that is not counted has not been recorded.
+- **Trigger.** Period close.
+- **Preconditions.** —
+- **Mandatory.** Report count and value by authoriser, type, and period.
+- **Prohibited.** Aggregate-only override reporting.
+- **Exception policy.** **None.**
+- **Laws.** LAW-12. **Cross-refs.** LI-30, EXC-08, AUD-08.
+
+**OVR-08 — Override frequency MUST trigger automatic escalation and rule review.**
+- **Rationale.** LI-31, LA-5. Repetition is evidence that the rule is wrong, the process is wrong, or the control is being circumvented — and all three deserve a decision rather than a habit.
+- **Trigger.** Threshold breach.
+- **Preconditions.** —
+- **Mandatory.** Escalate to Finance Controller and Internal Audit; review the underlying rule.
+- **Prohibited.** Frequency monitored without consequence.
+- **Exception policy.** **None.**
+- **Laws.** LAW-12. **Cross-refs.** LI-31, EXC-07.
+
+**OVR-09 — Override capability MUST be restricted, reviewed, and time-limited.**
+- **Rationale.** GP-24. Override authority accumulates quietly in the hands of long-serving officers until it is the normal way work is done.
+- **Trigger.** Access grant; periodic review.
+- **Preconditions.** —
+- **Mandatory.** Grant explicitly with expiry; review periodically; revoke on role change.
+- **Prohibited.** Standing override rights; rights inherited by role succession without review.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4. **Cross-refs.** SEC-05, SEC-09.
+
+**OVR-10 — An override MUST NOT be exercisable by the beneficiary of its outcome.**
+- **Rationale.** GP-24, SOD-10. An actor who can both cause a loss and authorise the bypass that permits it holds a position no control can compensate for.
+- **Trigger.** Override.
+- **Preconditions.** —
+- **Mandatory.** Test the authoriser against the beneficiary; route to an independent authority.
+- **Prohibited.** Self-benefiting override in any form.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4. **Cross-refs.** SOD-10, GP-24, RSK-47.
+
+---
+
+## 9.27 Domain FIN — Financial integrity
+
+> *The domain that binds the arithmetic of Part 7 to the behaviour of the enterprise. Its rules are
+> the ones that survive when everything else is under pressure.*
+
+**FIN-01 — Every computation MUST have exactly one canonical definition.**
+- **Rationale.** CP-4, DP-4. Two implementations of one formula constitute a defect even while they agree, because they will diverge and no one will know which is right.
+- **Trigger.** Any computation.
+- **Preconditions.** Part 7.
+- **Mandatory.** Compute from the canonical definition; reference it.
+- **Prohibited.** Parallel computations of the same quantity; spreadsheet re-derivation used for decisions.
+- **Exception policy.** **None.**
+- **Laws.** CP-4. **Cross-refs.** Part 7, II-2, PC-14.
+
+**FIN-02 — The computed figure is authoritative; downstream capabilities MUST NOT substitute their own.**
+- **Rationale.** II-2. A downstream capability that recomputes and gets a different answer has discovered a defect, not a better number.
+- **Trigger.** Hand-off to CAP-FIN, CAP-TRE, CAP-TAX.
+- **Preconditions.** —
+- **Mandatory.** Post as received; raise a defect on divergence.
+- **Prohibited.** Silent substitution; adjustment on posting.
+- **Exception policy.** **None.**
+- **Laws.** CP-4. **Cross-refs.** II-2, integration O-1, O-2.
+
+**FIN-03 — Every figure MUST be reproducible by hand from this document and the primary evidence.**
+- **Rationale.** SC-10, DT-1. A figure reproducible only by running the system is not auditable, and therefore not conformant.
+- **Trigger.** Audit; dispute; verification.
+- **Preconditions.** —
+- **Mandatory.** Preserve inputs, rates, and derivation.
+- **Prohibited.** Composite figures with no stated derivation.
+- **Exception policy.** **None.**
+- **Laws.** CP-7. **Cross-refs.** SC-10, RBL-16.
+
+**FIN-04 — Rounding MUST occur only at the defined points.**
+- **Rationale.** RND-1, RND-3. Rounding at each step compounds error and is the arithmetic origin of leakage form L7 and of the disputes that consume disproportionate effort.
+- **Trigger.** Computation.
+- **Preconditions.** —
+- **Mandatory.** Full-precision intermediates; round at RP-1…RP-6 only.
+- **Prohibited.** Step-wise rounding; truncation anywhere.
+- **Exception policy.** **None.**
+- **Laws.** CP-4. **Cross-refs.** RND-1…RND-8, PC-7.
+
+**FIN-05 — Approved financial records MUST NOT be altered.**
+- **Rationale.** LAW-11, LI-23, WKS-07. An alterable approval is not an approval, and the alteration is invisible to the approver.
+- **Trigger.** Post-approval change.
+- **Preconditions.** —
+- **Mandatory.** Cancel and re-originate with both records visible.
+- **Prohibited.** In-place amendment of amount, payee, period, or basis.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** LI-23, PEL-07.
+
+**FIN-06 — Financial paths MUST fail closed.**
+- **Rationale.** DP-3, GP-16, DT-4. A financial control that degrades to a weaker path on failure has converted an outage into a leakage event.
+- **Trigger.** Any control or input failure.
+- **Preconditions.** —
+- **Mandatory.** Stop; record the failure; alert (CP-11).
+- **Prohibited.** Fallback to a weaker computation; defaults substituted for missing inputs.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8, CP-11. **Cross-refs.** DP-3, II-4, PEL-08.
+
+**FIN-07 — Time-versioned parameters MUST never be edited in place.**
+- **Rationale.** RR-2, WGR-03. Editing a rate silently restates every past computation derived from it.
+- **Trigger.** Parameter change.
+- **Preconditions.** —
+- **Mandatory.** New version with effective date; prior versions retained and resolvable.
+- **Prohibited.** In-place edit of rates, limits, percentages, or statutory parameters.
+- **Exception policy.** Restatement by executive authority, applied visibly.
+- **Laws.** LAW-11, DP-12. **Cross-refs.** RR-2, GP-17.
+
+**FIN-08 — Every financial obligation MUST be on the ledger from creation.**
+- **Rationale.** REC-03. Obligations tracked in site registers, spreadsheets, or correspondence are obligations that vanish with the person who tracked them.
+- **Trigger.** Creation of any receivable or payable.
+- **Preconditions.** —
+- **Mandatory.** Post to the Contractor Account or the appropriate ledger immediately.
+- **Prohibited.** Off-ledger tracking of any financial obligation.
+- **Exception policy.** **None.**
+- **Laws.** LAW-5, CP-7. **Cross-refs.** REC-03, FM-34.
+
+**FIN-09 — Negative positions MUST be presented, never suppressed.**
+- **Rationale.** NEG-2, EVL-08. A suppressed negative makes a prior over-certification permanent and removes the evidence that it occurred.
+- **Trigger.** Any negative net, negative movement, or debit position.
+- **Preconditions.** —
+- **Mandatory.** Present; post; pursue.
+- **Prohibited.** Flooring at zero; netting to hide.
+- **Exception policy.** **None.**
+- **Laws.** LAW-6. **Cross-refs.** NEG-1…NEG-3, RBL-18.
+
+**FIN-10 — Cross-instrument and cross-counterparty netting MUST be an explicit, attributed decision.**
+- **Rationale.** NEG-3, PC-6. Silent netting destroys per-contract traceability and conceals which relationship is actually losing money.
+- **Trigger.** Any proposed set-off.
+- **Preconditions.** Legal right of set-off.
+- **Mandatory.** Record the decision, its legal basis, and its authority; retain per-instrument positions.
+- **Prohibited.** Automatic netting; netting used to produce a positive payable.
+- **Exception policy.** **None.**
+- **Laws.** CP-7. **Cross-refs.** NEG-3, EX-1.
+
+**FIN-11 — The Contractor Account MUST be complete, live, and reconcilable at any moment.**
+- **Rationale.** EX-1, GP-11. An account that is assembled at closure is an account that cannot inform any decision taken before closure.
+- **Trigger.** Continuous.
+- **Preconditions.** —
+- **Mandatory.** Maintain certified, paid, advance, issued, retained, and disputed positions per instrument.
+- **Prohibited.** Period-end-only assembly; roll-up figures without instrument detail.
+- **Exception policy.** **None.**
+- **Laws.** CP-7. **Cross-refs.** § 5.26, FM-34, RI-6.
+
+**FIN-12 — Reconciliation identities MUST be evaluable on demand for any date.**
+- **Rationale.** RI-0. An identity evaluable only at period close detects leakage after the leverage has gone.
+- **Trigger.** On demand; period close.
+- **Preconditions.** —
+- **Mandatory.** Compute RI-1…RI-12 for any date; raise an exception on violation immediately.
+- **Prohibited.** Identity violations logged as reports for later review.
+- **Exception policy.** **None.**
+- **Laws.** CP-11. **Cross-refs.** RI-0…RI-12, AUD-06.
+
+**FIN-13 — Financial period status MUST govern every posting.**
+- **Rationale.** PG-1, PG-2. Postings into closed periods invalidate every figure that has already been reported from them.
+- **Trigger.** Any posting.
+- **Preconditions.** Period status.
+- **Mandatory.** Post to open periods; record late facts with past effective dates in the current period.
+- **Prohibited.** Silent posting into a closed period.
+- **Exception policy.** PG-4 reopening.
+- **Laws.** LAW-11. **Cross-refs.** PG-1…PG-4, OVR-05.
+
+**FIN-14 — Currency, units, and precision MUST be governed centrally.**
+- **Rationale.** U-1, § 7.3. A rate in one unit applied to a quantity in another is not an error to be caught in review; it must be impossible.
+- **Trigger.** Any computation or data exchange.
+- **Preconditions.** —
+- **Mandatory.** Enforce unit compatibility structurally; apply the precision table.
+- **Prohibited.** Unit conversion at the point of computation; locally chosen precision.
+- **Exception policy.** **None.**
+- **Laws.** CP-4. **Cross-refs.** U-1…U-3, § 7.3.1.
+
+**FIN-15 — Every financial computation MUST declare its own failure to execute.**
+- **Rationale.** DP-11, CP-11, DT-4. Silence indistinguishable from success is the condition under which a disabled control is undetectable.
+- **Trigger.** Computation failure or skipped control.
+- **Preconditions.** —
+- **Mandatory.** Record non-execution; alert; block the dependent transaction.
+- **Prohibited.** Silent skip; success assumed from absence of error.
+- **Exception policy.** **None.**
+- **Laws.** CP-11. **Cross-refs.** DP-11, GP-09, AUD-06.
+
+**FIN-16 — Absence of an alarm MUST NOT be achievable by disabling the alarm.**
+- **Rationale.** CP-11 in its strongest form. A control whose monitoring can be switched off by the party it monitors is decoration.
+- **Trigger.** Configuration or access change affecting a control.
+- **Preconditions.** —
+- **Mandatory.** Record every enable/disable with actor and reason; alert Internal Audit independently; retain the history.
+- **Prohibited.** Control suppression by an operational actor; suppression without an independent alert.
+- **Exception policy.** **None.**
+- **Laws.** CP-11, LAW-12. **Cross-refs.** SEC-12, AUD-06, RSK-50.
+
+---
+
+## 9.28 Domain EXC — Exception handling
+
+**EXC-01 — An exception may relax a procedure; it MUST NOT relax an Immutable Law.**
+- **Rationale.** LI-32, OVR-01. The distinction between a Law and a Rule is precisely the availability of an exception.
+- **Trigger.** Exception request.
+- **Preconditions.** —
+- **Mandatory.** Test the request against § 1.8; refuse and record where it would breach a Law.
+- **Prohibited.** Granting; treating repeated refusals as an argument for amendment without formal constitutional process.
+- **Exception policy.** **None.**
+- **Laws.** § 1.8. **Cross-refs.** LI-32, OVR-01.
+
+**EXC-02 — Abnormal conditions MUST be raised as exceptions, never resolved silently.**
+- **Rationale.** ASG-11, GP-10. Both silent outcomes — quiet inclusion and quiet refusal — destroy the record of a decision that was in fact taken.
+- **Trigger.** Any condition outside normal control flow.
+- **Preconditions.** —
+- **Mandatory.** Raise; decide explicitly; record decision and authority.
+- **Prohibited.** Local workaround; informal resolution.
+- **Exception policy.** —
+- **Laws.** LAW-12. **Cross-refs.** ASG-11, CP-11.
+
+**EXC-03 — Every exception MUST record who, why, under what authority, and for how long.**
+- **Rationale.** LAW-12 verbatim. An exception missing any of the four is not recorded.
+- **Trigger.** Authorisation.
+- **Preconditions.** —
+- **Mandatory.** All four attributes, with free-text reason (OVR-03).
+- **Prohibited.** Partial records; category-only reasons.
+- **Exception policy.** **None.**
+- **Laws.** LAW-12. **Cross-refs.** § 5.27, OVR-02, OVR-03.
+
+**EXC-04 — Emergency exceptions MUST be regularised within a bounded period.**
+- **Rationale.** LA-5. The emergency that is never regularised is the process that was never approved.
+- **Trigger.** Emergency exception.
+- **Preconditions.** —
+- **Mandatory.** Regularise or expire within the bound; escalate on failure to regularise.
+- **Prohibited.** Indefinite emergency status.
+- **Exception policy.** **None.**
+- **Laws.** LAW-12. **Cross-refs.** PEL-10, OVR-04.
+
+**EXC-05 — Exceptions MUST expire automatically and MUST NOT renew by inaction.**
+- **Rationale.** LI-29, GP-14. Renewal by silence is the mechanism by which a temporary relaxation becomes permanent.
+- **Trigger.** Expiry.
+- **Preconditions.** —
+- **Mandatory.** Expire; require positive renewal by the authorised actor.
+- **Prohibited.** Auto-renewal; expiry warnings that permit continuation.
+- **Exception policy.** **None.**
+- **Laws.** LAW-12. **Cross-refs.** LI-29, OVR-04.
+
+**EXC-06 — Deferrals MUST be treated as exceptions, not as scheduling.**
+- **Rationale.** REC-10, LI-15. Deferral that is not governed becomes indefinite waiver without anyone deciding to waive.
+- **Trigger.** Any deferral of a control, recovery, or check.
+- **Preconditions.** —
+- **Mandatory.** Record as an exception with expiry; escalate on repetition.
+- **Prohibited.** Rolling deferral.
+- **Exception policy.** —
+- **Laws.** LAW-12, LAW-8. **Cross-refs.** REC-10, LI-15.
+
+**EXC-07 — Exception frequency MUST trigger automatic escalation.**
+- **Rationale.** LI-31, LA-5. Frequency is the enterprise's only early warning that a control has stopped working in practice while remaining intact on paper.
+- **Trigger.** Threshold breach by type, actor, project, or counterparty.
+- **Preconditions.** —
+- **Mandatory.** Escalate to Finance Controller and Internal Audit; review the underlying rule.
+- **Prohibited.** Monitoring without consequence.
+- **Exception policy.** **None.**
+- **Laws.** LAW-12. **Cross-refs.** LI-31, OVR-08, AUD-08.
+
+**EXC-08 — Exception counts by authoriser MUST be reportable for any period.**
+- **Rationale.** LI-30. An implementation that records exceptions but cannot report them by authoriser has not satisfied LAW-12.
+- **Trigger.** Period close; on demand.
+- **Preconditions.** —
+- **Mandatory.** Report count and value by authoriser, type, and period.
+- **Prohibited.** Aggregate-only reporting.
+- **Exception policy.** **None.**
+- **Laws.** LAW-12. **Cross-refs.** LI-30, OVR-07.
+
+**EXC-09 — Refused exceptions MUST be recorded as fully as granted ones.**
+- **Rationale.** PEL-12. The pattern of what was asked for and refused is among the most valuable investigative signals the enterprise holds, and it exists nowhere else.
+- **Trigger.** Refusal.
+- **Preconditions.** —
+- **Mandatory.** Record request, requester, grounds, and refusal.
+- **Prohibited.** Discarding refused requests.
+- **Exception policy.** **None.**
+- **Laws.** LAW-12, CP-11. **Cross-refs.** PEL-12, AUD-07.
+
+**EXC-10 — Exceptions MUST be reviewed after closure and feed rule improvement.**
+- **Rationale.** § 5.27 lifecycle `REVIEWED`. An exception library that is never reviewed accumulates the enterprise's unlearned lessons.
+- **Trigger.** Exception closure; periodic governance review.
+- **Preconditions.** —
+- **Mandatory.** Review; classify root cause; propose rule or process change.
+- **Prohibited.** Closure without review.
+- **Exception policy.** **None.**
+- **Laws.** LAW-12. **Cross-refs.** § 5.27, ARB gate § 11.12.
+
+---
+
+## 9.29 Domain SEC — Security and access
+
+> *Access is the mechanism through which every separation-of-duties rule is either enforced or
+> quietly defeated. This domain is about authority, not about technology.*
+
+**SEC-01 — Every actor MUST hold an individual identity; shared credentials are prohibited.**
+- **Rationale.** CP-6. Attribution is impossible under shared identity, and attribution is the foundation of accountability, exception counting, and investigation.
+- **Trigger.** Access grant.
+- **Preconditions.** —
+- **Mandatory.** Individual identity for every actor who creates, verifies, approves, or executes anything.
+- **Prohibited.** Shared, generic, departmental, or role accounts.
+- **Exception policy.** **None.**
+- **Laws.** CP-6, LAW-12. **Cross-refs.** MBK-10, OVR-02.
+
+**SEC-02 — Authority MUST derive from the organisational authority model, not from local grant.**
+- **Rationale.** D-9, II-1. Authority created locally is authority the enterprise did not delegate.
+- **Trigger.** Access grant; delegation.
+- **Preconditions.** CAP-HCM authority model.
+- **Mandatory.** Consume roles, limits, and validity from the authority model.
+- **Prohibited.** Site- or project-level creation of financial authority.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4. **Cross-refs.** I-7, RBL-11.
+
+**SEC-03 — Prohibited duty combinations MUST be structurally impossible, not policy-discouraged.**
+- **Rationale.** § 4.14. Prohibition means the combination cannot be assembled, including by accumulation over time.
+- **Trigger.** Any role assignment or delegation.
+- **Preconditions.** SOD matrix.
+- **Mandatory.** Test SOD-1…SOD-10 at grant and continuously.
+- **Prohibited.** Temporary combination during absence; combination acquired by successive grants.
+- **Exception policy.** § 4.14.1 small-enterprise treatment, recorded as a standing exception and counted.
+- **Laws.** LAW-4. **Cross-refs.** § 4.14, § 4.14.1, GP-24.
+
+**SEC-04 — External parties MUST NOT hold internal evidence or verification rights.**
+- **Rationale.** SOD-6, CTL-08, MBK-02. A counterparty with entry rights to the evidence that constrains their payment is not a counterparty; they are an author of their own entitlement.
+- **Trigger.** Access grant to any external party.
+- **Preconditions.** —
+- **Mandatory.** Restrict externals to their own claim submission and their own entitlement view (CP-10).
+- **Prohibited.** Contractor access to musters, measurement records, or approval functions.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4, CP-2. **Cross-refs.** CTL-08, MBK-02, RBL-17.
+
+**SEC-05 — Delegated financial limits MUST be explicit, dated, and enforced at the moment of use.**
+- **Rationale.** RBL-11, GP-17. A limit enforced at grant but not at use is a limit that survives the delegation that created it.
+- **Trigger.** Any approval.
+- **Preconditions.** Delegation register.
+- **Mandatory.** Test amount and validity at the approval instant.
+- **Prohibited.** Approval under a lapsed or superseded delegation.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4. **Cross-refs.** RBL-11, VAR-07.
+
+**SEC-06 — Authority changes MUST re-evaluate pending approvals.**
+- **Rationale.** Integration I-7. An approval pending under an authority that has since been withdrawn is an approval no one currently holds the power to give.
+- **Trigger.** Role, limit, or validity change.
+- **Preconditions.** —
+- **Mandatory.** Re-evaluate and re-route pending items.
+- **Prohibited.** Pending approvals completing under withdrawn authority.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4. **Cross-refs.** I-7, PEL-07.
+
+**SEC-07 — Payee and banking data MUST be change-controlled with independent verification.**
+- **Rationale.** WRK-10, PEL-11. Payee substitution succeeds because the request looks routine and the verification is performed by the person who received it.
+- **Trigger.** Any change.
+- **Preconditions.** —
+- **Mandatory.** Independent-channel verification; separation of requester, verifier, and applier; permanent change history.
+- **Prohibited.** Same-actor request and application; change applied to an approved voucher.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4, LAW-11. **Cross-refs.** WRK-10, LI-23, RSK-46.
+
+**SEC-08 — Access MUST be revoked on role change, transfer, separation, and suspension.**
+- **Rationale.** LA-4. Residual access is the most common precondition of insider fraud and the least often reviewed.
+- **Trigger.** Any change in status.
+- **Preconditions.** —
+- **Mandatory.** Revoke promptly; reconcile access to the current establishment periodically.
+- **Prohibited.** Access retained "in case"; access surviving demobilisation.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4. **Cross-refs.** WRK-08, DEP-11.
+
+**SEC-09 — Elevated rights MUST be time-limited and periodically reviewed.**
+- **Rationale.** OVR-09. Elevated authority accumulates quietly until it becomes the normal way work is done.
+- **Trigger.** Grant; periodic review.
+- **Preconditions.** —
+- **Mandatory.** Expiry on grant; positive renewal; periodic recertification by an independent reviewer.
+- **Prohibited.** Standing elevation; recertification by the holder's own manager alone where the rights are financial.
+- **Exception policy.** **None.**
+- **Laws.** LAW-4. **Cross-refs.** OVR-09, AUD-04.
+
+**SEC-10 — Records MUST NOT be modifiable outside the supersession mechanism, by anyone.**
+- **Rationale.** MB-9, LAW-11. Administrative modification capability defeats every immutability rule in this document, silently, and is normally held by the people least subject to operational control.
+- **Trigger.** —
+- **Preconditions.** —
+- **Mandatory.** Append-only records; every change a visible superseding record with an actor.
+- **Prohibited.** Direct record modification; deletion; administrative "correction" tooling without a superseding record.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** MBK-09, Part 11 § 11.7, RSK-51.
+
+**SEC-11 — Evidence MUST be protected against destruction, including by those who created it.**
+- **Rationale.** WRK-04, LAW-11. The strongest motive to destroy evidence belongs to the person who created it.
+- **Trigger.** —
+- **Preconditions.** —
+- **Mandatory.** Retention independent of the creator's control; custody records; integrity verification.
+- **Prohibited.** Creator-controlled deletion; retention dependent on a single custodian.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** Part 11 § 11.8, MBK-11.
+
+**SEC-12 — Control configuration MUST be change-controlled and independently alerted.**
+- **Rationale.** FIN-16, CP-11. A control that the monitored party can reconfigure is not a control.
+- **Trigger.** Any change to thresholds, tolerances, check percentages, or alerting.
+- **Preconditions.** —
+- **Mandatory.** Record actor, before/after values, and reason; alert Internal Audit independently; retain history.
+- **Prohibited.** Operational actors changing their own control parameters.
+- **Exception policy.** **None.**
+- **Laws.** CP-11, LAW-12. **Cross-refs.** FIN-16, AUD-06, RSK-50.
+
+---
+
+## 9.30 Domain AUD — Audit
+
+> *SOD-5: an actor who can cause a transition cannot independently audit it. Everything in this
+> domain depends on that separation holding.*
+
+**AUD-01 — Internal Audit MUST be independent of every operational actor in this capability.**
+- **Rationale.** SOD-5, § 4.12. Audit performed by a participant is self-assessment with a different title.
+- **Trigger.** —
+- **Preconditions.** —
+- **Mandatory.** Reporting line independent of project and finance operations.
+- **Prohibited.** Audit staff holding any transition authority (§ 6.14).
+- **Exception policy.** **None.**
+- **Laws.** CP-2. **Cross-refs.** SOD-5, § 6.14.
+
+**AUD-02 — Every financial and evidentiary act MUST leave an audit trail sufficient to reconstruct it.**
+- **Rationale.** CP-7, SC-6. Reconstructibility by a third party without the original personnel is the test (objective O-9).
+- **Trigger.** Every act.
+- **Preconditions.** —
+- **Mandatory.** Record actor, time, before/after state, and authority.
+- **Prohibited.** Acts recorded only by their outcome.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11, CP-7. **Cross-refs.** Part 11 § 11.9, MBK-10.
+
+**AUD-03 — Measurement Book integrity MUST be independently verified on a defined cycle.**
+- **Rationale.** MBK-12, GP-21. Integrity properties never tested are assumptions, and assumptions fail silently.
+- **Trigger.** Audit cycle; MB closure.
+- **Preconditions.** —
+- **Mandatory.** Verify custody, sequence, indelibility, attribution, closure; report.
+- **Prohibited.** Verification by the custodian.
+- **Exception policy.** **None.**
+- **Laws.** CP-2. **Cross-refs.** MBK-01…MBK-12.
+
+**AUD-04 — Approval and delegation MUST be audited for validity, limit, and separation.**
+- **Rationale.** LAW-4 is only as strong as the evidence that it held on the day.
+- **Trigger.** Audit cycle; on exception.
+- **Preconditions.** —
+- **Mandatory.** Test every sampled approval for delegated limit, validity date, and SOD compliance.
+- **Prohibited.** Sampling limited to high-value items only (splitting evades that pattern — GP-18).
+- **Exception policy.** **None.**
+- **Laws.** LAW-4. **Cross-refs.** SEC-05, RBL-12, AF-5.
+
+**AUD-05 — Physical verification of workforce presence MUST be performed unannounced.**
+- **Rationale.** WRK-13, GNG-08. The surprise count is the only control ghost labour cannot survive, and its value is entirely in the surprise.
+- **Trigger.** Audit programme; anomaly.
+- **Preconditions.** Deployment and attendance records.
+- **Mandatory.** Reconcile expected to actual by identity; record variance and outcome.
+- **Prohibited.** Announced verification; verification accompanied by the site's own supervisor alone.
+- **Exception policy.** **None.**
+- **Laws.** LAW-2. **Cross-refs.** WRK-13, RSK-01, XCP-01.
+
+**AUD-06 — Reconciliation identity violations MUST raise exceptions immediately, not appear in reports.**
+- **Rationale.** RI-0, FIN-12. A violation that waits for a report has already had time to be settled and disbursed.
+- **Trigger.** Identity violation.
+- **Preconditions.** —
+- **Mandatory.** Raise, alert, and block the dependent transaction where the identity governs it.
+- **Prohibited.** Logging without escalation.
+- **Exception policy.** **None.**
+- **Laws.** CP-11. **Cross-refs.** RI-1…RI-12, FIN-12.
+
+**AUD-07 — Anomaly detection outputs MUST route to Internal Audit, not only to the monitored party.**
+- **Rationale.** AF-11. A detection report sent only to the actor whose work it monitors is not a control.
+- **Trigger.** Detection.
+- **Preconditions.** —
+- **Mandatory.** Independent routing; retention of the detection history.
+- **Prohibited.** Site-only circulation; suppression by the monitored party (FIN-16).
+- **Exception policy.** **None.**
+- **Laws.** CP-11. **Cross-refs.** AF-1…AF-11, ATT-19, MSR-17.
+
+**AUD-08 — Control health MUST be reported to accountable officers every period.**
+- **Rationale.** GP-21, SC-16, R-13. Every control reports its execution, including failure to execute; the report is what converts that into governance.
+- **Trigger.** Period close.
+- **Preconditions.** —
+- **Mandatory.** Report exception counts by authoriser, override frequency, reconciliation status, ageing positions, and non-executed controls.
+- **Prohibited.** Control health reported only on request or only when adverse.
+- **Exception policy.** **None.**
+- **Laws.** CP-11. **Cross-refs.** SC-16, EXC-08, OVR-07.
+
+**AUD-09 — Investigations MUST be able to reach every record, including superseded and cancelled ones.**
+- **Rationale.** WRK-04, LAW-11. The superseded record is usually the one that shows what was originally claimed.
+- **Trigger.** Investigation.
+- **Preconditions.** —
+- **Mandatory.** Full access to current, superseded, cancelled, refused, and archived records.
+- **Prohibited.** Operational filters applied to investigative access.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** Part 11 § 11.10, WRK-04.
+
+**AUD-10 — Confirmed leakage MUST be attributed, quantified, recovered, and root-caused.**
+- **Rationale.** DP-2. Correction without root cause guarantees recurrence; attribution without recovery guarantees repetition by others.
+- **Trigger.** Confirmed finding.
+- **Preconditions.** —
+- **Mandatory.** Attribute to actors; quantify the loss; pursue recovery; identify the failed control; propose the rule change.
+- **Prohibited.** Closing a finding on correction alone.
+- **Exception policy.** **None.**
+- **Laws.** LAW-12. **Cross-refs.** GNG-10, ADV-12, Part 10 § 10.4.
+
+**AUD-11 — Statutory records MUST be audit-verified against operational records.**
+- **Rationale.** LAB-04. Divergence between the register and the payment record is what an inspector looks for and what the enterprise usually discovers second.
+- **Trigger.** Audit cycle; before inspection.
+- **Preconditions.** —
+- **Mandatory.** Reconcile registers to attendance, wage, and disbursement records.
+- **Prohibited.** Assurance based on register completeness alone.
+- **Exception policy.** **None.**
+- **Laws.** CP-9. **Cross-refs.** LAB-02, LAB-04, RI-8.
+
+**AUD-12 — Evidence retention MUST be verified, not assumed.**
+- **Rationale.** § 3.4.4, LAB-14, MBK-11. Retention failures are discovered at the moment the evidence is demanded, which is the moment it cannot be recreated.
+- **Trigger.** Audit cycle; project closure.
+- **Preconditions.** —
+- **Mandatory.** Verify existence, legibility, completeness, and reconstructibility of retained evidence.
+- **Prohibited.** Retention assumed from policy.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** LI-33, Part 11 § 11.8.
+
+---
+
+## 9.31 Domain CLS — Contract closure
+
+> *§ 1.4.12: the final bill is where control collapses. Under schedule pressure and relationship
+> fatigue, the accumulated rigour of a hundred running bills is surrendered in one meeting.*
+
+**CLS-01 — Final measurement MUST be joint and 100% checked.**
+- **Rationale.** JM-2, CK-2. The final account is the last opportunity to establish quantities, and after it there is no opportunity at all.
+- **Trigger.** Closure initiation.
+- **Preconditions.** —
+- **Mandatory.** Joint measurement; full check by an officer independent of the project.
+- **Prohibited.** Final quantities adopted from running bills without re-verification of the cumulative position.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1, CP-2. **Cross-refs.** JM-2, CK-2, MSR-09.
+
+**CLS-02 — The final account MUST be computed before it is discussed.**
+- **Rationale.** LI-26. Settlement by negotiation reverses the constitutional order and forfeits every control upstream of the meeting.
+- **Trigger.** Closure.
+- **Preconditions.** FC-1…FC-10 computable.
+- **Mandatory.** Compute; present the computed figure; then discuss.
+- **Prohibited.** Agreeing a number and reconciling to it afterwards.
+- **Exception policy.** **None.**
+- **Laws.** LAW-6, PA-4. **Cross-refs.** LI-26, EDR-08.
+
+**CLS-03 — The ceiling test MUST hold at closure, including all variations.**
+- **Rationale.** FC-2, VAR-12. Closure is where accumulated ceiling breaches surface, and where they are most likely to be resolved by a retrospective variation.
+- **Trigger.** Closure.
+- **Preconditions.** Complete variation record.
+- **Mandatory.** Test cumulative certified against sanctioned plus sanctioned variations.
+- **Prohibited.** Retrospective variation raised to legitimise a breach already paid.
+- **Exception policy.** **None.**
+- **Laws.** LAW-9. **Cross-refs.** FC-2, VAR-01, RSK-19.
+
+**CLS-04 — All recoveries MUST be crystallised before final payment.**
+- **Rationale.** FC-3, FC-4, CTL-11, ADV-09. The enterprise's leverage ends with the final payment and never returns.
+- **Trigger.** Final payment preparation.
+- **Preconditions.** —
+- **Mandatory.** Compute and apply every outstanding advance, issued value, damage, and LD.
+- **Prohibited.** Final payment with recoveries "to be settled separately".
+- **Exception policy.** **None.**
+- **Laws.** LAW-8. **Cross-refs.** FC-3, FC-4, LA-7.
+
+**CLS-05 — Liquidated damages MUST be computed and either levied or formally waived.**
+- **Rationale.** FC-7, RI-10, LD-1. LD abandoned by inaction at closure is leakage form L6 in its most valuable single instance.
+- **Trigger.** Closure.
+- **Preconditions.** Delay position; hindrance records.
+- **Mandatory.** Compute per FM-18; levy or record a waiver with executive authority.
+- **Prohibited.** Silent omission from the final account.
+- **Exception policy.** Waiver per REC-12.
+- **Laws.** LAW-8. **Cross-refs.** FC-7, RI-10, REC-08.
+
+**CLS-06 — A no-claim certificate MUST NOT substitute for the enterprise's reconciliations.**
+- **Rationale.** LI-28. It extinguishes the contractor's claims; it does nothing to the enterprise's unrecovered value.
+- **Trigger.** Receipt of a no-claim certificate.
+- **Preconditions.** —
+- **Mandatory.** Complete FC-3, FC-4, FC-7 independently.
+- **Prohibited.** Treating the certificate as closure evidence.
+- **Exception policy.** **None.**
+- **Laws.** LAW-8. **Cross-refs.** LI-28, FC-3.
+
+**CLS-07 — Retention MUST be carried past closure until its release conditions expire.**
+- **Rationale.** LI-27, RET-10. A contract is closed when the last obligation expires, not when the last rupee moves.
+- **Trigger.** Closure.
+- **Preconditions.** —
+- **Mandatory.** Carry the liability with assigned custody and monitored conditions.
+- **Prohibited.** Releasing retention to close the account.
+- **Exception policy.** **None.**
+- **Laws.** LAW-10. **Cross-refs.** LI-27, RET-10.
+
+**CLS-08 — Every dependent lifecycle MUST be terminal before closure.**
+- **Rationale.** SY-10. An open measurement, dispute, advance, or exception at closure becomes an orphan the moment the project team disperses.
+- **Trigger.** Closure.
+- **Preconditions.** —
+- **Mandatory.** Verify terminal state across LC-02…LC-10 and LC-12.
+- **Prohibited.** Closure with open dependent lifecycles.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** SY-10, § 6.16.
+
+**CLS-09 — No validated attendance may remain unsettled at closure.**
+- **Rationale.** FC-10, LAB-13. Unsettled workers at closure are both a statutory exposure and an unrecorded gain.
+- **Trigger.** Closure.
+- **Preconditions.** —
+- **Mandatory.** Settle or record as a liability with a defined treatment.
+- **Prohibited.** Closure with unresolved worker entitlement.
+- **Exception policy.** **None.**
+- **Laws.** PA-8, CP-9. **Cross-refs.** FC-10, WRK-14.
+
+**CLS-10 — No verified measurement may remain unbilled at closure.**
+- **Rationale.** FC-9, RI-12. Verified but unbilled value is contractor detriment and a hidden enterprise liability simultaneously.
+- **Trigger.** Closure.
+- **Preconditions.** —
+- **Mandatory.** Bill or record an explicit, reasoned exclusion.
+- **Prohibited.** Silent lapse of verified value.
+- **Exception policy.** **None.**
+- **Laws.** LAW-1, CP-10. **Cross-refs.** FC-9, EVL-10.
+
+**CLS-11 — Closure MUST NOT occur while an obligation remains live.**
+- **Rationale.** § 3.4.4, LI-27. Defect liability, retention, statutory retention, and limitation periods all outlive physical completion.
+- **Trigger.** Closure request.
+- **Preconditions.** —
+- **Mandatory.** Test every live obligation; close only when all have expired or been discharged.
+- **Prohibited.** Administrative closure for reporting convenience.
+- **Exception policy.** **None.**
+- **Laws.** LAW-10, LAW-11. **Cross-refs.** § 3.4.4, RET-10.
+
+**CLS-12 — Closure outcomes MUST inform future award.**
+- **Rationale.** Integration O-4, CTL-10. An enterprise that does not carry closure findings into empanelment re-awards work to the counterparty that just cost it money.
+- **Trigger.** Closure.
+- **Preconditions.** —
+- **Mandatory.** Publish performance, recovery, dispute, and LD outcomes to CAP-SCM.
+- **Prohibited.** Closure findings retained within the project.
+- **Exception policy.** **None.**
+- **Laws.** CP-11. **Cross-refs.** integration O-4, CTL-10.
+
+**CLS-13 — Negotiated settlement variance MUST be recorded against the computed figure.**
+- **Rationale.** LI-26. Where a commercial settlement genuinely departs from the computation, the departure is the decision — and it must be attributable to the executive who took it, permanently, beside the number it replaced.
+- **Trigger.** Settlement differing from the computed final account.
+- **Preconditions.** Computed figure.
+- **Mandatory.** Record the variance, its authority, and its reason; retain the computed figure permanently.
+- **Prohibited.** Restating the computation to match the settlement.
+- **Exception policy.** Executive authority, recorded, counted, reported.
+- **Laws.** LAW-11, LAW-12. **Cross-refs.** LI-26, RSK-45.
+
+**CLS-14 — The closed record MUST be sealed, retained, and reconstructible.**
+- **Rationale.** § 3.4.4: a contract is closed when the last obligation expires and the record is sealed. Sealing is an act, not an absence of activity.
+- **Trigger.** Closure.
+- **Preconditions.** —
+- **Mandatory.** Seal; transfer custody; verify retention and reconstructibility (AUD-12).
+- **Prohibited.** Records left in project custody after demobilisation.
+- **Exception policy.** **None.**
+- **Laws.** LAW-11. **Cross-refs.** LI-33, MBK-11, LAB-14.
+
+---
+
+## 9.32 Rule catalogue summary
+
+| Domain | Rules | Rules with **no** exception permitted | Primary leakage forms addressed |
+|---|---|---|---|
+| WRK | 14 | 8 | L1, L2, L7 |
+| CLB | 12 | 6 | L1, L4 |
+| CTL | 14 | 9 | L1, L3, L5 |
+| BRL | 14 | 13 | L1, L2, L5 |
+| GNG | 10 | 7 | L1, L2 |
+| DEP | 11 | 7 | L1, L2 |
+| ASG | 11 | 7 | L1, L4 |
+| ATT | 20 | 12 | L1, L2 |
+| LAB | 14 | 13 | Statutory, L1 |
+| WGR | 12 | 7 | L3, L7 |
+| DWG | 10 | 7 | L1, L4 |
+| WKS | 12 | 10 | L2, L5 |
+| PCR | 10 | 9 | L1, L2, L3 |
+| PRD | 9 | 9 | L1, L3 (detection) |
+| MSR | 18 | 16 | L1, L2, L3, L7 |
+| MBK | 12 | 12 | L1, L3, evidence integrity |
+| RBL | 18 | 17 | L2, L3, L4 |
+| EVL | 10 | 10 | L3, L4 |
+| PEL | 14 | 11 | L1, L2, L3, L4 |
+| ADV | 14 | 11 | **L5** |
+| REC | 16 | 12 | **L5, L6** |
+| RET | 12 | 11 | **L6**, misstatement |
+| VAR | 12 | 10 | L3, L7 |
+| OVR | 10 | 10 | All (circumvention) |
+| FIN | 16 | 14 | All |
+| EXC | 10 | 8 | All (governance) |
+| SEC | 12 | 11 | All (collusion) |
+| AUD | 12 | 12 | All (detection) |
+| CLS | 14 | 12 | **L5, L6**, L3 |
+| **Total** | **373** | **301** | — |
+
+> **Observation for the Architecture Review Board.** Roughly four-fifths of this catalogue admits no
+> exception at all. That proportion is not an accident of drafting: in a capability whose subject is
+> money leaving an enterprise on evidence created at a distance, **most rules are either structural
+> or worthless.** A rule that can be set aside by the person under pressure is a rule that will be
+> set aside precisely when it matters (LA-4, LA-5, DP-1).
+
+---
+
+# PART 10 — ENTERPRISE RISK & LEAKAGE MODEL
+
+## 10.1 Purpose and posture
+
+Part 9 states how a conforming enterprise behaves. **Part 10 states what happens when it does not,
+who makes it happen, how it is detected, and what it costs.**
+
+This Part is written from the position of a construction auditor and a fraud investigator rather
+than a risk administrator. It does not catalogue generic enterprise risks — market, weather,
+political, technological. It catalogues **the specific, realistic mechanisms by which value escapes
+a construction enterprise through its workforce and contractor payment chain**, in the terms a
+person attempting them would recognise.
+
+> **The posture of this Part.** § 1.5 establishes that leakage is not theft and that most escaping
+> value escapes through process — omission, ambiguity, fatigue, deference, and the absence of a rule.
+> **This Part is therefore not a fraud register.** It is a register of *how money leaves*, of which
+> fraud is a minority subset. A risk model that looks only for dishonesty will not be looking where
+> the money actually goes.
+
+**RP-1 — Every risk is classified into exactly one of the seven leakage forms** (§ 1.5, L1–L7), or
+marked **[G]** governance / **[S]** statutory / **[C]** cash-flow where no value escapes directly but
+the enterprise's control or legal position degrades.
+
+**RP-2 — Every risk names a responsible actor.** A risk owned by "the organisation" is owned by
+nobody and will be managed by nobody.
+
+**RP-3 — Prevention outranks detection outranks correction** (DP-2). Where a risk's primary control
+is detective, that is recorded as a known weakness, not presented as adequacy.
+
+**RP-4 — Residual risk is stated honestly.** A risk whose residual is described as "nil" after
+controls is a risk that has not been thought about. **Every residual in this register is non-zero.**
+
+**RP-5 — The adversarial test** (DP-6). Every control set below has been challenged with: *can this
+be manipulated? can two people collude? can money leave without evidence? can evidence be
+fabricated? can measurement be inflated? can labour be counted twice? can recoveries be bypassed?
+can approvals be abused?* Where the answer was yes, the constitutional rule was strengthened in
+Part 9 and the strengthening is cited here.
+
+## 10.2 Severity and impact scales
+
+| Severity | Meaning | Typical characteristic |
+|---|---|---|
+| **Critical** | Threatens the capability's core promise (SC-17). A single occurrence can be large; recurrence is systemic | Defeats an Immutable Law, or is undetectable in principle without a named structural control |
+| **High** | Material value at risk, or statutory exposure with third-party consequence | Detectable, but usually after disbursement |
+| **Medium** | Recurrent value loss at moderate unit size, or a control degradation that enables a higher risk | Visible in reconciliation |
+| **Low** | Contained loss, self-correcting under the running-account principle | Absorbed at the next cumulative bill |
+
+| Financial impact band | Characteristic pattern |
+|---|---|
+| **Compounding** | Small per transaction, unbounded in aggregate, invisible per instance (LA-3) — the most expensive class |
+| **Episodic-large** | Rare, individually large, usually discovered late (abandonment, final account) |
+| **Statutory** | Penalty, interest, and third-party liability, largely independent of the sum at issue |
+| **Opportunity** | Value the enterprise was entitled to and never claimed (L6) |
+
+## 10.3 The leakage map
+
+| Leakage form | Where it enters | Primary structural defence | Register block |
+|---|---|---|---|
+| **L1 Phantom** | Attendance capture; measurement of unexecuted work | LI-16 single-occupancy; LAW-3; AUD-05 surprise count | RSK-01…10 |
+| **L2 Duplicate** | Second consumption of a settled day or billed quantity | GP-04 consumption markers; enterprise-wide identity | RSK-01…10, 16…18 |
+| **L3 Excess** | Over-measurement; wrong rate; wrong classification | Check measurement (§ 8.8); FM-00 rate resolution | RSK-11…19 |
+| **L4 Premature** | Payment before entitlement; part-rate abuse; advance disguised as bill | LAW-1; PT-2 bound stage schedule | RSK-11…19, 42…44 |
+| **L5 Unrecovered** | Advances, issued materials, hire, fuel, damages | LI-14 automatic obligation on issue | RSK-20…25 |
+| **L6 Unenforced** | LD waived by inaction; retention released early or never | RI-10; RET-12 ageing | RSK-26…29 |
+| **L7 Erosion** | Rate creep, scope creep, favourable rounding, grade inflation | RND-1…RND-8; AF-4 pattern analysis; VAR-01 | RSK-14, 31, 44, 57 |
+
+---
+
+## 10.4 Risk register
+
+> Presented in identifier order. Identifiers are permanent and are cross-referenced throughout
+> Part 9. The category index at § 10.5 groups them by discipline.
+
+### Block A — Labour and attendance leakage (RSK-01…RSK-10)
+
+### RSK-01 — Ghost labour
+| | |
+|---|---|
+| **Category / form** | Labour leakage · **L1** |
+| **Description** | Wages paid for workers who did not work, do not exist, or were never on site |
+| **Root cause** | Aggregation of workers into counts; identity established by the beneficiary; observation delegated to the party paid by the count (§ 1.4.3) |
+| **Typical scenario** | A mate presents a gang of 40; 34 attend. Six names appear on the muster each day, drawn from real workers who left months ago and were never marked separated. The supervisor signs the muster he did not personally count |
+| **Early warning indicators** | Strength unchanged through rain days; identical attendance patterns across many workers; workers appearing only in the final week of a period; headcount rising without output rising; new registrations clustered before settlement |
+| **Detection mechanism** | Unannounced physical verification by identity (AUD-05); attendance vs independent presence signals (ATT-18); productivity collapse (MR-6); anomaly pattern analysis (ATT-19) |
+| **Preventive controls** | WRK-01 identity before payment; WRK-02 enterprise-wide unique identity; ATT-02 capture by enterprise officer; ATT-05 individual not headcount; GNG-04 mate cannot validate; BRL-08 claim requires validation |
+| **Detective controls** | AUD-05; ATT-18; ATT-19; RI-7; PRD-04 |
+| **Corrective controls** | Recovery from the intermediary; attribution to mate and supervisor (GNG-10); blacklisting; AUD-10 root cause |
+| **Severity** | **Critical** |
+| **Business impact** | Site strength unknown; productivity data corrupted; every labour-cost decision built on a false denominator |
+| **Financial impact** | **Compounding** — small daily, unbounded over a project |
+| **Responsible actor** | Site Supervisor (§ 4.5, explicitly accountable); Gang Leader (§ 4.2) |
+| **Escalation path** | Supervisor → Project Manager → Internal Audit → Finance Controller |
+| **Recovery strategy** | Deduct from intermediary's running account at waterfall priority 3–6; pursue under contract; report where statutory offence |
+| **Residual risk** | **Medium.** Collusion between supervisor and mate defeats single-observer capture. Mitigated only by surprise verification frequency and independent presence signals — never eliminated |
+
+### RSK-02 — Duplicate worker identity
+| | |
+|---|---|
+| **Category / form** | Labour leakage · **L1/L2** |
+| **Description** | One human being carried as two or more workers, permitting the same person to be paid twice |
+| **Root cause** | Identity derived from contractor or project rather than the enterprise (§ 5.2); re-registration on re-engagement |
+| **Typical scenario** | A worker leaves contractor A and joins contractor B on the same site. B registers him afresh. Both musters carry him for an overlapping fortnight; both are settled |
+| **Early warning indicators** | Registrations with matching biometric/photographic references; same name and trade across contractors; workers registered more than once in a quarter |
+| **Detection mechanism** | Identity de-duplication at registration; enterprise-wide attendance uniqueness test (ATT-06) |
+| **Preventive controls** | WRK-02; WRK-07 no dual intermediary; BRL-04 registration before attendance; BRL-10; LI-16 |
+| **Detective controls** | ATT-06 rejection log; RI-7; RI-11 |
+| **Corrective controls** | Merge under supersession (never deletion — WRK-04); recover the duplicate settlement |
+| **Severity** | **Critical** |
+| **Business impact** | Every anti-duplication control downstream is void, because they all key on identity |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Site Supervisor for registration; CAP-HCM for the identity foundation (D-13) |
+| **Escalation path** | Supervisor → Project Manager → Internal Audit |
+| **Recovery strategy** | Recover from the intermediary who presented the duplicate; correct forward |
+| **Residual risk** | **Medium** where documentary identity is unavailable and alternative identity is weak (WRK-03) |
+
+### RSK-03 — Undeclared workforce on site
+| | |
+|---|---|
+| **Category / form** | Labour leakage · **L1** · **[S]** |
+| **Description** | Workers present and working who appear in no enterprise record |
+| **Root cause** | Site access not bound to registration; contractor treats its workforce as its own business |
+| **Typical scenario** | A subcontractor brings 12 additional workers for a pour. None are registered. One is injured. The enterprise cannot establish who was on its site or under whose authority |
+| **Early warning indicators** | Gate counts exceeding registered strength; safety inductions exceeding musters; canteen or transport counts diverging |
+| **Detection mechanism** | Gate/induction reconciliation; unannounced count (AUD-05) |
+| **Preventive controls** | CTL-04 access bound to registration; CTL-02 individual visibility; DEP-01 |
+| **Detective controls** | ATT-18; WRK-13 |
+| **Corrective controls** | Same-day registration; contractor notice; recovery of any statutory cost |
+| **Severity** | **High** |
+| **Business impact** | Statutory exposure on injury; unknown population against which ghost labour hides |
+| **Financial impact** | **Statutory** |
+| **Responsible actor** | Site Supervisor; Project Manager |
+| **Escalation path** | Project Manager → HSE → Finance Controller |
+| **Recovery strategy** | Contractual penalty; cost recovery for statutory consequences |
+| **Residual risk** | **Medium** on large, multi-gate, or dispersed sites |
+
+### RSK-04 — Mate-inflated attendance
+| | |
+|---|---|
+| **Category / form** | Labour leakage · **L1** |
+| **Description** | The intermediary reports more workers or more days than were worked |
+| **Root cause** | § 4.2 conflict declaration — the mate's earnings rise with the count they themselves report |
+| **Typical scenario** | Gang paid per worker-day. Mate reports 30 days for 28 workers who each worked 26. The difference is small, plausible, and repeated for eleven months |
+| **Early warning indicators** | Reported days consistently at or near theoretical maximum; no absence variability; mate's reported strength exceeding output-implied strength |
+| **Detection mechanism** | Independent validation (BRL-08); productivity analysis (MR-6); worker wage-card acknowledgement mismatch (RI-8) |
+| **Preventive controls** | ATT-02; ATT-03 claim not evidence; GNG-04; GNG-09 remuneration not linked to reported headcount; CTL-12 |
+| **Detective controls** | RI-7; RI-8; ATT-19 |
+| **Corrective controls** | Recovery from mate's dues; attribution (GNG-10) |
+| **Severity** | **High** |
+| **Business impact** | Corrupts the productivity baseline used for future estimating |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Gang Leader; validating Site Supervisor |
+| **Escalation path** | Supervisor → Project Manager → Internal Audit |
+| **Recovery strategy** | Deduct from intermediary settlement; terminate engagement |
+| **Residual risk** | **Medium.** Survives where the validating officer accepts the mate's list as the starting point rather than counting independently |
+
+### RSK-05 — Intermediated wage skimming
+| | |
+|---|---|
+| **Category / form** | Labour leakage · **L1** · **[S]** |
+| **Description** | The enterprise pays the intermediary correctly; the worker receives less |
+| **Root cause** | Payment intermediated without individual visibility; workers unbanked and often illiterate in the language of the contract (§ 4.1) |
+| **Typical scenario** | Supplier invoiced at ₹650/day per worker; workers receive ₹480 in cash. No individual record exists, so the difference is invisible and the statutory floor is breached in the enterprise's name |
+| **Early warning indicators** | Absence of worker acknowledgements; workers unable to state their own rate; wage complaints; high worker turnover under one supplier |
+| **Detection mechanism** | Wage-card reconciliation (RI-8); direct worker enquiry; minimum-wage test against the worker's receipt (MW-2) |
+| **Preventive controls** | BRL-06 individual records; BRL-07 margin visible and decomposed; LAB-08 acknowledgement by the named worker; LAB-09 transparency; GNG-05 |
+| **Detective controls** | RI-8; BRL-09; AUD-11 |
+| **Corrective controls** | Direct payment to workers (CTL-06); recovery from supplier; termination |
+| **Severity** | **Critical** — statutory and reputational, not merely financial |
+| **Business impact** | Principal-employer liability; site stoppage; inspection finding |
+| **Financial impact** | **Statutory** |
+| **Responsible actor** | Petty Contractor / Labour Supplier (§ 4.4); Accountant for detection |
+| **Escalation path** | Project Manager → Finance Controller → Legal |
+| **Recovery strategy** | Pay workers directly, recover at waterfall priority 2 (FM-13) |
+| **Residual risk** | **High** where cash disbursement is unavoidable and literacy is low. The controls reduce it; the environment does not permit elimination (§ 1.4.10) |
+
+### RSK-06 — Attendance against a closed or non-existent work front
+| | |
+|---|---|
+| **Category / form** | Labour leakage · **L1** |
+| **Description** | Attendance validated for a location where no work could have occurred |
+| **Root cause** | Front status not recorded or not tested at validation |
+| **Typical scenario** | A front closed for design revision on the 3rd. Twelve workers show attendance there until the 19th, reassigned in the record only afterwards |
+| **Early warning indicators** | Attendance on fronts with no measurement in the period; attendance during declared closures |
+| **Detection mechanism** | Attendance vs front status and calendar (ATT-12); attendance vs measurement by front |
+| **Preventive controls** | ASG-04; GNG-07; ATT-12; ATT-13 idle classification |
+| **Detective controls** | MR-6; period-close reconciliation |
+| **Corrective controls** | Reclassify to idle with cause and authority, or recover |
+| **Severity** | **Medium** |
+| **Business impact** | Cost attributed to the wrong activity; productivity distorted |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Site Supervisor |
+| **Escalation path** | Project Manager |
+| **Recovery strategy** | Correct forward under supersession; recover where fictitious |
+| **Residual risk** | **Low** where front status is maintained; **High** where it is not |
+
+### RSK-07 — Retrospective work assignment
+| | |
+|---|---|
+| **Category / form** | Labour leakage · **L1/L4** · **[G]** |
+| **Description** | Assignment records created after the work date to legitimise attendance already captured |
+| **Root cause** | LI-03 not enforced; assignment treated as paperwork rather than authority |
+| **Typical scenario** | Attendance is captured for 60 workers; at period close, 60 assignments are generated dated to match |
+| **Early warning indicators** | Assignment creation timestamps clustered at period end; assignment dates uniformly equal to attendance dates; bulk creation by one actor |
+| **Detection mechanism** | Creation-date vs effective-date analysis (OVR-06); ASG-01 flagging |
+| **Preventive controls** | ASG-01; ASG-05 named issuer; ATT-07 validation against assignment |
+| **Detective controls** | OVR-06 backdating report; AUD-07 |
+| **Corrective controls** | Exception record; review of the period's settlements |
+| **Severity** | **High** — it converts LAW-2 into a formality |
+| **Business impact** | The second limb of LAW-2 stops functioning as a control while appearing to be satisfied |
+| **Financial impact** | Enables RSK-01; not directly quantifiable alone |
+| **Responsible actor** | Site Supervisor; Site Engineer |
+| **Escalation path** | Project Manager → Internal Audit |
+| **Recovery strategy** | Re-verify the affected period; recover confirmed phantom value |
+| **Residual risk** | **Medium.** Genuine operational lag makes some retrospection legitimate; only the pattern distinguishes it |
+
+### RSK-08 — Work performed without assignment
+| | |
+|---|---|
+| **Category / form** | Labour leakage · **L4** · **[S]** |
+| **Description** | Effort expended with no covering authority, then either paid without basis or refused without record |
+| **Root cause** | Operational reality outrunning the record; no defined route for the unassigned case |
+| **Typical scenario** | Workers directed verbally to clear a collapsed excavation over a weekend. No assignment exists. The days are paid quietly, or refused quietly, depending on who reviews them |
+| **Early warning indicators** | Attendance without assignment appearing regularly at one site; disputes about unpaid days |
+| **Detection mechanism** | ATT-07 validation failures; exception register |
+| **Preventive controls** | ASG-01; ASG-11 explicit exception route |
+| **Detective controls** | Exception frequency by site (EXC-07) |
+| **Corrective controls** | Attributed decision; pay where the work occurred (PA-8); correct the assignment discipline |
+| **Severity** | **Medium** |
+| **Business impact** | Either an unsupported payment or an unpaid worker — both are enterprise failures |
+| **Financial impact** | **Statutory** where unpaid |
+| **Responsible actor** | Site Supervisor |
+| **Escalation path** | Project Manager |
+| **Recovery strategy** | Regularise through exception; not a recovery event where genuine |
+| **Residual risk** | **Medium** — inherent to construction's improvisational reality |
+
+### RSK-09 — Retrospective bulk attendance capture
+| | |
+|---|---|
+| **Category / form** | Labour leakage · **L1** · **[G]** |
+| **Description** | Attendance reconstructed in an office at period end rather than captured at site daily |
+| **Root cause** | Connectivity, convenience, or supervisor workload; capture treated as reporting rather than evidence |
+| **Typical scenario** | A fortnight's musters are entered in one sitting from a notebook, or from the mate's summary |
+| **Early warning indicators** | Capture timestamps clustered; identical capture times across many days; capture by an actor not present at site |
+| **Detection mechanism** | Capture-timestamp analysis; geolocation where captured (Part 11 § 11.7) |
+| **Preventive controls** | ATT-01 capture at point of occurrence; ATT-10 method recorded; delayed capture recorded and counted |
+| **Detective controls** | AF-8-style interval analysis applied to attendance; ATT-19 |
+| **Corrective controls** | Restore daily capture; treat the affected period as lower-confidence evidence (Part 11 § 11.4) |
+| **Severity** | **High** |
+| **Business impact** | Converts primary evidence into testimony, degrading every downstream control that relies on it |
+| **Financial impact** | Enables RSK-01, RSK-04 |
+| **Responsible actor** | Site Supervisor |
+| **Escalation path** | Project Manager → Internal Audit |
+| **Recovery strategy** | Re-verification of the period by independent means |
+| **Residual risk** | **Medium** on remote sites with genuine connectivity constraints |
+
+### RSK-10 — Proxy attendance
+| | |
+|---|---|
+| **Category / form** | Labour leakage · **L1** |
+| **Description** | One worker registers presence for another — shared credentials, shared biometric enrolment, passed tokens |
+| **Root cause** | Capture mechanism binds to a credential rather than to a person; enrolment quality unverified |
+| **Typical scenario** | Two workers share one card; one attends, both are marked present. Or a biometric is enrolled from the mate's finger for four "workers" |
+| **Early warning indicators** | Sequential captures seconds apart; captures from one device for workers deployed to different fronts; enrolment anomalies |
+| **Detection mechanism** | Capture-sequence and device analysis; enrolment audit; physical verification (AUD-05) |
+| **Preventive controls** | WRK-03 durable identity with attested enrolment; ATT-10 method recorded; SEC-01 individual identity |
+| **Detective controls** | ATT-18; ATT-19 |
+| **Corrective controls** | Re-enrolment under supervision; recovery; attribution |
+| **Severity** | **High** |
+| **Business impact** | Undermines confidence in the strongest available attendance evidence class |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Site Supervisor; enrolment officer |
+| **Escalation path** | Project Manager → Internal Audit |
+| **Recovery strategy** | Recover confirmed days; re-enrol the affected population |
+| **Residual risk** | **Medium.** No capture technology is proof against collusion at enrolment |
+
+---
+
+### Block B — Measurement and valuation leakage (RSK-11…RSK-19)
+
+### RSK-11 — Payment against unmeasured work
+| | |
+|---|---|
+| **Category / form** | Measurement risk · **L1/L4** |
+| **Description** | Value certified without a verified measurement behind it |
+| **Root cause** | Schedule pressure; measurement treated as documentation to be completed later (§ 1.4.8) |
+| **Typical scenario** | A bill is certified on the engineer's assurance that "the quantities are broadly right"; measurement follows in the next period and is fitted to the amount already paid |
+| **Early warning indicators** | Bills certified with measurement dates after the bill date; measurement clustered immediately after payment; round-figure certifications |
+| **Detection mechanism** | G-1 traceability test; AF-8 measurement-to-bill interval; MSR-17 |
+| **Preventive controls** | MSR-01; RBL-02; PEL-03; G-1 as a hard stop |
+| **Detective controls** | RI-1; MSR-17; AUD-04 |
+| **Corrective controls** | Recover on the next cumulative bill (LAW-6 self-correction); investigate the certifier |
+| **Severity** | **Critical** — it defeats LAW-1 directly |
+| **Business impact** | The enterprise's central promise fails; every figure downstream is unfounded |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Project Manager (certifier); Accountant (verifier) |
+| **Escalation path** | Finance Controller → CEO/MD → Internal Audit |
+| **Recovery strategy** | Cumulative self-correction; recovery from the next bill; disciplinary attribution |
+| **Residual risk** | **Low** where G-1 is structural; **Critical** where it is procedural |
+
+### RSK-12 — Item misclassification
+| | |
+|---|---|
+| **Category / form** | Measurement risk · **L3/L7** |
+| **Description** | Correct quantity recorded against a higher-rate item than the work performed |
+| **Root cause** | Ambiguous item descriptions; classification left to the measurer without check; rate advantage invisible per entry (§ 1.4.11) |
+| **Typical scenario** | Excavation in ordinary soil booked as excavation in hard rock; brickwork above plinth booked at the superstructure rate throughout |
+| **Early warning indicators** | Quantity migrating toward higher-rate items over time; item mix diverging from BOQ proportions; hard-material proportions above geological expectation |
+| **Detection mechanism** | AF-6 classification drift analysis; MR-1 measured vs BOQ; check measurement confirming classification (CK-6) |
+| **Preventive controls** | MSR-03; ME-1/ME-2 item and as-executed description; MM-3; MSR-06 check includes classification |
+| **Detective controls** | AF-6; MR-1; MR-2 consumption reconciliation |
+| **Severity** | **High** |
+| **Business impact** | Silent, systematic overpayment that no single transaction reveals |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Site Engineer (§ 4.6, permanently accountable) |
+| **Escalation path** | Check Measurement Officer → Project Manager → Internal Audit |
+| **Recovery strategy** | Re-classification and cumulative correction; recovery of the differential |
+| **Residual risk** | **Medium.** Genuine classification judgement exists; only pattern analysis separates it from drift |
+
+### RSK-13 — Unbounded day work
+| | |
+|---|---|
+| **Category / form** | Measurement risk · **L1/L4** |
+| **Description** | Work paid on time rather than output, without cap, authorisation, or output reconciliation |
+| **Root cause** | Day work is easy to authorise and hard to verify; it removes measurement from the payment path (UG-3) |
+| **Typical scenario** | "Day work as directed" runs for four months on a site with no measurable output attached, absorbing labour the contractor cannot deploy elsewhere |
+| **Early warning indicators** | Day-work value rising as a proportion of certification; day work with no corresponding measured output; day work authorised by the same officer repeatedly |
+| **Detection mechanism** | Day-work proportion reporting; MR-6 productivity; exception frequency |
+| **Preventive controls** | CTL-01; DWG-04 cap and prior authorisation; UG-3 bounded |
+| **Detective controls** | Proportion monitoring; AUD-08 |
+| **Corrective controls** | Convert to measured items; terminate the authorisation |
+| **Severity** | **High** |
+| **Business impact** | The contract becomes a labour-supply arrangement at outcome prices |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Project Manager |
+| **Escalation path** | Finance Controller |
+| **Recovery strategy** | Limited — day work already worked is generally payable; the control is preventive |
+| **Residual risk** | **Medium**, and higher on refurbishment and remedial works where day work is genuinely appropriate |
+
+### RSK-14 — Rate leakage
+| | |
+|---|---|
+| **Category / form** | Valuation risk · **L3/L7** |
+| **Description** | Work valued at a rate other than the contracted rate in force at the work date |
+| **Root cause** | Site-level rate agreement; rates resolved by billing date; analogous-item pricing (§ 1.4.11) |
+| **Typical scenario** | A rate revised upward in June is applied to work executed in March, across a whole bill, because the system resolves rates as "current" |
+| **Early warning indicators** | Rate versions applied inconsistently across a period boundary; bills spanning a rate change with a single rate; star rates appearing without derivation records |
+| **Detection mechanism** | RI-1 recomputation; rate-version audit; PC-2/PC-3 violation detection |
+| **Preventive controls** | FM-00 work-date resolution; CTL-07 no site variation; RBL-06; MSR-14; SR-1…SR-4 |
+| **Detective controls** | RI-1; AUD-04 |
+| **Corrective controls** | Recompute and self-correct cumulatively; recover the differential |
+| **Severity** | **High** |
+| **Business impact** | Invisible per transaction, systematic in aggregate — the definition of L7 |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Accountant; Site Engineer for classification |
+| **Escalation path** | Finance Controller → Internal Audit |
+| **Recovery strategy** | Cumulative correction at the next bill |
+| **Residual risk** | **Low** where rate resolution is structural; **High** where it is manual |
+
+### RSK-15 — Over-measurement
+| | |
+|---|---|
+| **Category / form** | Measurement risk · **L3** |
+| **Description** | Quantities recorded in excess of work actually executed |
+| **Root cause** | The measurer is judged on progress (§ 1.4.4); check measurement weak, sampled by the measured party, or omitted |
+| **Typical scenario** | Concrete measured to nominal drawing dimensions rather than as-built; earthwork measured to design lines with no level records; 4% added across every item, which no single check would notice |
+| **Early warning indicators** | Favourable productivity outliers (PRD-05); measured concrete exceeding batching records; steel exceeding bar-bending schedule; measured quantity exceeding BOQ without variation |
+| **Detection mechanism** | MR-1…MR-5 reconciliations; check measurement (CK-1…CK-5); MR-6 productivity in the favourable direction |
+| **Preventive controls** | MSR-06 independent check; MSR-07 checker may not increase; MSR-09 joint measurement before concealment; CK-3 checker selects the sample |
+| **Detective controls** | AF-4 rounding-direction analysis; MR-2 theoretical vs actual consumption; PRD-05 |
+| **Corrective controls** | CK-5 escalate the sample to the population; cumulative correction; recover |
+| **Severity** | **Critical** |
+| **Business impact** | Corrupts progress reporting to CAP-PPM as well as payment |
+| **Financial impact** | **Compounding**, occasionally **Episodic-large** on concealed work |
+| **Responsible actor** | Site Engineer; Check Measurement Officer for undetected acceptance |
+| **Escalation path** | Check Officer → Project Manager → Internal Audit |
+| **Recovery strategy** | Re-measurement where still measurable; cumulative correction; recovery from running account |
+| **Residual risk** | **Medium.** Concealed work re-measured only by destruction; the defence is prior joint measurement, and where that was missed the residual is **High** |
+
+### RSK-16 — Same work paid through two payment paths
+| | |
+|---|---|
+| **Category / form** | Measurement risk · **L2** |
+| **Description** | One physical quantity settled once as contracted work and again as piece-rate or day-rate labour |
+| **Root cause** | The two payment paths (§ 5.32.1) do not see each other's consumption |
+| **Typical scenario** | A gang is paid piece-rate for block-laying; the same blockwork is measured and billed under the contractor's item in the same month |
+| **Early warning indicators** | Labour cost and contract cost both attributed to one activity; measured output exceeding contract-path measurement |
+| **Detection mechanism** | Cross-path reconciliation at period close; activity-level cost analysis |
+| **Preventive controls** | PCR-05 consumption marking across paths; ASG-03 activity coding; GP-04 |
+| **Detective controls** | Activity cost vs measured value; MR-6 |
+| **Corrective controls** | Recover the duplicate; correct the attribution |
+| **Severity** | **High** |
+| **Business impact** | Activity cost data becomes unusable for estimating |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Project Manager; Accountant |
+| **Escalation path** | Finance Controller → Internal Audit |
+| **Recovery strategy** | Deduct from the contractor or the intermediary, whichever received the second payment |
+| **Residual risk** | **Medium** — the two paths are governed by different actors and reconcile only periodically |
+
+### RSK-17 — Rework paid as new production
+| | |
+|---|---|
+| **Category / form** | Measurement risk · **L2/L3** |
+| **Description** | Work re-executed after rejection, measured and paid as if it were additional output |
+| **Root cause** | Measurement does not distinguish first execution from re-execution; quality rejections not linked to measurement |
+| **Typical scenario** | A slab is rejected and recast. Both pours appear in the Measurement Book as separate entries at different locations recorded loosely enough that no one connects them |
+| **Early warning indicators** | Measured quantity exceeding design quantity for an element; consumption far above theoretical (MR-2); quality rejections without a corresponding measurement supersession |
+| **Detection mechanism** | MR-1 vs drawing; MR-2 consumption; quality-record linkage |
+| **Preventive controls** | PCR-08; MSR-08 rejected work excluded; MSR-10 precise location; MSR-12 supersession |
+| **Detective controls** | MR-1; MR-2; quality-to-measurement reconciliation |
+| **Corrective controls** | Recover the duplicate; recover rework cost where the fault is the contractor's (REC-07) |
+| **Severity** | **High** |
+| **Business impact** | The enterprise funds its counterparty's defects twice |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Site Engineer; Check Measurement Officer |
+| **Escalation path** | Project Manager → Internal Audit |
+| **Recovery strategy** | Recovery at waterfall priority 6 |
+| **Residual risk** | **Medium** where location granularity is weak |
+
+### RSK-18 — Duplicate billing of a measurement
+| | |
+|---|---|
+| **Category / form** | Measurement risk · **L2** |
+| **Description** | The same verified measurement entry consumed by two bills |
+| **Root cause** | Consumption not marked, or marked only within a project or a period; bill cancellation restoring entries without re-verification |
+| **Typical scenario** | A bill is cancelled after certification; its entries are restored and billed again while the original bill is also revived and paid |
+| **Early warning indicators** | Entries appearing in more than one bill's trace; cumulative billed quantity exceeding cumulative measured |
+| **Detection mechanism** | RI-1; AF-1 uniqueness; cumulative reconciliation (LAW-6 makes this visible at the next bill) |
+| **Preventive controls** | MSR-13; SY-1; LM-6; AF-1 enterprise-wide entry identity |
+| **Detective controls** | RI-1; RI-6 |
+| **Corrective controls** | Cumulative self-correction; recovery |
+| **Severity** | **High** |
+| **Business impact** | Direct duplicate payment; contractor account misstated |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Accountant |
+| **Escalation path** | Finance Controller |
+| **Recovery strategy** | Automatic under the running-account principle at the next bill |
+| **Residual risk** | **Low** where bills are cumulative; **High** where they are incremental — this is the clearest single argument for LAW-6 |
+
+### RSK-19 — Ceiling breach
+| | |
+|---|---|
+| **Category / form** | Contractual risk · **L3** · **[G]** |
+| **Description** | Cumulative certified value exceeding sanctioned value plus sanctioned variations |
+| **Root cause** | Ceiling tested late in the computation, or tested against a revised ceiling that includes unsanctioned variations |
+| **Typical scenario** | Certification continues past the ceiling on the understanding that a variation "is being processed". The variation is later reduced, and the enterprise has paid for value it never authorised |
+| **Early warning indicators** | Ceiling utilisation above threshold (MR-7); variations in `PROPOSED` state relied upon in valuation; final bills materially above the last running bill |
+| **Detection mechanism** | FM-07 at step 6 of § 7.8; RI-2 at any date; MR-7 utilisation curve |
+| **Preventive controls** | RBL-05 hard stop; EVL-04 ceiling binds earned value; VAR-06 sanctioned only; CLS-03 at closure |
+| **Detective controls** | RI-2; VAR-10 cumulative variation monitoring |
+| **Corrective controls** | Reject and re-issue; sanction the variation properly or recover |
+| **Severity** | **Critical** — LAW-9 is unconditional |
+| **Business impact** | The enterprise has committed value no authority sanctioned |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Accountant to detect; Finance Controller to enforce |
+| **Escalation path** | Finance Controller → CEO/MD |
+| **Recovery strategy** | Recover on the next cumulative bill; regularise only by formal variation |
+| **Residual risk** | **Low** where FM-07 precedes recovery and retention computation; **High** where the ceiling is tested last |
+
+---
+
+### Block C — Recovery, advance and retention leakage (RSK-20…RSK-29)
+
+> **This block is the largest in aggregate and the least policed.** Nothing visibly goes wrong: a
+> deduction simply never happens (§ 1.5). L5 and L6 do not announce themselves.
+
+### RSK-20 — Unrecovered advance
+| | |
+|---|---|
+| **Category / form** | Financial leakage · **L5** |
+| **Description** | An advance issued and never recovered, in whole or part |
+| **Root cause** | Recovery plan absent, unbound, or dependent on human memory (LA-4); recovery silently skipped in periods of pressure (§ 1.4.5) |
+| **Typical scenario** | ₹40 lakh mobilisation advance recovered at 15% for three bills, then omitted for eleven months during a dispute. The contractor abandons the site with ₹26 lakh outstanding and no security |
+| **Early warning indicators** | Advance ageing beyond plan; bills certified with no advance recovery line; recovery percentage falling below the contractual rate; contractor requesting deferral repeatedly |
+| **Detection mechanism** | RI-3 identity; ADV-14 ageing report; REC-09 completeness check at bill verification |
+| **Preventive controls** | ADV-01 bound recovery plan; ADV-06 no silent deferral; ADV-07 accelerate never decelerate; RBL-07 recovery before verification; G-3 hard gate |
+| **Detective controls** | RI-3; ADV-10 exposure reporting; ADV-14 |
+| **Corrective controls** | Crystallise on suspension (ADV-08); recover from any payment; enforce security; write-off only as an executive loss event (ADV-12) |
+| **Severity** | **Critical** |
+| **Business impact** | The single most common large loss in Indian construction, and typically discovered at abandonment when nothing remains to deduct from |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Accountant (§ 4.9 — explicitly this actor's accountability) |
+| **Escalation path** | Accountant → Finance Controller → CEO/MD |
+| **Recovery strategy** | Waterfall priority 3; security enforcement; set-off within the same instrument; legal recovery as last resort |
+| **Residual risk** | **High.** Recovery depends on a future payment existing. Where the contractor stops working, the control has already failed — which is why ADV-08 and LA-7 matter more than the recovery process itself |
+
+### RSK-21 — Unrecovered issued value
+| | |
+|---|---|
+| **Category / form** | Material leakage · **L5** |
+| **Description** | Cement, steel, shuttering, fuel, power, water, accommodation, and plant hire supplied to a contractor and never recovered from its bills |
+| **Root cause** | § 1.4.6 — the company supplies inputs to its own contractor, each a debit that must return through recovery, each routinely forgotten. Recovery raised manually, at bill time, by someone who must remember |
+| **Typical scenario** | Diesel issued daily from the site tank against a register that no one values. At closure the register shows 84,000 litres and the bills show recovery of 51,000 |
+| **Early warning indicators** | Issue registers not reconciled to recovery; issued value ageing; consumption exceeding theoretical (MR-2); site registers maintained outside the ledger |
+| **Detection mechanism** | RI-4 identity; FC-4 at closure; MR-2 consumption reconciliation |
+| **Preventive controls** | CTL-09 and REC-01 automatic obligation at issue; REC-02 valuation at issue date; REC-03 on-ledger from creation; FIN-08 |
+| **Detective controls** | RI-4; REC-15; ageing reports |
+| **Corrective controls** | Deduct at waterfall priority 4–5; crystallise at demobilisation (CTL-11) |
+| **Severity** | **Critical** |
+| **Business impact** | Value transferred out of the enterprise with no corresponding entitlement, invisible until closure |
+| **Financial impact** | **Compounding**, resolving into **Episodic-large** at closure |
+| **Responsible actor** | Store / issuing officer to raise; Accountant to recover |
+| **Escalation path** | Project Manager → Finance Controller |
+| **Recovery strategy** | Deduct from running bills; from retention; from final account |
+| **Residual risk** | **High** where issue is recorded on paper at site and valued later; **Low** where valuation is automatic at issue |
+
+### RSK-22 — Recovery lost at demobilisation
+| | |
+|---|---|
+| **Category / form** | Financial leakage · **L5/L6** |
+| **Description** | Outstanding recoveries not crystallised before the contractor leaves site and receives final payment |
+| **Root cause** | LA-7 ignored — leverage is highest before payment and never returns; closure driven by schedule rather than reconciliation |
+| **Typical scenario** | Final bill released to close the project before year end; ₹18 lakh of issued materials and an unrecovered secured advance are "to be settled separately". They never are |
+| **Early warning indicators** | Final bills prepared before FC-3/FC-4 are computable; closure requested under reporting deadlines; recoveries listed as "pending" on a closure checklist |
+| **Detection mechanism** | FC-3, FC-4 at closure; CLS-04 gate |
+| **Preventive controls** | CTL-11; ADV-09 no final release with advance outstanding; CLS-04; CLS-06 no-claim certificate cures nothing |
+| **Detective controls** | RI-3; RI-4; closure reconciliation |
+| **Corrective controls** | Withhold final payment until crystallised; enforce security; pursue contractually |
+| **Severity** | **Critical** |
+| **Business impact** | Terminal — after final payment the enterprise has neither money nor leverage |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Accountant; Finance Controller |
+| **Escalation path** | Finance Controller → CEO/MD |
+| **Recovery strategy** | Litigation only, which is why prevention is the whole control |
+| **Residual risk** | **Medium**, rising sharply under schedule or year-end pressure |
+
+### RSK-23 — Advance security failure
+| | |
+|---|---|
+| **Category / form** | Financial leakage · **L5** |
+| **Description** | An advance believed to be secured is in fact unsecured — guarantee expired, never received, or covering less than the outstanding |
+| **Root cause** | Security recorded once and never monitored; expiry dates held outside the financial record |
+| **Typical scenario** | A bank guarantee for a ₹1 crore secured advance expires eleven months before the contractor defaults. No one is watching the expiry, and the advance is 60% outstanding |
+| **Early warning indicators** | Guarantees approaching expiry; guarantee value below advance outstanding; material advances with no verified material |
+| **Detection mechanism** | Security register vs advance outstanding; expiry monitoring |
+| **Preventive controls** | ADV-04 live security; ADV-05 material advances tied to verified materials; GP-20 ageing and escalation |
+| **Detective controls** | Expiry escalation; RI-3 |
+| **Corrective controls** | Demand extension; accelerate recovery; suspend further payment |
+| **Severity** | **High** |
+| **Business impact** | The enterprise believes it is protected and behaves accordingly, which is worse than knowing it is exposed |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Accountant; Finance Controller |
+| **Escalation path** | Finance Controller |
+| **Recovery strategy** | Invoke security while live; otherwise recover from payments due |
+| **Residual risk** | **Medium** |
+
+### RSK-24 — Control fails open on missing data
+| | |
+|---|---|
+| **Category / form** | Governance · **[G]** · enabling **L5** |
+| **Description** | A recovery or verification control cannot execute and the transaction proceeds with the missing value treated as zero |
+| **Root cause** | Financial paths permitted to degrade on failure, contrary to DP-3 |
+| **Typical scenario** | The material-issue feed is unavailable at period close. The bill computes with recovery of nil, is approved, and is paid. The recovery is never revisited because the bill shows it as zero rather than as unknown |
+| **Early warning indicators** | Bills with nil recovery where issues occurred; integration outages coinciding with period close; controls reporting no execution |
+| **Detection mechanism** | FIN-15 non-execution recording; II-4; RI-4 |
+| **Preventive controls** | FIN-06 fail closed; PEL-08; DT-4; GP-16 |
+| **Detective controls** | FIN-12 identities on demand; AUD-06 |
+| **Corrective controls** | Recompute and correct cumulatively; recover |
+| **Severity** | **High** |
+| **Business impact** | Leakage arrives through the arithmetic rather than through the process, so no one involved has done anything visibly wrong |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Finance Controller (control design); Accountant (detection) |
+| **Escalation path** | Finance Controller → Internal Audit |
+| **Recovery strategy** | Cumulative correction |
+| **Residual risk** | **Low** where fail-closed is structural; **Critical** where a fallback path exists |
+
+### RSK-25 — Unbudgeted deployment growth
+| | |
+|---|---|
+| **Category / form** | Operational leakage · **[G]** |
+| **Description** | Labour strength growing beyond sanction through an accumulation of individually reasonable decisions |
+| **Root cause** | Sanctioned strength not tested at deployment; variance visible only in period cost, by which time the cost is incurred |
+| **Typical scenario** | Fifteen separate small increases over a quarter, each approved locally, none exceeding a threshold, together 40% above sanctioned strength |
+| **Early warning indicators** | Strength variance trending upward; repeated small deployment amendments by one approver; labour cost per unit output rising (FM-32) |
+| **Detection mechanism** | DEP-02 test at approval; DEP-08 variance reporting; PRD-07 |
+| **Preventive controls** | CLB-02; DEP-02; GP-18 cumulative testing |
+| **Detective controls** | DEP-08; PRD-07 |
+| **Corrective controls** | Re-sanction or reduce; attribute the variance |
+| **Severity** | **Medium** |
+| **Business impact** | Project labour cost escapes control without any single transaction appearing irregular |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Project Manager |
+| **Escalation path** | Project Manager → Finance Controller |
+| **Recovery strategy** | Not recoverable — this is a budget control, not a leakage recovery |
+| **Residual risk** | **Medium** |
+
+### RSK-26 — Liquidated damages not levied
+| | |
+|---|---|
+| **Category / form** | Contractual · **L6** |
+| **Description** | LD contractually due, never accrued, never levied, never formally waived |
+| **Root cause** | LD treated as an act of will rather than an automatic contractual consequence (LD-1); relationship reluctance; hindrance records absent so the position is indefensible |
+| **Typical scenario** | Eight months' delay, ₹2.4 crore LD entitlement. It is never raised because the contractor is still needed on site, and at closure it is traded away in a settlement that is never quantified |
+| **Early warning indicators** | Delay recorded in the programme with no LD accrual; LD absent from contractor account; hindrance records missing for the delay period |
+| **Detection mechanism** | RI-10 identity (`LD_accrued = LD_levied + LD_waived`); FC-7 at closure |
+| **Preventive controls** | REC-08 automatic accrual; LD-2 hindrance netting; CLS-05 levy or formal waiver at closure |
+| **Detective controls** | RI-10; VAR-11 time consequence recorded |
+| **Corrective controls** | Levy retrospectively where contractually open; record a waiver with executive authority and count it |
+| **Severity** | **High** |
+| **Business impact** | The purest L6: nothing goes wrong, an entitlement simply evaporates |
+| **Financial impact** | **Opportunity** — frequently the largest single unclaimed sum on a delayed project |
+| **Responsible actor** | Project Manager to establish delay; Accountant to accrue; Finance Controller to enforce |
+| **Escalation path** | Finance Controller → CEO/MD |
+| **Recovery strategy** | Deduct at waterfall priority 7 before final payment |
+| **Residual risk** | **High.** LD is the entitlement most readily surrendered under relationship pressure, and RI-10 only makes the surrender visible — it cannot prevent it |
+
+### RSK-27 — Borrowed labour mismatch
+| | |
+|---|---|
+| **Category / form** | Labour leakage · **L2** |
+| **Description** | Transfer entries unmatched, so a worker-day is borne by two projects or by neither |
+| **Root cause** | Single-sided transfer recording; entries raised at period close from memory; no dual accountability |
+| **Typical scenario** | Twelve workers moved for a pour and returned. The borrowing project records nothing; the lending project keeps paying and keeps the cost. The workers appear on both musters for three days |
+| **Early warning indicators** | Debits and credits not balancing enterprise-wide; transfers recorded only by one side; overlapping deployments |
+| **Detection mechanism** | RI-11 enterprise-wide balance; LI-16 at validation |
+| **Preventive controls** | BRL-01 same-date matched entries; BRL-02 dual accountability; DEP-05 no overlap; CLB-11 |
+| **Detective controls** | RI-11; BRL-03 reconciliation to validated days |
+| **Corrective controls** | Correct the ledger; recover the duplicated settlement |
+| **Severity** | **Medium** |
+| **Business impact** | Project cost misstated in both directions; productivity distorted on both sides |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Lending and borrowing officers jointly (BRL-02) |
+| **Escalation path** | Project Managers → Finance Controller |
+| **Recovery strategy** | Inter-project adjustment; recovery where a duplicate settlement occurred |
+| **Residual risk** | **Medium** — transfers are operationally informal by nature |
+
+### RSK-28 — Improper waiver of recovery
+| | |
+|---|---|
+| **Category / form** | Financial leakage · **L5/L6** · **[G]** |
+| **Description** | A recovery extinguished by the same authority that created the obligation, or without executive sanction |
+| **Root cause** | SOD-8 not enforced; waiver recorded as an adjustment rather than a loss |
+| **Typical scenario** | The officer who approved an ad-hoc advance later approves its waiver as a "commercial settlement", removing the evidence of the original decision |
+| **Early warning indicators** | Waivers concentrated with one authoriser; waivers shortly after adverse ageing reports; waivers recorded as adjustments |
+| **Detection mechanism** | Waiver reporting by authoriser (EXC-08); RI-3/RI-4 residue |
+| **Preventive controls** | REC-12 executive and separated; ADV-13; SOD-8; GP-24 |
+| **Detective controls** | EXC-08; AUD-08 |
+| **Corrective controls** | Reverse where improperly authorised; attribute; report as a loss |
+| **Severity** | **High** |
+| **Business impact** | An actor can create an exposure and erase the record of their own decision |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Finance Controller; CEO/MD for write-off |
+| **Escalation path** | Internal Audit → CEO/MD |
+| **Recovery strategy** | Reinstate the obligation where the waiver was ultra vires |
+| **Residual risk** | **Low** where SOD-8 is structural |
+
+### RSK-29 — Retention failure
+| | |
+|---|---|
+| **Category / form** | Financial · **L6** · misstatement |
+| **Description** | Retention not withheld, released early, never released, or recorded as reduced cost rather than as a liability |
+| **Root cause** | § 1.4.9 — retention treated as a discount rather than an obligation; release owned by nobody |
+| **Typical scenario** | Retention shown as project saving for four years. At defect liability expiry the contractors claim ₹3.1 crore that was never provided for, and two of them have to be traced |
+| **Early warning indicators** | Retention absent from liability reporting; retention released without a condition test; retention ageing past its release date; retention released to relieve cash pressure |
+| **Detection mechanism** | RI-5 identity; FC-5 at closure; RET-12 ageing |
+| **Preventive controls** | RET-01 withhold at bound rate; RET-02 liability from the instant withheld; RET-04 positive condition test; RET-05 no early release; RET-06 net of recovery |
+| **Detective controls** | RI-5; RET-08 period reconciliation; RET-12 |
+| **Corrective controls** | Restate the liability; recover early releases; assign release ownership |
+| **Severity** | **High** |
+| **Business impact** | Simultaneous financial misstatement and legal exposure (§ 1.4.9) |
+| **Financial impact** | **Episodic-large** and **Opportunity** |
+| **Responsible actor** | Accountant; Finance Controller |
+| **Escalation path** | Finance Controller → CFO |
+| **Recovery strategy** | Recover early releases from remaining dues or security |
+| **Residual risk** | **Medium**, concentrated at the point where projects close and custody transfers (RET-10) |
+
+---
+
+### Block D — Statutory, wage and worker risks (RSK-30…RSK-37)
+
+### RSK-30 — Statutory minimum wage breach
+| | |
+|---|---|
+| **Category / form** | Statutory · **[S]** |
+| **Description** | A worker's effective receipt falling below the statutory minimum for trade, grade, region, and date |
+| **Root cause** | Rate schedules not tested on statutory revision; intermediary margin taken from the wage; deductions applied without ceiling |
+| **Typical scenario** | A statutory revision effective 1 April is applied from 1 July when the notification is processed. Three months of workers were underpaid, and the enterprise discovers it during an inspection |
+| **Early warning indicators** | FM-25 failures; statutory revisions not reflected in schedules; supplier rates that cannot be decomposed (BRL-07) |
+| **Detection mechanism** | FM-25 per worker per period; WGR-05 schedule test on revision; MW-2 tested at the Wage Card |
+| **Preventive controls** | LAB-06; WGR-05; WGR-06 effective-date application; BRL-07 margin decomposition; LAB-11 deduction ceiling |
+| **Detective controls** | RI-8; AUD-11 register reconciliation |
+| **Corrective controls** | Pay arrears; correct the rate as an attributed act (LAB-07); never a silent top-up |
+| **Severity** | **Critical** |
+| **Business impact** | Statutory penalty, interest, third-party liability, reputational exposure, and site unrest |
+| **Financial impact** | **Statutory** |
+| **Responsible actor** | Finance Controller for schedules; Accountant for the test; Project Manager for site practice |
+| **Escalation path** | Finance Controller → CFO → Legal |
+| **Recovery strategy** | Not recoverable — arrears are paid, and recovery from a supplier addresses the commercial loss only |
+| **Residual risk** | **Medium**, higher where intermediation is deep and cash disbursement common |
+
+### RSK-31 — Grade inflation
+| | |
+|---|---|
+| **Category / form** | Labour leakage · **L7** |
+| **Description** | Workers classified at a higher skill grade than evidenced, attracting a higher rate |
+| **Root cause** | Grade asserted by the mate or supplier; classification unevidenced; upgrade never reviewed |
+| **Typical scenario** | 40% of a gang classified as skilled where the work and the output indicate otherwise. The differential is ₹120 per day per worker, indefinitely |
+| **Early warning indicators** | Grade mix diverging from trade norms; upgrades clustered before settlement; grade distribution differing sharply between comparable sites |
+| **Detection mechanism** | Grade-mix analysis by site and supplier; evidence audit |
+| **Preventive controls** | WRK-05 evidenced classification; WGR-02 rate follows evidenced grade; central authorisation |
+| **Detective controls** | WGR-11 cross-project consistency; grade-mix reporting |
+| **Corrective controls** | Re-classify forward; recover where fraudulent |
+| **Severity** | **Medium** |
+| **Business impact** | Silent permanent uplift to labour cost |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Site Supervisor; Project Manager |
+| **Escalation path** | Project Manager → Finance Controller |
+| **Recovery strategy** | Forward correction; recovery only where classification was falsified |
+| **Residual risk** | **Medium** — skill assessment is genuinely judgemental |
+
+### RSK-32 — Contractor fails to pay its workers
+| | |
+|---|---|
+| **Category / form** | Statutory · **[S]** |
+| **Description** | A contractor paid by the enterprise does not pay the workers it deployed |
+| **Root cause** | Contractor cash distress; enterprise verifying its own payment but not the onward payment (§ 4.4) |
+| **Typical scenario** | Contractor paid on the 10th; workers unpaid for six weeks; work stops; the enterprise is named as principal employer and pays twice |
+| **Early warning indicators** | Wage evidence not produced for the prior period; worker complaints; contractor requesting advances; high labour turnover under one contractor |
+| **Detection mechanism** | CTL-05 prior-period wage evidence; RI-8; direct worker enquiry |
+| **Preventive controls** | CTL-05 gate before next settlement; LAB-05; BRL-09; LAB-02 records held by the enterprise |
+| **Detective controls** | RI-8; AUD-11 |
+| **Corrective controls** | CTL-06 — pay the workers directly and recover at waterfall priority 2 |
+| **Severity** | **Critical** |
+| **Business impact** | Site stoppage, statutory finding, reputational damage, and double payment |
+| **Financial impact** | **Statutory** and **Episodic-large** |
+| **Responsible actor** | Project Manager; Accountant |
+| **Escalation path** | Project Manager → Finance Controller → Legal |
+| **Recovery strategy** | Recover from contractor dues, retention, and security |
+| **Residual risk** | **Medium.** The control is leverage-dependent: it works while a next payment exists |
+
+### RSK-33 — Stranded worker entitlement
+| | |
+|---|---|
+| **Category / form** | Statutory · **[S]** |
+| **Description** | Validated attendance never settled because the worker left, the supplier was terminated, or the site closed |
+| **Root cause** | Settlement conditional on a claim; demobilisation not triggering settlement; dues least likely to be claimed are the least likely to be paid |
+| **Typical scenario** | A supplier is terminated mid-month. 60 workers disperse with 11 days unsettled. The dues sit in no ledger and are eventually absorbed |
+| **Early warning indicators** | Validated attendance unsettled and ageing (WKS-11); demobilisations with open attendance; deployments closed without settlement |
+| **Detection mechanism** | RI-7; WKS-11 ageing; FC-10 at closure |
+| **Preventive controls** | WRK-14; LAB-13 settle without requiring a claim; BRL-13 on intermediary termination; DEP-11 |
+| **Detective controls** | WKS-11; FC-10 |
+| **Corrective controls** | Settle; where the worker is unlocatable, hold as a liability with a defined statutory treatment — never absorb as income |
+| **Severity** | **High** |
+| **Business impact** | Unrecorded enterprise gain, statutory exposure, and a grievance that surfaces years later |
+| **Financial impact** | **Statutory** |
+| **Responsible actor** | Accountant; Project Manager |
+| **Escalation path** | Finance Controller |
+| **Recovery strategy** | Not applicable — this is an obligation to discharge, not value to recover |
+| **Residual risk** | **Medium**, concentrated at demobilisation and supplier termination |
+
+### RSK-34 — Cash disbursement leakage
+| | |
+|---|---|
+| **Category / form** | Labour leakage · **L1/L2** |
+| **Description** | Wages disbursed in cash that do not reach the named worker in full |
+| **Root cause** | § 1.4.10 — genuine unbanked workforce; informality is not fraud but is an environment in which fraud is undetectable |
+| **Typical scenario** | Cash drawn against a muster of 120; 108 present; the difference is acknowledged with thumb impressions taken by the same officer who computed the muster |
+| **Early warning indicators** | Acknowledgements collected by the computing officer; identical impressions; cash drawn exceeding validated days; no independent witness |
+| **Detection mechanism** | Surprise verification of a sample of workers; RI-8; acknowledgement audit |
+| **Preventive controls** | DWG-10 compensating controls; CLB-01 payment to the worker; LAB-08 acknowledgement by the named worker; SOD-3 computing officer ≠ disbursing officer |
+| **Detective controls** | RI-8; AUD-05 |
+| **Corrective controls** | Recover; attribute; move the population to banked payment where possible |
+| **Severity** | **High** |
+| **Business impact** | The weakest evidential point in the labour path |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Disbursing officer; Accountant |
+| **Escalation path** | Project Manager → Internal Audit |
+| **Recovery strategy** | Recovery from the responsible officer or intermediary |
+| **Residual risk** | **High** while cash disbursement persists. This is honestly stated: the controls reduce it, the environment sustains it |
+
+### RSK-35 — Overtime abuse
+| | |
+|---|---|
+| **Category / form** | Labour leakage · **L1/L3** |
+| **Description** | Overtime hours claimed that were not worked or not authorised |
+| **Root cause** | Retrospective authorisation; overtime merged into the day count; no independent record of hours |
+| **Typical scenario** | Four hours of overtime added for an entire gang on days when the site closed at normal time, authorised in bulk at period end |
+| **Early warning indicators** | Overtime uniform across a gang; overtime on days with no corresponding output; authorisation timestamps after the work date |
+| **Detection mechanism** | Authorisation-date analysis; overtime vs output; gate records |
+| **Preventive controls** | CLB-04 prior authorisation; ATT-14 separate recording; DWG-06; WGR-07 correct multiplier |
+| **Detective controls** | ATT-19; OVR-06 backdating report |
+| **Corrective controls** | Recover unworked hours; pay genuine unauthorised hours and record the exception (OT-1) |
+| **Severity** | **Medium** |
+| **Business impact** | Needs no ghost worker — only a real worker and a larger number |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Site Supervisor; authorising officer |
+| **Escalation path** | Project Manager |
+| **Recovery strategy** | Deduct from the intermediary or correct forward |
+| **Residual risk** | **Medium** |
+
+### RSK-36 — Idle-time abuse
+| | |
+|---|---|
+| **Category / form** | Labour leakage · **L1/L4** |
+| **Description** | Non-working days paid as idle without a genuine or recorded cause |
+| **Root cause** | Idle time payable without a positive cause record; hindrance classification applied retrospectively to justify payment |
+| **Typical scenario** | Fourteen "rain days" in a month with four recorded rainfall events, classified after the muster was queried |
+| **Early warning indicators** | Idle days without hindrance records; hindrance records created after the attendance; idle proportion diverging between adjacent sites |
+| **Detection mechanism** | ATT-13 linkage test; hindrance-record creation timestamps; weather and site-closure data |
+| **Preventive controls** | CLB-05 cause classification; ATT-13; ATT-12 calendar test; DP-9 |
+| **Detective controls** | Idle-proportion reporting; OVR-06 |
+| **Corrective controls** | Reclassify; recover where fictitious |
+| **Severity** | **Medium** |
+| **Business impact** | Also weakens the enterprise's LD position, since unrecorded hindrance cannot be netted (LD-2) |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Site Supervisor; Project Manager |
+| **Escalation path** | Project Manager |
+| **Recovery strategy** | Correct forward; recover where fabricated |
+| **Residual risk** | **Medium** |
+
+### RSK-37 — Unlawful or unrecorded deduction from wages
+| | |
+|---|---|
+| **Category / form** | Statutory · **[S]** |
+| **Description** | Deductions taken from workers beyond the lawful ceiling, without authorisation, or without record |
+| **Root cause** | Site-level recovery of welfare provision, damages, or advances without governance; recovery discipline pursued past the statutory limit |
+| **Typical scenario** | Accommodation and food deducted at site-determined rates, taking several workers below the statutory floor, recorded nowhere except in the mate's notebook |
+| **Early warning indicators** | Net wages varying inexplicably between comparable workers; deductions absent from wage cards; FM-27 breaches |
+| **Detection mechanism** | FM-27 ceiling test; wage-card audit; worker enquiry |
+| **Preventive controls** | LAB-11 lawful, authorised, within ceiling; LAB-12 welfare recoveries valued and recorded; REC-13; CLB-10; ADV-11 |
+| **Detective controls** | RI-8; AUD-11; LAB-09 transparency to the worker |
+| **Corrective controls** | Refund; correct the practice; attribute |
+| **Severity** | **High** |
+| **Business impact** | Statutory breach committed in pursuit of good recovery discipline — the most common way a control becomes an offence |
+| **Financial impact** | **Statutory** |
+| **Responsible actor** | Accountant; Site Supervisor |
+| **Escalation path** | Finance Controller → Legal |
+| **Recovery strategy** | Refund to workers; recover from the intermediary where they imposed it |
+| **Residual risk** | **Medium** |
+
+---
+
+### Block E — Approval, override and variation abuse (RSK-38…RSK-44)
+
+### RSK-38 — Post-approval input drift
+| | |
+|---|---|
+| **Category / form** | Governance · **[G]** · enabling **L2/L3** |
+| **Description** | Quantities, rates, recoveries, or payee changed after approval and before disbursement |
+| **Root cause** | Approval treated as a workflow state rather than as an assumption of accountability for a specific set of facts |
+| **Typical scenario** | A voucher approved at ₹42 lakh is edited to ₹46 lakh before release; the approver's record still shows their approval, and nothing indicates it was for a different number |
+| **Early warning indicators** | Edits between approval and release; voucher values differing from approved bill values; backdated records (OVR-06) |
+| **Detection mechanism** | Approval-to-disbursement value comparison; audit trail (AUD-02) |
+| **Preventive controls** | PEL-07 re-test on any change; FIN-05 approved records immutable; LI-23 amount and payee immutable; WKS-07 |
+| **Detective controls** | AUD-02; OVR-06; RI-6 |
+| **Corrective controls** | Reverse; re-originate; attribute |
+| **Severity** | **Critical** |
+| **Business impact** | Destroys the meaning of every approval in the enterprise |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Finance Controller; disbursing officer |
+| **Escalation path** | Internal Audit → CEO/MD |
+| **Recovery strategy** | Recover the differential; disciplinary action |
+| **Residual risk** | **Low** where immutability is structural; **Critical** where administrative edit exists (RSK-51) |
+
+### RSK-39 — Approval above the computed figure
+| | |
+|---|---|
+| **Category / form** | Financial · **L3** · **[G]** |
+| **Description** | An approver authorises more than the computation supports |
+| **Root cause** | Approval treated as a decision about amount rather than about whether the chain is complete (§ 1.6) |
+| **Typical scenario** | The computed net is ₹8.4 lakh; ₹10 lakh is approved "to help with wages this month", with no advance raised and no recovery plan |
+| **Early warning indicators** | Approved value exceeding computed value; round-figure approvals; approvals with manual amount entry |
+| **Detection mechanism** | PEL-06 cap test; approval vs computation comparison |
+| **Preventive controls** | PEL-06 computed figure is the maximum payable; FIN-02 authoritative computation; PEL-13 use an advance instead |
+| **Detective controls** | AUD-04; EXC-08 |
+| **Corrective controls** | Reclassify the excess as an advance with a recovery plan, or recover it |
+| **Severity** | **Critical** |
+| **Business impact** | Substitutes judgement for evidence at the last gate, which is the definition of an unsupported payment |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Approving authority |
+| **Escalation path** | Internal Audit → CEO/MD |
+| **Recovery strategy** | Recover on the next cumulative bill |
+| **Residual risk** | **Low** where the cap is structural |
+
+### RSK-40 — Delegated-limit circumvention
+| | |
+|---|---|
+| **Category / form** | Governance · **[G]** |
+| **Description** | Transactions split, sequenced, or reclassified so that each falls within a limit the aggregate would exceed |
+| **Root cause** | Thresholds tested per instance rather than cumulatively (§ 5.25 note) |
+| **Typical scenario** | Three bills raised in one month, each just below the Project Manager's limit, for work that constitutes one certification |
+| **Early warning indicators** | Values clustering just below thresholds (AF-5); multiple same-period bills for one instrument; variations split into parts |
+| **Detection mechanism** | AF-5 threshold-clustering analysis; cumulative testing (GP-18) |
+| **Preventive controls** | RBL-12; PEL-09 cumulative position governs; VAR-07; SEC-05 |
+| **Detective controls** | AF-5; AUD-04 sampling not limited to high values |
+| **Corrective controls** | Re-route to the correct authority; attribute the circumvention as an exception |
+| **Severity** | **High** |
+| **Business impact** | The delegation framework becomes advisory |
+| **Financial impact** | Enables RSK-39, RSK-19 |
+| **Responsible actor** | Accountant to detect; Finance Controller to enforce |
+| **Escalation path** | Internal Audit → CEO/MD |
+| **Recovery strategy** | Not a recovery event; a governance failure to attribute |
+| **Residual risk** | **Medium** |
+
+### RSK-41 — Scope creep without variation
+| | |
+|---|---|
+| **Category / form** | Contractual · **L3/L7** |
+| **Description** | Work instructed verbally and executed, with the variation raised late or never |
+| **Root cause** | § 1.4.7 — instructions given at site, work executed, the record created by whoever benefits from it |
+| **Typical scenario** | Eighteen months of small verbal instructions surface at the final account as a ₹1.7 crore claim the enterprise cannot disprove because it holds no contemporaneous record |
+| **Early warning indicators** | Variations whose executed work predates their instruction (VAR-03); measurement against items outside instrument scope; claims referencing verbal instructions |
+| **Detection mechanism** | VAR-03 date comparison; ASG-06 scope test at assignment |
+| **Preventive controls** | CTL-14 same-day site instruction record; ASG-06; VAR-02; LI-20 |
+| **Detective controls** | VAR-03; VAR-10 |
+| **Corrective controls** | Evaluate and sanction or reject; where rejected, treat as a commercial dispute (LI-21) |
+| **Severity** | **High** |
+| **Business impact** | The enterprise pays claims it cannot evaluate because the only record belongs to the claimant |
+| **Financial impact** | **Episodic-large** at final account |
+| **Responsible actor** | Project Manager; Site Engineer |
+| **Escalation path** | Project Manager → Finance Controller → Legal |
+| **Recovery strategy** | Limited once the work is executed; the control is entirely preventive |
+| **Residual risk** | **High.** Verbal instruction is endemic to site management; only same-day recording contains it |
+
+### RSK-42 — Emergency payment abuse
+| | |
+|---|---|
+| **Category / form** | Governance · **[G]** · enabling **L4** |
+| **Description** | The emergency route used to bypass evidence rather than sequence |
+| **Root cause** | Emergency defined by urgency rather than by which controls may be relaxed (LI-32) |
+| **Typical scenario** | Out-of-turn payments become the normal route for one contractor; over a year, 40% of that contractor's value is paid without measurement |
+| **Early warning indicators** | Emergency exceptions concentrated by contractor, authoriser, or period; emergencies not regularised (EXC-04) |
+| **Detection mechanism** | EXC-07 frequency escalation; EXC-08 counts by authoriser |
+| **Preventive controls** | PEL-10 evidence never bypassed; LI-32; EXC-01; OVR-04 time-boxing |
+| **Detective controls** | EXC-07; EXC-08; AUD-08 |
+| **Corrective controls** | Regularise or recover; withdraw the emergency authority |
+| **Severity** | **High** |
+| **Business impact** | LA-5 realised — the exception has become the process |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Authorising executive |
+| **Escalation path** | Internal Audit → CEO/MD |
+| **Recovery strategy** | Recover unsupported value on the next cumulative bill |
+| **Residual risk** | **Medium** |
+
+### RSK-43 — Payment released under operational pressure
+| | |
+|---|---|
+| **Category / form** | Governance · **[G]** · **L4** |
+| **Description** | Unverified payment released to keep work moving |
+| **Root cause** | § 1.4.8 — the contractor threatens to stop; the slab must be poured tomorrow; "just this once" |
+| **Typical scenario** | Payment released against incomplete verification before a critical pour. It happens twice more that quarter, and by the next it is the process |
+| **Early warning indicators** | Payments preceding verification; releases clustered before programme milestones; the same contractor repeatedly |
+| **Detection mechanism** | Payment-to-verification sequence analysis; exception frequency |
+| **Preventive controls** | PEL-13 decide on evidence; PEL-04 broken chain stops payment; advance is the legitimate instrument (LC-06) |
+| **Detective controls** | EXC-07; AF-8 |
+| **Corrective controls** | Reclassify as an advance with a recovery plan; recover |
+| **Severity** | **High** |
+| **Business impact** | LA-6 — speed purchased with control, and the price paid at final settlement when leverage has gone |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Project Manager; Finance Controller |
+| **Escalation path** | Finance Controller → CEO/MD |
+| **Recovery strategy** | Cumulative correction; convert to a recorded advance |
+| **Residual risk** | **Medium**, rising with programme criticality |
+
+### RSK-44 — Variation inflation
+| | |
+|---|---|
+| **Category / form** | Contractual · **L3/L7** |
+| **Description** | Cumulative variations expanding the contract far beyond the award, at rates never competitively tested |
+| **Root cause** | Variations priced by negotiation under pressure (SR-3); ceiling monitored only against the revised value |
+| **Typical scenario** | A ₹12 crore contract closes at ₹19 crore through 60 variations, none individually alarming, most priced by negotiation |
+| **Early warning indicators** | Cumulative variation as a proportion of original sanction (VAR-10); variations priced by negotiation rather than derivation; variations concentrated late |
+| **Detection mechanism** | VAR-10 proportion monitoring; MR-7 ceiling utilisation |
+| **Preventive controls** | VAR-04 derivation preference order; VAR-05 versioned rates; VAR-07 cumulative limit testing; SR-2, SR-3 |
+| **Detective controls** | VAR-10; CTL-10 exposure at award |
+| **Corrective controls** | Re-derive rates; escalate the award decision |
+| **Severity** | **High** |
+| **Business impact** | The contract that was awarded is no longer the contract being performed, and no competitive process governs the difference |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Project Manager; Finance Controller |
+| **Escalation path** | Finance Controller → CEO/MD |
+| **Recovery strategy** | Prospective only |
+| **Residual risk** | **Medium** |
+
+---
+
+### Block F — Commercial, counterparty and governance risks (RSK-45…RSK-52)
+
+### RSK-45 — Final account settled by negotiation
+| | |
+|---|---|
+| **Category / form** | Contractual · **L3/L6** |
+| **Description** | The final bill agreed at a meeting and reconciled to afterwards, rather than computed and then discussed |
+| **Root cause** | § 1.4.12 — schedule pressure and relationship fatigue; the accumulated rigour of a hundred running bills surrendered in one meeting |
+| **Typical scenario** | Both parties arrive with positions ₹3 crore apart. They settle at the midpoint. No one computes FC-1…FC-10, and unrecovered issued value and unlevied LD are inside the number that was traded away |
+| **Early warning indicators** | Final settlement discussions before the computation is complete; settlement values that are round figures; closure driven by a reporting deadline |
+| **Detection mechanism** | CLS-02 sequence enforcement; CLS-13 variance recorded against the computed figure |
+| **Preventive controls** | LI-26 computed then agreed; CLS-01 joint 100% final measurement; CLS-04 recoveries crystallised; CLS-05 LD levied or waived |
+| **Detective controls** | FC-1…FC-10; CLS-13 variance reporting |
+| **Corrective controls** | Record the variance, its authority, and its reason permanently beside the computed figure; count it (LAW-12) |
+| **Severity** | **Critical** |
+| **Business impact** | Every control in Parts 6–9 is surrendered at the single point where the most value is at stake |
+| **Financial impact** | **Episodic-large** and **Opportunity** combined |
+| **Responsible actor** | Finance Controller; CEO/MD |
+| **Escalation path** | Finance Controller → CEO/MD → Board |
+| **Recovery strategy** | None after settlement — the control is entirely in the sequence |
+| **Residual risk** | **High.** Commercial settlement is legitimate; what CLS-13 secures is that its cost is visible and attributed, not that it is prevented |
+
+### RSK-46 — Payee substitution
+| | |
+|---|---|
+| **Category / form** | Fraud · **L1** |
+| **Description** | Payment diverted by changing banking details on a legitimate entitlement |
+| **Root cause** | Change requests look routine; verification performed by whoever received the request; change history not retained |
+| **Typical scenario** | A letter on contractor letterhead requests a bank change. It is applied by the officer who received it. Two payments totalling ₹64 lakh are diverted before the contractor asks where its money is |
+| **Early warning indicators** | Bank changes shortly before a large payment; changes requested by email only; changes applied by the requester's correspondent; multiple contractors sharing an account |
+| **Detection mechanism** | Change-history audit; independent confirmation; account de-duplication across counterparties |
+| **Preventive controls** | WRK-10 independent-channel verification; SEC-07 separation of requester, verifier, and applier; PEL-11; LI-23 no change to an approved voucher |
+| **Detective controls** | AUD-02; RI-6; account de-duplication |
+| **Corrective controls** | Immediate recall (LC-10 `RECALLED`); law enforcement; reinstate the contractor's entitlement |
+| **Severity** | **Critical** |
+| **Business impact** | Direct, immediate, and frequently unrecoverable |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Finance Controller; Accountant |
+| **Escalation path** | Finance Controller → CEO/MD → Legal |
+| **Recovery strategy** | Recall through CAP-TRE if same-day; otherwise legal recovery, typically partial |
+| **Residual risk** | **Medium** — social-engineering quality improves faster than verification discipline |
+
+### RSK-47 — Self-benefiting override
+| | |
+|---|---|
+| **Category / form** | Governance · **[G]** · all forms |
+| **Description** | An actor authorises the bypass of a control that constrains their own transaction |
+| **Root cause** | Override authority granted by seniority rather than by independence from the outcome |
+| **Typical scenario** | A Project Manager overrides the ceiling warning on a bill they certified, for a contractor whose performance determines their own project metrics |
+| **Early warning indicators** | Overrides where authoriser and originator coincide or report to one another; overrides concentrated on one instrument |
+| **Detection mechanism** | Override-to-beneficiary analysis; EXC-08 counts by authoriser |
+| **Preventive controls** | OVR-10 beneficiary cannot override; GP-24; SOD-10; OVR-01 Laws cannot be overridden at all |
+| **Detective controls** | EXC-07; EXC-08; AUD-07 |
+| **Corrective controls** | Reverse; attribute; withdraw override rights (OVR-09) |
+| **Severity** | **Critical** |
+| **Business impact** | GP-24 failure — an actor who can both cause a loss and conceal it |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Finance Controller; Internal Audit |
+| **Escalation path** | Internal Audit → CEO/MD → Board |
+| **Recovery strategy** | Recover the value; disciplinary action |
+| **Residual risk** | **Low** where structurally prevented; **Critical** where override rights follow seniority |
+
+### RSK-48 — Award to an over-exposed contractor
+| | |
+|---|---|
+| **Category / form** | Commercial · **[G]** |
+| **Description** | New work awarded to a contractor already carrying unrecovered exposure, increasing the loss on default |
+| **Root cause** | Exposure not presented at the award decision; recovery status held in finance and the award decision taken in procurement |
+| **Typical scenario** | A contractor with ₹70 lakh unrecovered advance receives two further packages. When it fails, the exposure is ₹2.3 crore instead of ₹70 lakh |
+| **Early warning indicators** | Awards to contractors with ageing recoveries; exposure not referenced in award papers; concentration of value with one counterparty |
+| **Detection mechanism** | CTL-10 exposure presented at award; FM-34 |
+| **Preventive controls** | CTL-10; integration O-4 performance and recovery status to CAP-SCM; CLS-12 closure outcomes inform award |
+| **Detective controls** | Exposure concentration reporting; ADV-10 |
+| **Corrective controls** | Condition the award on recovery; require security; decline |
+| **Severity** | **High** |
+| **Business impact** | Converts a contained loss into a concentrated one |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Awarding authority; Finance Controller to supply the figure |
+| **Escalation path** | Finance Controller → CEO/MD |
+| **Recovery strategy** | Set-off within the same counterparty, subject to FIN-10 |
+| **Residual risk** | **Medium** |
+
+### RSK-49 — Statutory obligation lost at the intermediation boundary
+| | |
+|---|---|
+| **Category / form** | Statutory · **[S]** |
+| **Description** | Each party assumes the other discharges a statutory obligation; neither does |
+| **Root cause** | Obligation ownership recorded in a contract clause rather than in the operational record; discharge assumed rather than evidenced |
+| **Typical scenario** | Three intermediation layers on one site. Statutory registration lapses at layer two. The enterprise discovers this when an inspector traces liability to the principal employer |
+| **Early warning indicators** | Registration validity dates not tracked; obligations with no named owner; multi-layer intermediation |
+| **Detection mechanism** | LAB-01 ownership record; WRK-09 registration validity; AUD-11 |
+| **Preventive controls** | BRL-12; LAB-01; LAB-02 enterprise holds the records; WRK-09 verification before activation |
+| **Detective controls** | AUD-11; registration expiry monitoring |
+| **Corrective controls** | Discharge directly; recover from the intermediary; restructure the engagement |
+| **Severity** | **High** |
+| **Business impact** | Principal-employer liability crystallises regardless of contractual allocation |
+| **Financial impact** | **Statutory** |
+| **Responsible actor** | Finance Controller; Project Manager |
+| **Escalation path** | Finance Controller → Legal → CFO |
+| **Recovery strategy** | Commercial recovery from the intermediary; the statutory liability itself is not transferable |
+| **Residual risk** | **Medium**, rising with each intermediation layer |
+
+### RSK-50 — Control suppression
+| | |
+|---|---|
+| **Category / form** | Governance · **[G]** · all forms |
+| **Description** | Alerts, thresholds, tolerances, or check percentages altered or disabled by the party they monitor |
+| **Root cause** | Control configuration held as operational settings rather than as governed parameters |
+| **Typical scenario** | A reconciliation tolerance widened from 1% to 8% "to reduce noise". Nine months of variances pass unreported, and no one recalls who changed it |
+| **Early warning indicators** | Alert volumes falling without process change; tolerance or threshold changes; check percentages reduced; controls reporting no executions |
+| **Detection mechanism** | SEC-12 configuration change record with independent alerting; FIN-15 non-execution reporting |
+| **Preventive controls** | FIN-16 absence of an alarm not achievable by disabling the alarm; SEC-12; CK-7 reduced checks recorded as exceptions |
+| **Detective controls** | Independent configuration audit; AUD-06; AUD-08 |
+| **Corrective controls** | Restore; re-run the suppressed period; attribute |
+| **Severity** | **Critical** |
+| **Business impact** | Every detective control in this Part becomes unreliable, and the enterprise cannot tell which period is affected |
+| **Financial impact** | Enables all forms |
+| **Responsible actor** | Finance Controller; Internal Audit |
+| **Escalation path** | Internal Audit → CEO/MD → Board |
+| **Recovery strategy** | Re-execute controls over the suppressed period |
+| **Residual risk** | **Low** where configuration change is independently alerted; **Critical** otherwise |
+
+### RSK-51 — Silent record modification
+| | |
+|---|---|
+| **Category / form** | Governance · **[G]** · all forms |
+| **Description** | Records altered outside the supersession mechanism, leaving no visible trace |
+| **Root cause** | Administrative modification capability retained for "corrections"; immutability implemented as policy rather than structure (MB-9) |
+| **Typical scenario** | A measurement quantity is corrected directly to match a bill. Both records agree, no supersession exists, and the audit trail shows a consistent history that never happened |
+| **Early warning indicators** | Records whose content conflicts with derived figures elsewhere; absent supersession chains; modification capability held outside audit |
+| **Detection mechanism** | Integrity verification (Part 11 § 11.7); cross-record reconciliation; MBK-12 |
+| **Preventive controls** | SEC-10 no modification outside supersession; MBK-09 append-only digital MB; FIN-05; LAW-11 throughout |
+| **Detective controls** | Part 11 § 11.7 integrity checks; RI-1…RI-12 divergence |
+| **Corrective controls** | Reconstruct from independent evidence; treat the affected period as lower-confidence (Part 11 § 11.4) |
+| **Severity** | **Critical** |
+| **Business impact** | Defeats LAW-11 and therefore every investigation, every audit, and every dispute defence simultaneously |
+| **Financial impact** | Enables all forms; unquantifiable in itself |
+| **Responsible actor** | Finance Controller; Internal Audit |
+| **Escalation path** | Internal Audit → CEO/MD → Board |
+| **Recovery strategy** | Independent reconstruction; forensic examination |
+| **Residual risk** | **Medium.** Those holding administrative capability are normally the least subject to operational control (§ 11.7 addresses this directly) |
+
+### RSK-52 — Counterparty legitimacy failure
+| | |
+|---|---|
+| **Category / form** | Fraud · **L1** · **[S]** |
+| **Description** | Payment to an entity that is a shell, an undisclosed related party, or not the entity that was qualified |
+| **Root cause** | Legal, statutory, and banking identity verified after award or not at all; related-party interests undeclared |
+| **Typical scenario** | A "new" subcontractor shares a bank account and a proprietor with an existing one, and is used to bill work already billed elsewhere |
+| **Early warning indicators** | Shared bank accounts, addresses, or directors across counterparties; new counterparties with immediate large awards; registrations issued shortly before award |
+| **Detection mechanism** | Counterparty de-duplication; related-party declaration; banking identity comparison |
+| **Preventive controls** | WRK-09 verification before activation; SEC-07 banking identity control; CTL-13 named accountable officer |
+| **Detective controls** | Counterparty attribute analysis; RI-6 |
+| **Corrective controls** | Suspend; investigate; recover; report where a statutory offence |
+| **Severity** | **High** |
+| **Business impact** | Duplicate billing through a second identity; conflict of interest; statutory exposure |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Procurement (CAP-SCM) to qualify; Finance Controller to verify identity |
+| **Escalation path** | Internal Audit → CEO/MD → Legal |
+| **Recovery strategy** | Recovery from any dues; legal action |
+| **Residual risk** | **Medium** |
+
+---
+
+### Block G — Collusion, evidence and systemic risks (RSK-53…RSK-72)
+
+> **This block answers the adversarial questions of RP-5 directly.** Every risk here assumes a
+> competent, motivated participant who understands the controls and benefits from defeating them.
+> **Controls that survive only good faith are decoration** (DP-6).
+
+### RSK-53 — Measurer–contractor collusion
+| | |
+|---|---|
+| **Category / form** | Fraud · **L1/L3** |
+| **Description** | The measuring engineer and the contractor agree quantities in excess of execution |
+| **Root cause** | Measurement is a judgement made alone at a location no one else visits; the check may be weak or predictable |
+| **Typical scenario** | An engineer measures consistently 6% high for one contractor. The check officer samples the same items each period, and the pattern holds for two years |
+| **Early warning indicators** | Consistent measurer–contractor pairing (AF-7); favourable productivity (PRD-05); consumption reconciliation variances (MR-2); low revision rate combined with high value |
+| **Detection mechanism** | AF-7 pairing analysis; CK-3/CK-4 checker-selected, risk-weighted sampling; MR-2…MR-5 |
+| **Preventive controls** | SOD-1; MSR-06; MSR-07 checker cannot increase; rotation of measurer–checker pairings; CK-4 |
+| **Detective controls** | AF-4, AF-6, AF-7, AF-9; MR-6 |
+| **Corrective controls** | CK-5 escalate to population; re-measure; recover cumulatively; disciplinary and criminal referral |
+| **Severity** | **Critical** |
+| **Business impact** | Defeats the primary defence of the contract path from inside |
+| **Financial impact** | **Compounding** into **Episodic-large** |
+| **Responsible actor** | Check Measurement Officer (accountable for measurements accepted that later prove false — § 4.7) |
+| **Escalation path** | Internal Audit → CEO/MD |
+| **Recovery strategy** | Cumulative correction; recovery from the contractor; action against the officer |
+| **Residual risk** | **Medium.** Collusion between measurer and checker (RSK-54's analogue) would defeat this; rotation and reconciliation are the only remaining defences |
+
+### RSK-54 — Supervisor–mate collusion
+| | |
+|---|---|
+| **Category / form** | Fraud · **L1** |
+| **Description** | The attendance recorder and the intermediary agree an inflated count and share the proceeds |
+| **Root cause** | Single-observer capture; validation performed by the same person or their close colleague |
+| **Typical scenario** | Six ghost workers per day, shared between supervisor and mate, for fourteen months on a site with no independent presence signal |
+| **Early warning indicators** | Same supervisor–mate pairing over long periods; ghost indicators (RSK-01) concentrated on one front; resistance to unannounced verification |
+| **Detection mechanism** | AUD-05 unannounced count; ATT-18 independent signals; ATT-19 patterns; rotation |
+| **Preventive controls** | ATT-08 validator ≠ reporter; GNG-04; BRL-08; SOD-7; rotation of supervisors and validators |
+| **Detective controls** | RI-7; RI-8; PRD-04 |
+| **Corrective controls** | Recover; attribute to both (GNG-10); dismiss; blacklist the intermediary |
+| **Severity** | **Critical** |
+| **Business impact** | The labour path's primary evidence is created by the two colluding parties |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Project Manager (for rotation and oversight); Internal Audit |
+| **Escalation path** | Internal Audit → CEO/MD |
+| **Recovery strategy** | Recover from intermediary dues; criminal referral where established |
+| **Residual risk** | **Medium–High** on remote sites with a single enterprise officer. § 4.14.1 externality is the only real answer |
+
+### RSK-55 — Approver–contractor collusion
+| | |
+|---|---|
+| **Category / form** | Fraud · **L3/L4** |
+| **Description** | An approving officer accepts consideration to approve inflated, premature, or unsupported payment |
+| **Root cause** | Approval authority concentrated; exceptions available; relationship longevity |
+| **Typical scenario** | One contractor consistently receives faster certification, more favourable variation rates, and repeated deferral of recovery, all approved by the same officer |
+| **Early warning indicators** | Contractor-specific exception concentration; consistently favourable rate derivations; recovery deferrals concentrated by approver–contractor pair; rapid certification cycle times for one counterparty |
+| **Detection mechanism** | Pair analysis across approvals, exceptions, deferrals, and variations; EXC-08 |
+| **Preventive controls** | RBL-10 four separated actors; SEC-05 limits; OVR-10; rotation; VAR-04 derivation preference order |
+| **Detective controls** | EXC-07; EXC-08; AUD-04; AF-5 |
+| **Corrective controls** | Suspend authority; investigate; recover; refer |
+| **Severity** | **Critical** |
+| **Business impact** | Corruption of the gate on which every other control depends |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Internal Audit; CEO/MD |
+| **Escalation path** | Internal Audit → CEO/MD → Board |
+| **Recovery strategy** | Recovery from the contractor; action against the officer |
+| **Residual risk** | **Medium.** Separation limits the damage a single colluder can do; it does not prevent collusion across the four roles |
+
+### RSK-56 — Undisclosed related-party interest
+| | |
+|---|---|
+| **Category / form** | Fraud · **[G]** |
+| **Description** | An enterprise officer holds an undisclosed interest in a contractor, supplier, or intermediary |
+| **Root cause** | Interests not declared, not verified, and not re-declared on change |
+| **Typical scenario** | A site engineer's relative operates the labour supply company whose attendance the engineer validates |
+| **Early warning indicators** | Shared addresses or contact details between officers and counterparties; counterparties introduced by a single officer; resistance to rotation |
+| **Detection mechanism** | Declaration register with verification; counterparty attribute comparison; RSK-52 analysis |
+| **Preventive controls** | Mandatory declaration on appointment and annually; SOD enforcement; rotation; WRK-11 and CTL-08 role separation |
+| **Detective controls** | Attribute matching; audit sampling |
+| **Corrective controls** | Remove from the transaction chain; investigate historic transactions; recover |
+| **Severity** | **High** |
+| **Business impact** | Every separation-of-duties control is nominally satisfied while being substantively void |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Internal Audit; CAP-HCM |
+| **Escalation path** | Internal Audit → CEO/MD → Board |
+| **Recovery strategy** | Recovery of value; disciplinary and legal action |
+| **Residual risk** | **Medium** — declarations are self-reported by definition |
+
+### RSK-57 — Systematic favourable rounding
+| | |
+|---|---|
+| **Category / form** | Valuation · **L7** |
+| **Description** | Dimensions, quantities, or values consistently rounded in the contractor's favour |
+| **Root cause** | Rounding rules undeclared or applied by discretion; per-transaction amounts too small to attract attention (§ 1.4.11) |
+| **Typical scenario** | Every dimension rounded up to the nearest convenient figure. The effect is 1.5% of certified value across a ₹40 crore contract |
+| **Early warning indicators** | Rounding-direction bias by measurer (AF-4); dimensions clustering at convenient values; quantities ending in repeated digits |
+| **Detection mechanism** | AF-4 statistical rounding analysis; MM-5 consistency test; MR-1 |
+| **Preventive controls** | MM-5 method-defined rounding applied both directions; RND-1…RND-8 in valuation; RND-5 ambiguity resolves against enterprise outflow |
+| **Detective controls** | AF-4; RI-1 |
+| **Corrective controls** | Re-measure; correct cumulatively |
+| **Severity** | **Medium** individually, **High** in aggregate |
+| **Business impact** | The definition of L7 — no single transaction looks wrong and the total is material |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Site Engineer; Check Measurement Officer |
+| **Escalation path** | Check Officer → Internal Audit |
+| **Recovery strategy** | Cumulative correction |
+| **Residual risk** | **Medium** — detectable only statistically, and only where the analysis is actually run |
+
+### RSK-58 — Fabricated measurement evidence
+| | |
+|---|---|
+| **Category / form** | Fraud · **L1/L3** |
+| **Description** | Photographs, level records, pour cards, or dimension sheets created or reused to support measurements that do not reflect reality |
+| **Root cause** | Evidence created by the interested party; artefacts not bound to time, place, or subject |
+| **Typical scenario** | The same photograph supports three pours at three locations; level records are transcribed rather than surveyed |
+| **Early warning indicators** | Reused or duplicate artefacts; artefacts lacking geolocation or timestamp; evidence attached in bulk after the fact (EV-2) |
+| **Detection mechanism** | Artefact duplicate detection; timestamp and geolocation validation (Part 11 § 11.7); independent-source corroboration (EV-1) |
+| **Preventive controls** | MSR-11 evidence at time of measurement; EV-1 independent process evidence outranks interested-party evidence; MSR-09 joint measurement for concealed work |
+| **Detective controls** | Part 11 § 11.7 integrity checks; MR-3, MR-4 independent-record reconciliation |
+| **Corrective controls** | Void the measurement; re-measure or reconstruct from independent records; recover |
+| **Severity** | **Critical** |
+| **Business impact** | The evidence layer that underpins CP-7 drillability becomes unreliable |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Site Engineer; Check Measurement Officer |
+| **Escalation path** | Internal Audit → CEO/MD |
+| **Recovery strategy** | Recovery from the contractor where complicit; action against the officer |
+| **Residual risk** | **Medium.** Independent-process evidence (batching, weighbridge, survey) is the only class that resists fabrication (EV-1) |
+
+### RSK-59 — Timestamp and location manipulation
+| | |
+|---|---|
+| **Category / form** | Fraud · **[G]** · enabling **L1** |
+| **Description** | Capture time or location falsified so that attendance or measurement appears to have occurred where and when it did not |
+| **Root cause** | Time and location supplied by the capturing party's own device or asserted by entry |
+| **Typical scenario** | Attendance captured from a location 40 km from the site, with the device time set back to the work date |
+| **Early warning indicators** | Captures outside site geofence; device times inconsistent with server times; captures clustered from one device across dispersed fronts |
+| **Detection mechanism** | Independent time reference; geofence validation; device-consistency analysis (Part 11 § 11.7) |
+| **Preventive controls** | ATT-10 method recorded; ATT-11 no future dating; capture bound to an independent time source; MSR-04 |
+| **Detective controls** | Part 11 § 11.7; ATT-19; MSR-17 |
+| **Corrective controls** | Reclassify the affected evidence as lower confidence; re-verify; attribute |
+| **Severity** | **High** |
+| **Business impact** | Undermines the evidential weight of the enterprise's strongest capture methods |
+| **Financial impact** | Enables RSK-01, RSK-09, RSK-11 |
+| **Responsible actor** | Site Supervisor; Internal Audit for detection |
+| **Escalation path** | Internal Audit |
+| **Recovery strategy** | Re-verification; recovery where value followed |
+| **Residual risk** | **Medium** |
+
+### RSK-60 — Supersession abuse
+| | |
+|---|---|
+| **Category / form** | Governance · **[G]** |
+| **Description** | The supersession mechanism used to replace records repeatedly until the desired figure is reached, with the trail technically intact but practically unreadable |
+| **Root cause** | Supersession permitted without reason, attribution, or frequency monitoring |
+| **Typical scenario** | A measurement superseded eleven times over three weeks, ending at a quantity 30% above the original, each revision individually documented |
+| **Early warning indicators** | High revision rates by measurer (RV-4); repeated supersession of the same entry; supersession clustered before bills |
+| **Detection mechanism** | RV-4 revision-rate monitoring; supersession-chain analysis |
+| **Preventive controls** | MSR-12 reason required; MSR-07 checker cannot increase; MBK-03 legible originals |
+| **Detective controls** | RV-4; AF-9; AUD-03 |
+| **Corrective controls** | Investigate the chain; re-measure independently |
+| **Severity** | **Medium** |
+| **Business impact** | Immutability is preserved in form and defeated in substance |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Check Measurement Officer; Internal Audit |
+| **Escalation path** | Internal Audit |
+| **Recovery strategy** | Cumulative correction |
+| **Residual risk** | **Medium** |
+
+### RSK-61 — Evidence loss
+| | |
+|---|---|
+| **Category / form** | Governance · **[G]** |
+| **Description** | Evidence unavailable when required — destroyed, illegible, uncustodied, or left with a demobilised team |
+| **Root cause** | Retention assumed from policy; custody transferred informally at project close; digital evidence dependent on a single system or person |
+| **Typical scenario** | An arbitration four years after closure requires the MBs for a disputed element. Two books cannot be located and the site office was cleared in 2023 |
+| **Early warning indicators** | Retention never verified (AUD-12); custody records incomplete; project closures without formal handover |
+| **Detection mechanism** | AUD-12 retention verification; custody audit; periodic retrieval testing |
+| **Preventive controls** | MBK-11; LAB-14; CLS-14 sealed and reconstructible; SEC-11 protection against destruction including by the creator; LI-33 archival ≠ deletion |
+| **Detective controls** | AUD-12; retrieval testing |
+| **Corrective controls** | Reconstruct from secondary evidence; accept the weakened position honestly |
+| **Severity** | **High** |
+| **Business impact** | The enterprise loses disputes it would have won, and cannot demonstrate compliance it achieved |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Project Manager at closure; Internal Audit |
+| **Escalation path** | Finance Controller → Legal |
+| **Recovery strategy** | None — evidence cannot be recreated after the fact (MP-6) |
+| **Residual risk** | **Medium** |
+
+### RSK-62 — Plant and equipment hire recovery failure
+| | |
+|---|---|
+| **Category / form** | Material leakage · **L5** |
+| **Description** | Enterprise plant, equipment, and shuttering used by contractors without hire recovery |
+| **Root cause** | Hire records maintained operationally rather than financially; no automatic obligation at issue (I-6) |
+| **Typical scenario** | A crane shared between the enterprise's own works and two contractors for eight months. Hire hours are logged for maintenance purposes and never converted into recovery |
+| **Early warning indicators** | Hire logs without corresponding recoveries; utilisation exceeding enterprise-only work; contractors with no hire recovery on plant-intensive scopes |
+| **Detection mechanism** | RI-4; hire log to recovery reconciliation |
+| **Preventive controls** | CTL-09; REC-01 automatic obligation; REC-02 valuation at issue; E-5 recovery basis bound at engagement |
+| **Detective controls** | RI-4; FC-4 |
+| **Corrective controls** | Recover at waterfall priority 5; crystallise at demobilisation |
+| **Severity** | **High** |
+| **Business impact** | Classic L5: value transferred with no entitlement, invisible because nothing failed |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Plant officer to raise; Accountant to recover |
+| **Escalation path** | Project Manager → Finance Controller |
+| **Recovery strategy** | Deduct from running bills and final account |
+| **Residual risk** | **Medium** |
+
+---
+
+### RSK-63 — Fuel and utility leakage
+| | |
+|---|---|
+| **Category / form** | Material leakage · **L5** |
+| **Description** | Diesel, power, and water issued to contractors or consumed by unauthorised plant, never recovered |
+| **Root cause** | Issue recorded in a site register with no valuation; consumption unmeasured; no theoretical-consumption benchmark |
+| **Typical scenario** | Site tank issues recorded by the operator; no meter on the generator; consumption 30% above the plant's rated draw and no one holds the comparison |
+| **Early warning indicators** | Consumption above theoretical for deployed plant hours; issue registers not reconciled; issues rising without corresponding output |
+| **Detection mechanism** | MR-2-style theoretical vs actual consumption; RI-4 |
+| **Preventive controls** | CTL-09; REC-01; metering where practicable; E-5 |
+| **Detective controls** | RI-4; consumption benchmarking |
+| **Corrective controls** | Recover at waterfall priority 5; tighten issue control |
+| **Severity** | **Medium** |
+| **Business impact** | Continuous small loss, rarely investigated because the sums per transaction are trivial (LA-3) |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Store/plant officer; Accountant |
+| **Escalation path** | Project Manager → Finance Controller |
+| **Recovery strategy** | Deduct from bills |
+| **Residual risk** | **Medium–High** — physically difficult to control on open sites |
+
+### RSK-64 — Material loss disguised as wastage
+| | |
+|---|---|
+| **Category / form** | Material leakage · **L5/L7** |
+| **Description** | Material removed from site and accounted for as wastage, breakage, or consumption |
+| **Root cause** | Wastage norms undefined or generous; theoretical consumption never reconciled to measured output |
+| **Typical scenario** | Cement consumption 14% above theoretical for the measured concrete, absorbed under a "wastage" allowance that no instrument defines |
+| **Early warning indicators** | Consumption-to-output ratios above norm; wastage at or near the permitted maximum consistently; norms not defined in the instrument |
+| **Detection mechanism** | MR-2 theoretical vs actual; MR-3, MR-4 |
+| **Preventive controls** | MM-2 wastage rules explicit in the method; E-7; REC-01 issued value recovery; MR-9 variance blocks the bill |
+| **Detective controls** | MR-2…MR-5; MR-9 |
+| **Corrective controls** | Recover the excess; investigate; revise norms with evidence |
+| **Severity** | **High** |
+| **Business impact** | Simultaneously a material loss and an over-measurement signal — the two reinforce each other |
+| **Financial impact** | **Compounding** |
+| **Responsible actor** | Store officer; Site Engineer; Accountant |
+| **Escalation path** | Project Manager → Internal Audit |
+| **Recovery strategy** | Recovery at waterfall priority 4 |
+| **Residual risk** | **Medium** |
+
+### RSK-65 — Productivity data corruption
+| | |
+|---|---|
+| **Category / form** | Productivity leakage · **[G]** |
+| **Description** | Productivity figures rendered meaningless by mismatched effort and output attribution |
+| **Root cause** | Effort attributed to generic activities; output measured against different codes; planned rather than validated effort used |
+| **Typical scenario** | 60% of labour booked to "general site works". Productivity is computed, reported, and relied upon for estimating, and it measures nothing |
+| **Early warning indicators** | High proportion of general-activity attribution; productivity figures with implausible stability; norms revised to eliminate variance |
+| **Detection mechanism** | Attribution-proportion reporting; PRD-03 coverage; PRD-06 norm-change audit |
+| **Preventive controls** | ASG-03; CLB-06; BRL-14; PRD-02 common activity coding; PRD-04 validated effort |
+| **Detective controls** | PRD-03; PRD-06 |
+| **Corrective controls** | Restore attribution discipline; restate norms from evidence |
+| **Severity** | **Medium** |
+| **Business impact** | Loss of the only control that compares two independently created records (MR-6), and corruption of the estimating base for future tenders |
+| **Financial impact** | **Opportunity** — future mispricing |
+| **Responsible actor** | Project Manager; Finance Controller |
+| **Escalation path** | Finance Controller |
+| **Recovery strategy** | Not applicable |
+| **Residual risk** | **Medium** |
+
+### RSK-66 — Concealed work billed without prior joint measurement
+| | |
+|---|---|
+| **Category / form** | Measurement risk · **L1/L3** |
+| **Description** | Work that has become unverifiable billed on the strength of records made after concealment |
+| **Root cause** | Joint measurement not performed before backfilling, casting, or covering; programme pressure to proceed |
+| **Typical scenario** | Foundation excavation backfilled over a weekend. The quantity is agreed afterwards from the contractor's dimensions, and no level records exist |
+| **Early warning indicators** | Measurement dates after concealment dates; absent level or pour records; contractor-supplied dimensions for concealed elements |
+| **Detection mechanism** | AF-3; date sequence analysis; MR-5 level records |
+| **Preventive controls** | MSR-09; JM-2 mandatory joint measurement; CK-2 100% check before concealment; MI-11 |
+| **Detective controls** | AF-3; MR-1; MR-5 |
+| **Corrective controls** | Destructive verification where justified; otherwise the enterprise's contemporaneous record governs (MD-2) — and where none exists, the loss is accepted and recorded |
+| **Severity** | **Critical** |
+| **Business impact** | Permanently unverifiable value; the enterprise's position in any dispute is the contractor's own record |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Site Engineer; Project Manager |
+| **Escalation path** | Check Officer → Project Manager → Internal Audit |
+| **Recovery strategy** | Extremely limited once concealed — the control is wholly preventive (GP-22) |
+| **Residual risk** | **High** where programme pressure is severe |
+
+### RSK-67 — Contractor insolvency or abandonment
+| | |
+|---|---|
+| **Category / form** | Commercial · **L5** · **[C]** |
+| **Description** | The counterparty ceases work with the enterprise's value unrecovered and the work incomplete |
+| **Root cause** | Thin capitalisation is structural in construction (§ 1.4.5); exposure allowed to accumulate; early indicators not acted upon |
+| **Typical scenario** | Delayed wage payments, then material supplier complaints, then requests for out-of-turn advances, then abandonment — with ₹1.4 crore of advances, issued materials, and hire outstanding |
+| **Early warning indicators** | Wage evidence failures (CTL-05); repeated advance requests; supplier complaints; labour strength falling; recovery deferral requests; plant removal from site |
+| **Detection mechanism** | Exposure monitoring (FM-34); early-indicator dashboard; CTL-05 gate failures |
+| **Preventive controls** | ADV-04 live security; CTL-10 exposure at award; RET-05 retention preserved; ADV-08 crystallisation on suspension; ADV-09 |
+| **Detective controls** | ADV-14 ageing; ADV-10; RSK-32 indicators |
+| **Corrective controls** | Suspend; crystallise; enforce security; take over the work; recover from retention |
+| **Severity** | **Critical** |
+| **Business impact** | Simultaneous financial loss, programme disruption, and workforce liability (RSK-33, BRL-13) |
+| **Financial impact** | **Episodic-large** |
+| **Responsible actor** | Project Manager; Finance Controller |
+| **Escalation path** | Finance Controller → CEO/MD → Legal |
+| **Recovery strategy** | Security, retention, set-off within the instrument, statutory claim |
+| **Residual risk** | **High.** Insolvency cannot be prevented by the enterprise; only the exposure at the moment it occurs is controllable, which is exactly what LA-7 and Block C exist to limit |
+
+### RSK-68 — Front-loaded certification
+| | |
+|---|---|
+| **Category / form** | Financial · **L4** · **[C]** |
+| **Description** | Early certification running ahead of physical execution, financing the contractor from the enterprise's balance sheet |
+| **Root cause** | Part rates without bound stages; materials-on-site payments without control; generous early-stage valuations |
+| **Typical scenario** | 45% certified at 25% physical completion through part rates set at bill time and materials-on-site allowances with no verification of title or location |
+| **Early warning indicators** | Certified value ahead of the measured-progress curve (MR-7); part-rate proportion high; materials-on-site claims rising |
+| **Detection mechanism** | MR-7 ceiling utilisation vs progress; PT-1 part-rate proportion analysis |
+| **Preventive controls** | PT-2 stages bound at engagement; MSR-15 stage recorded; ADV-05 verified materials for material advances; EVL-01 |
+| **Detective controls** | MR-7; PRD-05 |
+| **Corrective controls** | Cumulative self-correction; suspend part-rate certification |
+| **Severity** | **High** |
+| **Business impact** | The enterprise becomes the contractor's financier without a lending decision, and its exposure on default is far above the work in place |
+| **Financial impact** | **Episodic-large** · **[C]** cash-flow |
+| **Responsible actor** | Project Manager; Finance Controller |
+| **Escalation path** | Finance Controller → CFO |
+| **Recovery strategy** | Cumulative correction at subsequent bills |
+| **Residual risk** | **Medium** |
+
+### RSK-69 — Unbalanced rates at award
+| | |
+|---|---|
+| **Category / form** | Valuation · **L4/L7** |
+| **Description** | A tender priced with early-executed items loaded high and late items low, so that early certification exceeds value delivered |
+| **Root cause** | Award decided on total only; rate reasonableness not tested item by item; this precedes WFC (D-2) but is discharged through it |
+| **Typical scenario** | Excavation and foundations priced 40% above market, finishes 30% below. The contractor is cash-positive by month four and indifferent to completion |
+| **Early warning indicators** | Item rates deviating sharply from internal estimates; early-item concentration of value; certified value ahead of progress from the first bill |
+| **Detection mechanism** | Rate-reasonableness comparison at award; MR-7 from the first bill |
+| **Preventive controls** | Not preventable within WFC (II-1 — rates are consumed, not created). **WFC's obligation is to detect and report it**, and to hold the ceiling and recovery discipline that limit its consequence |
+| **Detective controls** | MR-7; EVL-09 progress vs value; front-loading indicators (RSK-68) |
+| **Corrective controls** | Report to CAP-SCM (integration O-4); tighten retention and recovery; resist part-rate generosity |
+| **Severity** | **Medium** |
+| **Business impact** | The enterprise's exposure exceeds work in place for most of the contract's life |
+| **Financial impact** | **[C]** cash-flow, converting to loss on default |
+| **Responsible actor** | CAP-SCM at award; Finance Controller for consequence management |
+| **Escalation path** | Finance Controller → CEO/MD |
+| **Recovery strategy** | Contractual only |
+| **Residual risk** | **Medium** — outside WFC's authority to prevent (§ 3.4.3) |
+
+### RSK-70 — Dispute ageing into loss
+| | |
+|---|---|
+| **Category / form** | Contractual · **L6** |
+| **Description** | Disputes left open until evidence, memory, and leverage have degraded, then settled unfavourably |
+| **Root cause** | No dispute clock; disputes owned by whoever is least busy; MD-4 not enforced |
+| **Typical scenario** | Fourteen measurement disputes open for two years. At final account they are settled in bulk at 70% of the contractor's claim because no one can now re-measure or recall |
+| **Early warning indicators** | Ageing disputes without escalation; disputes with no named owner; disputed value rising as a proportion of certified value |
+| **Detection mechanism** | Dispute ageing report; MD-4 escalation clock |
+| **Preventive controls** | MD-1 undisputed value proceeds; MD-2 joint re-measurement while measurable; MD-4 defined clock; REC-11 disputed recoveries not dropped |
+| **Detective controls** | Ageing reporting; GP-20 |
+| **Corrective controls** | Force resolution; escalate to arbitration where contractual |
+| **Severity** | **High** |
+| **Business impact** | Converts into precisely the bulk negotiation LI-26 prohibits (RSK-45) |
+| **Financial impact** | **Opportunity** and **Episodic-large** |
+| **Responsible actor** | Project Manager; Finance Controller |
+| **Escalation path** | Finance Controller → Legal |
+| **Recovery strategy** | Resolution while the work remains measurable |
+| **Residual risk** | **Medium** |
+
+### RSK-71 — Institutional knowledge loss
+| | |
+|---|---|
+| **Category / form** | Governance · **[G]** |
+| **Description** | Financial control degrading when individuals leave, because critical facts lived in their heads |
+| **Root cause** | Objective O-9 unmet — arrangements, rates, understandings, and site history held personally rather than recorded |
+| **Typical scenario** | The engineer who "knows the site" resigns. Three contractors immediately raise claims that cannot be evaluated, and two rate understandings cannot be evidenced |
+| **Early warning indicators** | Records requiring their author to interpret them; single points of knowledge; undocumented arrangements referenced in correspondence |
+| **Detection mechanism** | Reconstructibility testing (AUD-12); RBL-16 drillability without explanation |
+| **Preventive controls** | RBL-16; CP-7; MBK-05 complete entries; CTL-14 instructions recorded; ASG-10 retention; LAB-14 |
+| **Detective controls** | AUD-12; audit sampling for interpretability |
+| **Corrective controls** | Reconstruct from records; accept and record the weakened position |
+| **Severity** | **Medium** |
+| **Business impact** | Objective O-9 fails; the enterprise's position depends on individuals' availability years later |
+| **Financial impact** | **Opportunity** |
+| **Responsible actor** | Project Manager; Finance Controller |
+| **Escalation path** | Finance Controller |
+| **Recovery strategy** | Not applicable |
+| **Residual risk** | **Medium** |
+
+### RSK-72 — Governance decay
+| | |
+|---|---|
+| **Category / form** | Governance · **[G]** · all forms |
+| **Description** | Rules remaining nominally in force while ceasing to operate — exceptions normalised, checks reduced, reports unread |
+| **Root cause** | LA-4 and LA-5 acting together: controls requiring vigilance decay, and any bypass used more than twice becomes the process |
+| **Typical scenario** | Check percentages quietly reduced during a busy quarter; exceptions rise; the exception report circulates to no one who acts; two years later the check regime exists only on paper |
+| **Early warning indicators** | Exception counts rising with no rule change; check percentages below policy; control-health reports unacknowledged; standing exceptions never reviewed |
+| **Detection mechanism** | EXC-07 frequency escalation; AUD-08 control health; CK-6 check-extent records; EXC-10 review |
+| **Preventive controls** | LI-30, LI-31 counting and escalation; OVR-08; SEC-12; FIN-16; EXC-05 no renewal by inaction |
+| **Detective controls** | AUD-08; EXC-08; ARB review (§ 11.12) |
+| **Corrective controls** | Reinstate; review the rule that is being bypassed; amend formally or enforce |
+| **Severity** | **Critical** — it is the mechanism by which every other control in this document fails |
+| **Business impact** | The enterprise believes it is controlled and is not, which is a worse position than knowing it is uncontrolled |
+| **Financial impact** | Enables all forms |
+| **Responsible actor** | Finance Controller; Internal Audit; CEO/MD |
+| **Escalation path** | Internal Audit → CEO/MD → Board |
+| **Recovery strategy** | Not applicable — governance is restored, not recovered |
+| **Residual risk** | **Medium**, and permanent. **This is the risk that never closes** |
+
+---
+
+## 10.5 Category index
+
+| Category | Risks |
+|---|---|
+| **Financial leakage** | RSK-20, 22, 23, 24, 28, 39, 68 |
+| **Operational leakage** | RSK-06, 08, 25, 65 |
+| **Material leakage** | RSK-21, 62, 63, 64 |
+| **Labour leakage** | RSK-01…05, 07, 09, 10, 27, 31, 34, 35, 36 |
+| **Productivity leakage** | RSK-65, and detection roles in RSK-01, 15 |
+| **Measurement risk** | RSK-11, 12, 13, 15, 16, 17, 18, 57, 58, 60, 66 |
+| **Fraud scenarios** | RSK-46, 52, 53, 54, 55, 56, 58, 59 |
+| **Contractor manipulation** | RSK-04, 05, 12, 15, 41, 44, 45, 69 |
+| **Internal collusion** | RSK-53, 54, 55, 56 |
+| **Approval abuse** | RSK-38, 39, 40, 42, 43, 47 |
+| **Recovery failure** | RSK-20, 21, 22, 24, 28, 62, 63 |
+| **Retention failure** | RSK-29 |
+| **Documentation failure** | RSK-51, 58, 59, 60, 61, 71 |
+| **Governance failure** | RSK-07, 24, 47, 50, 51, 72 |
+| **Contractual risk** | RSK-19, 26, 41, 44, 45, 70 |
+| **Cash-flow risk** | RSK-67, 68, 69 |
+| **Statutory risk** | RSK-03, 05, 30, 32, 33, 37, 49 |
+
+## 10.6 Severity and residual summary
+
+| Severity | Count | Risks |
+|---|---|---|
+| **Critical** | **25** | RSK-01, 02, 05, 11, 15, 19, 20, 21, 22, 30, 32, 38, 39, 45, 46, 47, 50, 51, 53, 54, 55, 58, 66, 67, 72 |
+| **High** | **34** | RSK-03, 04, 07, 09, 10, 12, 13, 14, 16, 17, 18, 23, 24, 26, 28, 29, 33, 34, 37, 40, 41, 42, 43, 44, 48, 49, 52, 56, 59, 61, 62, 64, 68, 70 |
+| **Medium** | **13** | RSK-06, 08, 25, 27, 31, 35, 36, 57, 60, 63, 65, 69, 71 |
+| **Total register** | **72** | |
+
+> **On the shape of this distribution.** Thirty-five percent of the register is Critical, and that
+> is not severity inflation. It follows from what the capability governs: **a control that fails on a
+> money path fails toward disbursement**, and disbursement is irreversible in a way that most
+> enterprise risks are not (LA-7). A risk register for this subject that were mostly Medium would be
+> describing a different enterprise.
+
+### The honest residual position
+
+| Residual | Count | Risks | Why it cannot be eliminated |
+|---|---|---|---|
+| **High** | 9 | RSK-05, 20, 21, 26, 34, 41, 45, 66, 67 | Each depends on a condition the enterprise does not fully control: an unbanked workforce, a future payment existing to deduct from, relationship pressure at closure, verbal instruction at site, programme pressure before concealment, or a counterparty's solvency |
+| **Medium–High** | 2 | RSK-54, 63 | Single-officer remote sites (§ 4.14.1) and physically open fuel and utility control |
+| **Medium** | 50 | — | Controls are structural, but effectiveness depends on detection frequency, rotation, and statistical analysis **actually being performed** (RSK-72 is the risk that they are not) |
+| **Low** | 11 | RSK-06, 11, 14, 18, 19, 24, 28, 38, 39, 47, 50 — **only where the control is structural** | Each is Low *only* where the control is enforced by construction. Where the same control is procedural, ten of these eleven return to **Critical** |
+
+> **The central finding of Part 10.** Ten risks in this register move between **Low and Critical**
+> depending on a single question: *is the control structural or procedural?* That is the whole of
+> DP-1 expressed as evidence. **An enterprise that implements this document as policy rather than as
+> structure has not reduced its risk; it has reduced its visibility of the risk.**
+
+## 10.7 Risk governance
+
+**RG-1 — Every risk has a named owner** (RP-2), and ownership sits with the actor who can act, not
+with the actor who reports.
+
+**RG-2 — Escalation is by severity and by frequency**, independently. A Medium risk occurring
+weekly escalates faster than a Critical risk occurring once, because frequency is evidence of a
+systemic control failure (LA-5).
+
+**RG-3 — Detection outputs route to Internal Audit** (AF-11, AUD-07), never solely to the actor
+whose work they monitor.
+
+**RG-4 — The register is reviewed on a defined cycle** and after every confirmed leakage event
+(AUD-10). A confirmed event that produces no register change means the root cause was not found.
+
+**RG-5 — Residual risk is re-stated at each review, honestly.** A residual that has fallen to zero
+has been mis-assessed (RP-4).
+
+**RG-6 — New risks are added by observation, not only by review.** Every exception, dispute, and
+audit finding is a candidate.
+
+## 10.8 The adversarial review record
+
+The eight adversarial questions of RP-5, answered against this document as it stands. **Where the
+answer was "yes", the rule that was strengthened is named.** Where the answer remains "yes", it is
+recorded as an open weakness rather than resolved by assertion.
+
+| # | Question | Answer | Constitutional response |
+|---|---|---|---|
+| 1 | **Can this be manipulated?** | Yes — attendance, measurement, classification, rounding, and timing all admit manipulation by a single competent actor | ATT-02/08, MSR-06/07, AF-4/6/8, MM-5, ATT-11, MSR-04 |
+| 2 | **Can two people collude?** | **Yes, and this remains the register's largest unclosed exposure** (RSK-53, 54, 55) | SOD matrix; rotation (RSK-53/54 controls); § 4.14.1 externality; AF-7 pairing analysis. **Residual remains Medium–High on small and remote sites** |
+| 3 | **Can money leave without evidence?** | No, where G-1…G-8 and PEL-01…PEL-04 are structural. **Yes, where they are procedural** | RBL-02, PEL-01, PEL-04, FIN-06, MSR-01. This is the Low/Critical hinge of § 10.6 |
+| 4 | **Can evidence be fabricated?** | Yes for interested-party evidence; substantially harder for independent-process evidence | EV-1 hierarchy; MSR-09/JM-2 for concealed work; MR-2…MR-5 independent reconciliation; Part 11 § 11.7 |
+| 5 | **Can measurement be inflated?** | Yes, within the tolerance of the check regime | CK-1…CK-7, MSR-07 asymmetry, CK-5 sample-to-population escalation, MR-1…MR-8, AF-4 |
+| 6 | **Can labour be counted twice?** | **No, where LI-16 is enforced enterprise-wide at validation.** Yes, wherever identity is scoped per project or per contractor | WRK-02, LI-16, ATT-06, BRL-05, BRL-10, RI-7, RI-11 |
+| 7 | **Can recoveries be bypassed?** | Yes, by silent omission and by rolling deferral | REC-01 automatic creation, RBL-07/G-3 hard gate, REC-10 bounded deferral, LI-12, RI-3/RI-4, REC-16 severity parity |
+| 8 | **Can approvals be abused?** | Yes, by splitting, by override, by post-approval drift, and by approving above the computation | PEL-06 computed maximum, PEL-09/RBL-12 cumulative testing, OVR-10, PEL-07, FIN-05, LI-23 |
+
+> **Two answers in this table are still "yes" after every control in this document has been
+> applied: question 2 (collusion) and question 4 (fabricated interested-party evidence).** They are
+> recorded here rather than argued away, because SC-17's thought experiment is honest only if the
+> enterprise states where it does not hold. Both are addressed in Part 11 — the first through
+> independence and rotation of the audit function, the second through the evidence hierarchy and
+> confidence model that refuses to treat all evidence as equal.
+
+---
+
+# PART 11 — EVIDENCE, AUDIT & INVESTIGATION MODEL
+
+## 11.1 Evidence philosophy
+
+> **Evidence is not documentation. Documentation describes what someone says happened. Evidence
+> constrains what can be said to have happened.**
+
+In this capability, evidence is a **first-class enterprise object** with its own creation rules, its
+own hierarchy, its own confidence model, its own custody, and its own lifecycle. It is not a
+by-product of operations to be filed; it is the substance on which every rupee rests.
+
+### 11.1.1 The five evidential axioms
+
+**EA-1 — Evidence precedes the claim it supports.** Evidence created *after* a claim, to justify it,
+is not evidence (CP-1). The temporal order is itself the control, and it is the only property of
+evidence that cannot be improved after the fact.
+
+**EA-2 — Evidence is created by the observer, at the point and moment of observation.** Evidence
+assembled later in an office is **testimony** (DP-5, MP-2). Testimony is admissible; it is simply
+worth less, and the record must say which it is.
+
+**EA-3 — Evidence created by a party who benefits from its content is a claim.** Regardless of that
+party's reputation, longevity, or good faith (GP-13, § 4.3). A claim becomes evidence only by an
+independent act performed by someone who does not benefit.
+
+**EA-4 — Evidence from an independent process outranks evidence from an interested person.** A
+batching plant record, a weighbridge slip, a survey instrument, a laboratory certificate — these
+were created for another purpose by a mechanism with no stake in the payment (EV-1). This is the
+single most useful principle in construction audit.
+
+**EA-5 — Absence of evidence is not neutral.** A record that should have carried an artefact and does
+not is a **deficient** record, not an ordinary one (EV-3, DP-9). The enterprise must be able to
+distinguish "checked and nothing found" from "not checked", and silence must never resolve to the
+first.
+
+### 11.1.2 What makes evidence trustworthy
+
+Six properties, each independently testable. Evidence is not trustworthy or untrustworthy as a
+whole; it is trustworthy **to the extent that it holds these properties**, and the confidence model
+(§ 11.4) is built from them.
+
+| # | Property | Question it answers | Failure mode |
+|---|---|---|---|
+| **TE-1** | **Contemporaneity** | Was it created when the fact occurred? | Reconstruction; backdating (RSK-09, RSK-59) |
+| **TE-2** | **Proximity** | Was it created where the fact occurred, by someone who observed it? | Office-created records; hearsay chains |
+| **TE-3** | **Independence** | Was its creator free of benefit from its content? | Interested-party evidence (RSK-04, RSK-58) |
+| **TE-4** | **Integrity** | Is it unaltered since creation, and can that be demonstrated? | Silent modification (RSK-51); supersession abuse (RSK-60) |
+| **TE-5** | **Attribution** | Does it name the human being who created it? | Role- or system-attributed records |
+| **TE-6** | **Sufficiency** | Does it establish the specific fact it is offered to prove? | A photograph proving existence offered as proof of quantity |
+
+> **TE-6 is the property most often assumed and least often tested.** A geotagged photograph is
+> excellent evidence that something exists at a place on a date. It is very weak evidence of
+> **how much** of it exists. Evidence must be matched to the proposition, not to the file.
+
+### 11.1.3 The evidential burden
+
+**EB-1 — The burden of evidence rests on the party seeking value.** A contractor claiming, a mate
+reporting, a worker disputing an attendance — each bears the burden of supporting their own claim.
+
+**EB-2 — The enterprise bears the burden of its own deductions.** Every recovery, damage assessment,
+LD levy, and quality rejection is an enterprise claim and carries the same burden (REC-06, REC-07,
+CP-10). **The enterprise does not get to be the only party that need not prove things.**
+
+**EB-3 — Where the enterprise's own control failed, the enterprise bears the consequence.** A worker
+whose attendance the enterprise failed to capture properly is not to be left unpaid for the
+enterprise's failure (§ 4.1, PA-8). CP-8 conservatism protects the enterprise against uncertainty;
+it does not license it to resolve its own failures in its own favour.
+
+## 11.2 Evidence classes
+
+Evidence in this capability falls into seven classes, distinguished by **what kind of fact each can
+establish**. The classes are not ranked here — ranking is the hierarchy in § 11.3, which depends on
+the proposition being proved.
+
+| Class | Establishes | Typical instruments |
+|---|---|---|
+| **EC-1 Contractual** | Authority: who may be paid, for what, at what rate, up to what limit | Engagement instrument, rate schedule, variation, delegation register, security instrument |
+| **EC-2 Engineering** | Physical reality: what was built, to what dimension, to what standard | Measurement Book entries, level records, dimension sheets, drawings, as-built records, pour cards, test certificates |
+| **EC-3 Operational** | Activity: who was present, who was directed, what occurred on site | Musters, deployment records, work assignments, site instructions, hindrance records, gate and induction records |
+| **EC-4 Financial** | Value and its movement: what was computed, deducted, approved, and paid | Bills, settlement sheets, wage cards, vouchers, issue notes, hire records, contractor accounts, disbursement confirmations |
+| **EC-5 Digital** | Metadata about any of the above: when, where, by whom, unaltered since | Timestamps, geolocation, device identity, version history, integrity signatures, access logs |
+| **EC-6 Physical** | The work itself and the artefacts of its execution | The structure, samples, retained cubes, weighbridge slips, materials at site |
+| **EC-7 Human testimony** | Recollection, explanation, and context | Statements, interviews, explanations of records, expert opinion |
+
+**EC-A — Class does not equal weight.** A contractual instrument (EC-1) is conclusive as to authority
+and worthless as to quantity. A photograph (EC-5/EC-6) is strong as to existence and weak as to
+measurement. **Every evidential question must state what it is trying to prove before asking what
+proves it.**
+
+**EC-B — Human testimony (EC-7) is the class of last resort and the first to be offered.** It is
+admissible, it is often the only thing available years later, and it is systematically the weakest:
+memory degrades, incentive persists, and the people with the clearest recollection are usually the
+people with the strongest interest.
+
+## 11.3 The evidence hierarchy
+
+For any given proposition, evidence ranks by the properties in § 11.1.2. The hierarchy below is
+normative: **where two pieces of evidence conflict, the higher-ranked governs**, and the lower is
+not discarded but recorded as conflicting (LAW-11).
+
+| Rank | Tier | Definition | Examples |
+|---|---|---|---|
+| **H-1** | **Independent instrumented record** | Created by a process or instrument with no interest in the outcome, at the moment of the fact | Batching plant record; weighbridge slip; survey/level record; laboratory test certificate; biometric capture with independent time source |
+| **H-2** | **Contemporaneous enterprise record, independently verified** | Created by an enterprise officer at the point of occurrence and independently checked by another | Check-measured MB entry; validated attendance where validator ≠ reporter; jointly measured quantity |
+| **H-3** | **Contemporaneous enterprise record, unverified** | Created by an enterprise officer at the point of occurrence, not yet independently checked | Recorded (unchecked) MB entry; captured (unvalidated) attendance; site instruction |
+| **H-4** | **Contractual instrument** | Establishes authority and terms, conclusively, and nothing else | Engagement instrument; rate schedule version; sanctioned variation; delegation |
+| **H-5** | **Derived or computed record** | Correct if its inputs are correct; carries the confidence of its weakest input | Bills, settlement sheets, wage cards, theoretical consumption, productivity |
+| **H-6** | **Interested-party record (a claim)** | Created by a party who benefits from its content | Contractor's bill or measurement; mate's attendance report; supplier's invoice |
+| **H-7** | **Reconstructed record** | Created after the fact, from memory or secondary sources, by any party | Retrospective musters; assignments generated at period end; evidence attached in bulk later |
+| **H-8** | **Testimony** | Recollection offered in explanation | Statements, interviews |
+
+### 11.3.1 Hierarchy rules
+
+**HR-1 — A claim (H-6) never becomes evidence by being countersigned.** It becomes evidence only when
+an independent act creates a record at H-3 or above (MSR-05, ATT-03).
+
+**HR-2 — A derived record (H-5) cannot be stronger than its weakest input.** A bill computed
+flawlessly from an unverified measurement carries the confidence of that measurement, not of the
+arithmetic. **This is the property most often forgotten**, because the arithmetic is visibly rigorous
+and the input is not visible at all.
+
+**HR-3 — H-1 evidence resolves conflicts against all lower tiers**, and its absence where it should
+exist is itself a finding (EA-5). If concrete was placed and no batching record exists, the question
+is not "what other evidence is there" but "why does this record not exist".
+
+**HR-4 — Reconstructed records (H-7) must be labelled as reconstructed**, permanently and visibly.
+They may support payment where nothing better exists and the enterprise's own failure caused the
+gap (EB-3), but they may never be presented as contemporaneous.
+
+**HR-5 — Testimony (H-8) cannot establish quantity, presence, or value on its own.** It may explain,
+contextualise, or direct an investigation to better evidence. It may not be the basis of a payment.
+
+**HR-6 — Evidence tier is recorded, not inferred.** Every evidentiary record carries its tier and the
+capture method that determines it (ATT-10, ME-11). An implementation that cannot state the tier of a
+given record cannot operate the confidence model.
+
+## 11.4 Evidence confidence levels
+
+Tier (§ 11.3) is a property of *how evidence was made*. **Confidence is a property of a specific
+proposition supported by a specific evidence set.** The same MB entry may support a high-confidence
+statement about location and a low-confidence statement about volume.
+
+| Level | Definition | Requirements | Permitted use |
+|---|---|---|---|
+| **High** | The proposition is established by H-1 or H-2 evidence, corroborated by at least one independent record, with integrity demonstrable | Contemporaneous · independent · verified · reconcilable | **Any** — including final account, dispute defence, and statutory proof |
+| **Medium** | Established by H-3 or H-4 evidence, uncorroborated but with integrity and attribution intact | Contemporaneous · attributed · unaltered | Running payment; **not** sufficient alone for final account or concealed work |
+| **Low** | Established by H-5, H-6, or H-7 evidence, or by H-3 with an integrity or attribution gap | Traceable but weak on at least two of TE-1…TE-6 | Interim treatment only, with a recorded plan to strengthen; **never** for concealed work, final accounts, or disputes |
+| **Unsupported** | The proposition rests on H-8 alone, or on evidence whose integrity cannot be demonstrated | — | **No payment.** May direct investigation only |
+
+**CL-1 — Confidence is recorded against the proposition, not filed against the document.**
+
+**CL-2 — Payment requires at least Medium**, and **High** where the work is or will become concealed
+(GP-22, JM-2), where the value is at final account (CLS-01), or where a dispute is live.
+
+**CL-3 — Confidence degrades with time for reconstructible propositions and is fixed for
+contemporaneous ones.** A proposition supported by H-1 evidence is as strong in year seven as on the
+day. A proposition supported by testimony weakens continuously, which is why MD-4 and RSK-70 treat
+dispute ageing as a loss mechanism.
+
+**CL-4 — Confidence MUST NOT be raised by repetition.** Three copies of the same claim, three
+restatements by the same actor, or the same photograph attached to three entries do not corroborate:
+corroboration requires an **independent source**, not an additional instance.
+
+**CL-5 — A downgrade is a finding.** Where evidence is discovered to be weaker than recorded — a
+capture method misstated, an integrity gap found, a record shown to be reconstructed — the affected
+payments are reviewed, not merely re-labelled.
+
+## 11.5 Evidence traceability
+
+> **CP-7: every presented figure must decompose to its constituents, recursively, to primary
+> evidence, without human explanation.** § 11.5 states what that decomposition must contain.
+
+### 11.5.1 The contract-path evidence chain
+
+Every rupee on a running bill decomposes through this chain. **A gap at any link makes the rupee
+unsupported, regardless of the strength of the other links.**
+
+```
+  DISBURSEMENT  ── confirmation from CAP-TRE (H-1)                            [EC-4]
+        ↑
+  VOUCHER  ── approved amount, payee, basis; approver identity and limit      [EC-4/EC-1]
+        ↑
+  APPROVAL  ── named approver, delegated limit valid at that date             [EC-1]
+        ↑
+  NET COMPUTATION  ── FM-19, every term traceable                             [EC-4]
+        ↑
+  ├── CERTIFIED VALUE ── FM-06 cumulative                                     [EC-4]
+  │        ↑
+  │   ITEM VALUE ── FM-01: quantity × rate                                    [EC-4]
+  │        ↑                    ↑
+  │   VERIFIED QUANTITY    RATE VERSION in force at work date (H-4)           [EC-2/EC-1]
+  │        ↑
+  │   CHECK MEASUREMENT ── checker identity, extent, result (H-2)             [EC-2]
+  │        ↑
+  │   MB ENTRY ── item, location, dimensions, computation, dates (H-3)        [EC-2]
+  │        ↑
+  │   ├── EVIDENCE ARTEFACTS ── levels, pour cards, weighbridge (H-1)         [EC-2/EC-6]
+  │   └── QUALITY ACCEPTANCE ── CAP-QLT record (H-1/H-2)                      [EC-2]
+  │        ↑
+  │   PHYSICAL EXECUTION ── the work itself                                   [EC-6]
+  │        ↑
+  │   WORK ASSIGNMENT / SITE INSTRUCTION (H-3)                                [EC-3]
+  │        ↑
+  │   ENGAGEMENT INSTRUMENT ── scope, rates, ceiling (H-4)                    [EC-1]
+  │
+  ├── RECOVERIES ── each to its issue note, hire record, or assessment (H-1/H-3)  [EC-4]
+  ├── RETENTION ── to the instrument's rate and cap (H-4)                     [EC-1]
+  └── DEDUCTIONS ── to the statutory parameter and its effective date (H-4)   [EC-1]
+```
+
+### 11.5.2 The labour-path evidence chain
+
+```
+  DISBURSEMENT  ── confirmation, or acknowledgement by the named worker (H-1/H-2)  [EC-4]
+        ↑
+  WAGE CARD ── days, rate, gross, deductions, recoveries, net                 [EC-4]
+        ↑
+  SETTLEMENT ── FM-28, independently verified arithmetic                      [EC-4]
+        ↑
+  ├── PAYABLE DAYS ── FM-20 from validated attendance only                    [EC-3]
+  │        ↑
+  │   ATTENDANCE VALIDATION ── validator ≠ reporter (H-2)                     [EC-3]
+  │        ↑
+  │   ATTENDANCE CAPTURE ── method, time, location recorded (H-1/H-3)         [EC-3/EC-5]
+  │        ↑
+  │   ├── WORKER IDENTITY ── enterprise-wide, permanent                       [EC-3]
+  │   ├── WORK ASSIGNMENT ── issued before the work date (H-3)                [EC-3]
+  │   └── DEPLOYMENT ── approved, covering the date (H-3)                     [EC-3]
+  │
+  ├── WAGE RATE ── authorised schedule version at work date (H-4)             [EC-1]
+  ├── STATUTORY MINIMUM ── parameter at work date (H-4)                       [EC-1]
+  └── RECOVERIES ── within the lawful ceiling (H-3/H-4)                       [EC-4]
+```
+
+**TR-1 — Both chains are walked backwards at verification** (PA-2), from the money to the physical
+fact. Walking forwards proves only that the process ran.
+
+**TR-2 — Every link records its own tier and confidence** (HR-6, CL-1), so that the confidence of the
+whole is computable as the weakest link (HR-2), not asserted.
+
+**TR-3 — A chain with a missing link is not a weak chain; it is not a chain.** PA-3: the payment
+waits, the rule is not waived.
+
+**TR-4 — Drillability must be automatic** (RBL-16, CP-7). A chain that requires its author to explain
+it has already failed objective O-9, which is the whole reason for keeping it.
+
+## 11.6 Evidence reconciliation
+
+> **GP-23: two independent records of the same fact must reconcile, and the reconciliation is a
+> control, not a report.** Reconciliation is the enterprise's most powerful evidential tool because
+> it does not depend on trusting either record.
+
+### 11.6.1 The reconciliation matrix
+
+| # | Record A | Record B | What a variance proves | Frequency |
+|---|---|---|---|---|
+| **XR-01** | Deployment | Attendance | Presence outside authorised population (RSK-01, 03) | Daily |
+| **XR-02** | Attendance | Work assignment | Effort without authority (RSK-07, 08) | At validation |
+| **XR-03** | Attendance | Independent presence signal — gate, induction, transport, canteen | Ghost or proxy labour (RSK-01, 10) | Daily where available |
+| **XR-04** | Attendance (all sources, enterprise-wide) | Itself | Duplicate settlement (RSK-02, 27) | At validation |
+| **XR-05** | Attendance | Settlement | Unsettled entitlement or duplicate settlement (RI-7) | Per period |
+| **XR-06** | Wage cards | Disbursement confirmations | Intermediation skimming (RI-8, RSK-05, 34) | Per period |
+| **XR-07** | Attendance (effort) | Measurement (output) | Over-measurement **or** ghost labour, in opposite directions (MR-6) | Per period |
+| **XR-08** | Measurement | Drawing / BOQ quantity | Over-measurement; unrecorded scope change (MR-1, RSK-15, 41) | Per bill |
+| **XR-09** | Measurement | Material consumption, theoretical vs issued | Phantom work; wastage abuse (MR-2, RSK-64) | Per period |
+| **XR-10** | Measured concrete | Batching / pour records | Over-measurement (MR-3) — H-1 against H-3 | Per pour |
+| **XR-11** | Measured steel | Bar-bending schedule and weighbridge | Quantity and classification drift (MR-4) | Per period |
+| **XR-12** | Measured earthwork | Level records and haulage | Over-measurement (MR-5) | Per period |
+| **XR-13** | Measurement entries | Bills | Duplicate billing; unbilled verified value (RI-1, RI-12) | Per bill |
+| **XR-14** | Certified value | Sanctioned value + variations | Ceiling breach (RI-2, RSK-19) | Per bill and on demand |
+| **XR-15** | Advances issued | Recovered + outstanding + written off | Advance leakage (RI-3, RSK-20) | Per period |
+| **XR-16** | Issued value | Recovered + outstanding + returned + written off | Material, plant, fuel leakage (RI-4, RSK-21, 62, 63) | Per period |
+| **XR-17** | Retention accrued | Held + released + forfeited | Retention failure (RI-5, RSK-29) | Per period |
+| **XR-18** | Cumulative paid | Confirmed disbursements | Duplicate or diverted payment (RI-6, RSK-46) | Per period |
+| **XR-19** | LD accrued | Levied + waived | Unenforced entitlement (RI-10, RSK-26) | Per period |
+| **XR-20** | Borrowed-labour debits | Borrowed-labour credits, enterprise-wide | Cross-project duplication (RI-11, RSK-27) | Per period |
+| **XR-21** | Statutory deducted | Deposited (CAP-TAX) | Statutory exposure (RI-9) | Per statutory period |
+| **XR-22** | Statutory registers | Attendance and wage records | Register divergence before inspection finds it (AUD-11) | Per period |
+| **XR-23** | Approved voucher values | Disbursed values | Post-approval drift (RSK-38) | Per disbursement |
+| **XR-24** | Control execution log | Expected control executions | Suppressed or non-executed controls (RSK-50, FIN-15) | Continuous |
+
+**XR-A — Every reconciliation names the leakage it detects.** A reconciliation performed without
+knowing what a variance would mean produces a number nobody acts on.
+
+**XR-B — Variance beyond tolerance blocks, it does not annotate** (MR-9, AUD-06). Tolerances are
+governed parameters (SEC-12), not local settings.
+
+**XR-C — Reconciliations must be computable on demand for any date** (RI-0, FIN-12), not only at
+period close, because leverage decays continuously (LA-7).
+
+**XR-D — A reconciliation that always passes is a candidate for review.** Either the control is
+genuinely effective, or it is comparing a record against itself. XR-07 and XR-09 are the two most
+common places where an implementation accidentally compares derived data with its own source and
+concludes, permanently, that everything agrees.
+
+---
+
+## 11.7 Digital evidence integrity
+
+> **MB-9 states the governing principle: a digital record must be at least as hard to falsify as the
+> paper record it replaces.** The physical difficulty of erasing ink, of forging a sequence of bound
+> pages, of being in two places at once — these were controls. Their digital replacements must be
+> stronger, not merely more convenient.
+
+### 11.7.1 The integrity properties
+
+| # | Property | Requirement | Defeats |
+|---|---|---|---|
+| **DI-1** | **Append-only** | Records are added, never updated in place. Every change is a new record referencing its predecessor | RSK-51 silent modification |
+| **DI-2** | **Attribution** | Every record names an individual (SEC-01), never a role, a shared account, or "system" | RSK-47, RSK-56 |
+| **DI-3** | **Sequence** | Entry sequence is gap-free and gaps are control events (MB-2, MBK-04) | Removal of records |
+| **DI-4** | **Independent time** | Time is taken from a source the recording party does not control | RSK-59 timestamp manipulation |
+| **DI-5** | **Location assurance** | Where location matters, it is captured independently and validated against site geometry | RSK-59 location falsification |
+| **DI-6** | **Version history** | Every superseded version is retrievable, legible, and attributed, permanently | RSK-60 supersession abuse |
+| **DI-7** | **Tamper evidence** | Alteration outside the supersession mechanism is detectable after the fact | RSK-51 |
+| **DI-8** | **Administrative containment** | No role — including the most privileged — can alter a record without leaving a visible superseding record | RSK-51, RSK-50 |
+
+**DI-A — DI-8 is the property most often absent and most consequential.** Every immutability rule in
+this document is void if a privileged administrator can modify records silently. **The people holding
+that capability are normally the least subject to operational control**, so the containment must be
+structural and independently monitored (SEC-10, SEC-12).
+
+### 11.7.2 Measurement revisions
+
+**DR-1** — A revision is a **new record** that references, explains, and supersedes its predecessor
+(RV-1, MSR-12). The predecessor remains legible forever, including where it was cancelled.
+
+**DR-2** — Every revision records: what changed, by how much, why, by whom, and on whose authority.
+A revision with a reason of "correction" states nothing and is non-conformant (OVR-03).
+
+**DR-3** — **Revision rate is a monitored control-health metric** (RV-4, AF-9), by measurer and by
+contractor. It is a leading indicator of both incompetence and collusion, and it is the only signal
+that distinguishes legitimate correction from supersession abuse (RSK-60).
+
+**DR-4** — Revision **after** billing flows through the running account (RV-2); it is never a quiet
+adjustment inside a later measurement, because that destroys the traceability of both.
+
+### 11.7.3 Photographic evidence
+
+**PH-1** — A photograph proves **existence, stage, and condition at a place and time**. It is strong
+for those propositions and weak for quantity (TE-6). It MUST NOT be offered as measurement evidence.
+
+**PH-2** — Photographic evidence carries independent time and location (DI-4, DI-5) or it is
+demoted to H-7 reconstructed evidence.
+
+**PH-3** — **Duplicate-artefact detection is mandatory.** The same image supporting multiple
+measurements is a primary fabrication signature (RSK-58), and it is trivially detectable.
+
+**PH-4** — Photographs are bound to the record at creation (MSR-11, EV-2). Bulk attachment at bill
+time is recorded as later-attached and demoted accordingly.
+
+**PH-5** — The absence of a photograph where the method required one is a deficiency, recorded as
+such (EA-5, EV-3) — not an ordinary record with one fewer attachment.
+
+### 11.7.4 Timestamp integrity
+
+**TS-1** — Time is taken from a source independent of the capturing party. Device-supplied time is
+recorded as **claimed time** and is not sufficient where the timing itself is material.
+
+**TS-2** — Both **event time** and **record time** are captured (ME-6, MBK-06). Their difference is a
+monitored signal (AF-8, MSR-17, RSK-09).
+
+**TS-3** — Future-dated events are structurally impossible (ATT-11, MSR-04, AF-2).
+
+**TS-4** — Backdating is legitimate and MUST be recorded as backdating (OVR-06). The effective date
+may precede the creation date; concealing that it does is the offence.
+
+### 11.7.5 Location validation
+
+**LV-1** — Where location is evidential — attendance capture, measurement, material issue — it is
+captured independently and validated against the site's recorded geometry.
+
+**LV-2** — Captures outside the expected geometry are **rejected or demoted**, never silently
+accepted. A pattern of out-of-geometry captures from one device or one actor is an investigation
+trigger (RSK-59).
+
+**LV-3** — Location assurance is a **corroborating** control, not a substitute for observation. A
+correctly geolocated fabricated record is still fabricated; location defeats absence, not dishonesty.
+
+### 11.7.6 Chain of custody
+
+**CC-1** — Every evidentiary object has a custodian at every moment of its life, recorded (MB-1,
+MBK-01). An object in unrecorded custody has no evidential weight, because no one can say who could
+have altered it.
+
+**CC-2** — Custody transfers are recorded with both parties and the date. Demobilisation, project
+closure, and personnel change are the three highest-risk custody events (RSK-61) and each requires a
+formal transfer (CLS-14).
+
+**CC-3** — For digital evidence, custody means **control of the capability to alter**, not physical
+possession. The custody record must therefore include who held administrative capability over the
+repository, for what period (DI-8).
+
+**CC-4** — An evidentiary object whose custody chain is broken is demoted in confidence (§ 11.4) and
+the break is recorded as a finding. It is not discarded — a broken chain is itself evidence about
+the enterprise's control.
+
+## 11.8 Evidence preservation
+
+**EP-1 — Retention runs to the longest of: the statutory retention period, the defect liability
+period, and the contractual limitation period** (§ 3.4.4, MB-8).
+
+**EP-2 — Archival is not deletion** (LI-33). Archived evidence is removed from operational view and
+remains retrievable, legible, and reconstructible on demand.
+
+**EP-3 — Retention MUST be independent of the creator's control** (SEC-11). The strongest motive to
+destroy a record belongs to whoever created it.
+
+**EP-4 — Retention is verified, not assumed** (AUD-12). Verification means retrieval testing: an
+auditor asks for specific evidence from a closed project and receives it. **Policy compliance is not
+evidence of retention.**
+
+**EP-5 — Legibility is part of retention.** Evidence retained in a format or system that can no
+longer be read has not been retained. This applies with particular force to digital evidence held in
+superseded systems.
+
+**EP-6 — Preservation obligations survive project closure, personnel change, and system replacement.**
+Each is a scheduled custody event requiring formal transfer and verification (CC-2).
+
+**EP-7 — Evidence under investigation or dispute is placed under hold** and exempt from any routine
+disposal, with the hold recorded and released only by the investigating authority.
+
+## 11.9 Audit framework
+
+### 11.9.1 Audit principles
+
+**AP-1 — Independence.** Internal Audit holds no transition authority anywhere in § 6.14 (SOD-5,
+AUD-01). An auditor who can cause a transition cannot audit it.
+
+**AP-2 — Evidence-based.** Audit conclusions rest on evidence at H-3 or above, never on
+explanation (HR-5). "The site explained that…" is a note, not a finding.
+
+**AP-3 — Risk-weighted.** Audit effort follows the register of Part 10, weighted by severity,
+residual risk, and frequency — not by transaction value alone, because splitting defeats a
+value-weighted programme (GP-18, AUD-04).
+
+**AP-4 — Unannounced where surprise is the control.** Physical verification loses all value if
+scheduled (AUD-05).
+
+**AP-5 — Reconciliation before inspection.** The reconciliation matrix (§ 11.6) directs where to look;
+inspection without it is sampling in the dark.
+
+**AP-6 — Findings are attributed.** To actors, to failed controls, and to root causes — all three
+(AUD-10). A finding attributed only to a process changes nothing.
+
+**AP-7 — The audit reports to an authority that can act.** Findings routed to the audited party alone
+are not findings (AF-11, AUD-07).
+
+**AP-8 — Audit tests the controls, not merely the transactions.** A period with no exceptions is as
+interesting as a period with many: it may mean the controls are working, or that they are not
+running (FIN-15, RSK-50).
+
+### 11.9.2 Audit scope
+
+| Scope area | What is examined |
+|---|---|
+| **Identity and engagement** | WRK, CLB, CTL, BRL — duplicate identity, unregistered workforce, counterparty legitimacy |
+| **Attendance and deployment** | ATT, DEP, ASG, GNG — capture discipline, validation separation, single-occupancy |
+| **Measurement** | MSR, MBK — MB integrity, check regime, classification, concealed work |
+| **Valuation and billing** | RBL, EVL, VAR — rate resolution, cumulative form, ceiling, variation governance |
+| **Recovery, advance, retention** | ADV, REC, RET — the L5/L6 block, ageing, waiver governance |
+| **Wage and statutory** | LAB, WGR, DWG, WKS, PCR — minimum wage, deduction ceilings, intermediated payment evidence |
+| **Approval and authority** | PEL, SEC, OVR — delegation validity, separation, splitting, override governance |
+| **Financial integrity** | FIN — canonical computation, rounding, immutability, fail-closed behaviour |
+| **Evidence and record** | Part 11 — tier accuracy, integrity properties, custody, retention |
+| **Governance** | EXC, AUD, CLS — exception counting, control health, closure discipline |
+
+### 11.9.3 Audit events and checkpoints
+
+**Audit events** are occurrences that require an audit response regardless of the audit calendar.
+
+| # | Event | Required response |
+|---|---|---|
+| **AE-1** | Reconciliation identity violation (RI-1…RI-12) | Immediate exception; investigate before the dependent payment |
+| **AE-2** | Exception frequency threshold breached (EXC-07) | Rule review; authoriser review |
+| **AE-3** | Control non-execution or suppression (FIN-15, SEC-12) | Immediate independent review of the suppressed period |
+| **AE-4** | Confirmed leakage of any form | Full AUD-10 treatment: attribute, quantify, recover, root-cause |
+| **AE-5** | Contractor distress indicators (RSK-67) | Exposure review; recovery acceleration decision |
+| **AE-6** | Measurement revision-rate outlier (RV-4) | Measurer review; re-check of the period |
+| **AE-7** | Favourable productivity outlier (PRD-05) | Measurement investigation, not congratulation |
+| **AE-8** | Payee or banking-detail change (SEC-07) | Independent verification before any payment |
+| **AE-9** | Emergency or out-of-turn payment (PEL-10) | Post-facto review within the exception's time box |
+| **AE-10** | Project closure (CLS) | Closure audit: FC-1…FC-10, evidence retention, custody transfer |
+
+**Audit checkpoints** are the scheduled gates.
+
+| # | Checkpoint | Frequency | Focus |
+|---|---|---|---|
+| **AC-1** | Site verification | Unannounced, minimum quarterly per active site | Physical presence vs record (AUD-05) |
+| **AC-2** | Measurement audit | Per bill cycle, risk-weighted sample | MB integrity; check regime; classification |
+| **AC-3** | Recovery and exposure review | Monthly | RI-3, RI-4; ageing; waiver governance |
+| **AC-4** | Statutory compliance review | Per statutory period | LAB domain; RI-8, RI-9; register reconciliation |
+| **AC-5** | Approval and delegation audit | Quarterly | Limits, validity, separation, splitting patterns |
+| **AC-6** | Control-health review | Monthly | Exception counts, override frequency, non-executed controls |
+| **AC-7** | Evidence and custody audit | Half-yearly | Tier accuracy, integrity, retention retrieval testing |
+| **AC-8** | Closure audit | Per closure | FC-1…FC-10; CLS domain |
+| **AC-9** | Governance review | Annual | ARB gate (§ 11.12); rule-set review; register refresh |
+
+### 11.9.4 Audit responsibilities
+
+| Actor | Audit responsibility |
+|---|---|
+| **Internal Auditor** | Independent examination; findings; root cause; control-effectiveness opinion. **No transition authority** |
+| **Finance Controller** | Owns control design and remediation; cannot audit their own controls |
+| **Project Manager** | Provides access and evidence; accountable for site-level remediation; **never** the sole verifier of an audit finding on their own project |
+| **Check Measurement Officer** | Operational verification (not audit); their own work is subject to audit |
+| **Accountant** | Recovery completeness and arithmetic integrity; subject to audit on both |
+| **CEO/MD** | Receives findings that cannot be remediated below executive level; owns the exception culture (LA-5) |
+| **External audit / statutory auditor** | Independent assurance; consumes this framework, does not replace it |
+
+### 11.9.5 The audit trail
+
+**AT-1** — Every financial and evidentiary act records: **actor, time, prior state, new state,
+authority relied upon, and reason where the act is discretionary** (AUD-02).
+
+**AT-2** — The trail is append-only and subject to DI-1…DI-8 in full. **An audit trail that can be
+altered is worse than none**, because it manufactures confidence.
+
+**AT-3** — The trail covers refusals, rejections, and failed attempts, not only successful acts
+(EXC-09, PEL-12). The pattern of what was attempted and refused is often the most valuable
+investigative signal the enterprise holds, and it exists nowhere else.
+
+**AT-4** — The trail covers **reads of sensitive records** where the risk model requires it — payee
+data, exposure positions, and evidence under hold.
+
+**AT-5** — The trail is retained for the full evidence-retention period (EP-1) and is itself subject
+to retrieval testing (EP-4).
+
+## 11.10 Investigation model
+
+### 11.10.1 Investigation triggers
+
+An investigation is opened on: an audit event (AE-1…AE-10); a reconciliation variance beyond
+tolerance that is not explained by evidence; an exception pattern; a whistleblower report; a
+counterparty complaint; a worker grievance regarding non-payment; or an external notification.
+
+**IV-1 — A trigger is not a finding.** Opening an investigation carries no implication of misconduct,
+and the record must not read as though it does.
+
+### 11.10.2 The investigation workflow
+
+```
+  1. TRIGGER RECORDED ──────── source, date, initial proposition
+  2. EVIDENCE PRESERVED ────── hold applied (EP-7); custody secured (CC-1)
+  3. SCOPE DEFINED ─────────── propositions to be tested, period, counterparties, actors
+  4. EVIDENCE ASSEMBLED ────── by tier (§ 11.3); independent sources first (EA-4)
+  5. RECONCILIATION RUN ────── the applicable XR tests (§ 11.6)
+  6. PROPOSITIONS TESTED ───── each to a confidence level (§ 11.4)
+  7. ACTORS INTERVIEWED ────── last, never first — testimony is H-8 (HR-5)
+  8. FINDINGS FORMED ───────── attributed to actor, control, and root cause (AP-6)
+  9. QUANTIFICATION ────────── loss computed by Part 7 formulae, not estimated
+ 10. RECOVERY INITIATED ────── through the ordinary waterfall wherever possible (FM-13)
+ 11. REMEDIATION ──────────── rule, process, or structural change (AUD-10)
+ 12. CLOSURE AND REVIEW ───── register updated (RG-4, RG-6); exception reviewed (EXC-10)
+```
+
+**IV-2 — Evidence is preserved before it is examined**, not after. Step 2 precedes step 3 because
+scoping conversations alert the subjects of the investigation.
+
+**IV-3 — Interviews come last** (step 7). Testimony taken before the documentary position is
+established shapes the investigation around the account of the most articulate participant.
+
+**IV-4 — Investigators MUST have access to superseded, cancelled, refused, and archived records**
+(AUD-09). Operational filters do not apply to investigative access.
+
+**IV-5 — Loss is computed, not estimated** (step 9). The formulae of Part 7 apply to the
+quantification of a loss exactly as they apply to a payment; an estimated loss cannot support
+recovery, discipline, or a claim.
+
+**IV-6 — An investigation that finds nothing MUST still record what was tested.** A closed
+investigation with no findings is evidence that the enterprise looked, and it protects the people who
+were investigated.
+
+### 11.10.3 Investigation classes
+
+| Class | Subject | Distinctive requirement |
+|---|---|---|
+| **Exception investigation** | A pattern of authorised deviations (EXC-07) | Tests whether the **rule** is wrong, the **process** is wrong, or the control is being circumvented — all three are different remedies |
+| **Financial investigation** | A quantified discrepancy: leakage, variance, unexplained residue | Quantification by Part 7; recovery through the waterfall; root cause in the control set |
+| **Fraud investigation** | Suspected deliberate defeat of controls, including collusion | Evidence preservation before scoping; restricted circulation; legal counsel engaged early; statutory reporting obligations assessed |
+| **Statutory investigation** | Suspected breach of a worker's statutory entitlement | The worker is made whole **first** (PA-8, EB-3); commercial recovery follows separately |
+| **Control investigation** | Suspected suppression or non-execution of a control (RSK-50) | Independent re-execution over the affected period; scope defined by when the control last demonstrably ran |
+
+**IC-1 — Fraud investigations restrict circulation, not evidence.** The investigating authority sees
+everything; distribution is limited. An investigation whose *evidence* is restricted has been
+compromised at the outset.
+
+**IC-2 — Where collusion is suspected, the investigation is conducted by an authority outside the
+reporting line of every suspected participant** — which, for a site-level collusion, means outside
+the project entirely (§ 4.14.1 externality applied to audit).
+
+### 11.10.4 Escalation
+
+| Level | Trigger | Authority | Response time |
+|---|---|---|---|
+| **E-L1** | Reconciliation variance within tolerance, single occurrence | Accountant / Site Engineer | Same period |
+| **E-L2** | Variance beyond tolerance; failed control; exception threshold | Project Manager + Accountant | Before the dependent payment |
+| **E-L3** | Confirmed leakage; repeated exception pattern; statutory breach indication | Finance Controller + Internal Audit | Immediate; payment blocked |
+| **E-L4** | Suspected fraud, collusion, or control suppression | Internal Audit + CEO/MD; legal counsel | Immediate; evidence preserved before any notification |
+| **E-L5** | Systemic control failure; material misstatement; regulatory exposure | CEO/MD + Board; external audit informed | Immediate |
+
+**ES-1 — Escalation is by severity *and* by frequency, independently** (RG-2).
+
+**ES-2 — Escalation MUST NOT pass through an actor who is a subject of the matter.** Where the
+ordinary path would do so, it routes directly to the next independent level (GP-24).
+
+**ES-3 — The worker's grievance escalates on its own path** and is never gated by a commercial
+dispute (PA-8, CTL-06, LAB-10). A worker reporting non-payment reaches an authority that can pay
+them, within the settlement period.
+
+**ES-4 — De-escalation is a decision, recorded.** A matter closed at any level records who closed it,
+on what evidence, and why — because quiet de-escalation is how findings disappear (GP-14).
+
+---
+
+## 11.11 Architectural intent
+
+Two instruments preserve *why* this capability is shaped as it is, for implementers who will arrive
+after everyone who wrote it has gone (objective O-9). Neither is a rule. **Rules bind behaviour;
+these preserve intent, so that a future implementer can tell the difference between a constraint
+that must hold and an accident of drafting that may be improved.**
+
+### 11.11.1 Enterprise Decision Records
+
+Each record states a decision that was genuinely open, the alternative that was rejected, and the
+reasoning. **A decision with no rejected alternative is not a decision; it is a description.**
+
+> **EDR-01 — A running bill is a claim, not an entitlement.**
+> **Decision.** A submitted bill creates no obligation. Entitlement arises only from verification.
+> **Rejected alternative.** Treating a submitted bill as a payable from receipt, ageing it as a debt.
+> **Reasoning.** The rejected model inverts the burden of proof and manufactures the payment pressure
+> of § 1.4.8 — the contractor's clock starts running before the enterprise has established that
+> anything is owed. **Consequence:** RBL-01, CTL-03, GP-13.
+
+> **EDR-02 — Payment follows verified evidence; evidence never follows payment.**
+> **Decision.** No payment may precede the evidence that supports it, in any circumstance including
+> emergency.
+> **Rejected alternative.** Permitting payment against undertaking, with evidence to follow — the
+> ordinary commercial practice in many industries.
+> **Reasoning.** In construction the evidence is created at a distance from the money by people the
+> payer does not observe (§ 1.4.1). Evidence produced after payment is produced by a party who has
+> already been paid, and is therefore worthless. **Consequence:** LAW-1, LAW-2, PEL-01, PEL-10.
+
+> **EDR-03 — The Measurement Book is immutable, and a digital MB must be harder to falsify than paper.**
+> **Decision.** Append-only, attributed, sequenced, with superseded entries permanently legible.
+> **Rejected alternative.** A digital record permitting administrative correction, on the reasoning
+> that digital systems are inherently more reliable than paper.
+> **Reasoning.** The reliability of paper came from the *difficulty of altering it* — bound pages,
+> ink, sequence, custody. A digital record that permits silent edit has removed the control and kept
+> the appearance. **Consequence:** MB-9, MBK-09, SEC-10, DI-1…DI-8.
+
+> **EDR-04 — Borrowed labour requires dual accountability.**
+> **Decision.** Both the lending and the borrowing officer are accountable for the same transfer.
+> **Rejected alternative.** Single-sided recording by the receiving project.
+> **Reasoning.** Transfers fail because each side assumes the other recorded it. Duplicated
+> accountability is the only arrangement in which neither party can rely on the other's silence.
+> **Consequence:** BRL-01, BRL-02, DEP-06, RI-11.
+
+> **EDR-05 — The settlement computation determines the maximum payable.**
+> **Decision.** Approval may reduce the computed figure; no authority may increase it.
+> **Rejected alternative.** Approval as a discretionary financial decision within a delegated limit.
+> **Reasoning.** If an approver may exceed the computation, the computation is advisory and every
+> control feeding it is decorative. Discretion belongs at the *reduction* end, where it is
+> conservative (CP-8). **Consequence:** PEL-06, FIN-02, RSK-39. **See ARB-F1.**
+
+> **EDR-06 — Intermediary remuneration must not rise with reported headcount.**
+> **Decision.** Gang-leader and supplier remuneration is linked to verified output or a fixed
+> engagement, never to the presence count they themselves report.
+> **Rejected alternative.** Per-head commission, which is the prevailing market practice.
+> **Reasoning.** The enterprise would otherwise be paying someone to inflate its own primary evidence
+> (§ 4.2). Where market practice compels the rejected model, it is an exception with declared
+> compensating controls — not a silent default. **Consequence:** GNG-09, BRL-08, RSK-04.
+
+> **EDR-07 — Contract payments are cumulative, never incremental.**
+> **Decision.** Every bill re-derives the whole position; the period figure is a derived difference.
+> **Rejected alternative.** Period-based billing, which is simpler, more intuitive, and produces the
+> same number whenever nothing has gone wrong.
+> **Reasoning.** The two models diverge permanently the moment anything *has* gone wrong. Under the
+> cumulative model a prior error self-corrects at the next bill; under the incremental model it
+> survives to the final account, to be discovered under maximum pressure and minimum leverage.
+> **Consequence:** LAW-6, FM-19, § 7.8.1, RBL-04, RSK-18.
+
+> **EDR-08 — The final account is computed before it is discussed.**
+> **Decision.** Compute, present, then negotiate — never negotiate, then reconcile.
+> **Rejected alternative.** Commercial settlement of the final account as a single negotiation, the
+> prevailing industry practice.
+> **Reasoning.** § 1.4.12: the accumulated rigour of a hundred running bills is otherwise surrendered
+> in one meeting. Where a commercial settlement is genuinely required, its variance from the computed
+> figure is the decision, and it is recorded and attributed. **Consequence:** LI-26, CLS-02, CLS-13.
+
+> **EDR-09 — Worker identity is enterprise-wide and permanent.**
+> **Decision.** One human being, one identity, across all projects, contractors, and time.
+> **Rejected alternative.** Per-project or per-contractor worker records, which are simpler to
+> administer and match how contractors actually manage their own labour.
+> **Reasoning.** Duplicate settlement is undetectable in principle without a single identity space.
+> Every anti-duplication control in the labour path keys on identity, so scoping identity narrowly
+> voids all of them at once. **Consequence:** WRK-02, LI-16, ATT-06, RSK-02.
+
+> **EDR-10 — Financial paths fail closed.**
+> **Decision.** Where a financial control cannot execute, the transaction stops; a missing input is
+> never treated as zero.
+> **Rejected alternative.** Graceful degradation — proceeding with the best available data so that
+> operations are not blocked by an outage.
+> **Reasoning.** A missing recovery treated as nil is leakage arriving through the arithmetic, with
+> no one having done anything visibly wrong. Availability is an operational virtue; on a money path
+> it is a leakage mechanism. **Consequence:** DP-3, FIN-06, PEL-08, DT-4, RSK-24.
+
+> **EDR-11 — Exceptions are counted against the authoriser.**
+> **Decision.** Every deviation is attributed to a person and reportable by that person for any
+> period.
+> **Rejected alternative.** Recording exceptions by type and volume without personal attribution.
+> **Reasoning.** LA-5 — a bypass used more than twice ceases to be an exception. Only per-authoriser
+> counting makes that arithmetic visible while it is still correctable, and only personal attribution
+> makes an authoriser feel the accumulation. **Consequence:** LAW-12, LI-30, EXC-08, OVR-07.
+
+> **EDR-12 — Recovery is deducted at source and never invoiced back.**
+> **Decision.** Amounts owed to the enterprise are deducted before value leaves.
+> **Rejected alternative.** Gross payment with separate recovery billing, which is cleaner
+> accounting and preserves the counterparty's cash position.
+> **Reasoning.** LA-7 — the enterprise's leverage is highest before payment and never returns.
+> Recovery before disbursement is arithmetic; recovery afterwards is litigation. **Consequence:**
+> LAW-8, PA-5, FM-13, PEL-05, RSK-20.
+
+### 11.11.2 Enterprise Event Model
+
+**Enterprise events are business facts, not system messages.** Each is the moment at which the
+enterprise's position changes and evidence becomes fixed. They are listed because an implementation
+that cannot recognise these moments cannot place its controls at them.
+
+| # | Event | Occurs when | Evidence fixed | Downstream obligation |
+|---|---|---|---|---|
+| **EVT-01** | **Engagement Authorised** | An instrument becomes ACTIVE with rates, ceiling, retention, and recovery terms bound | EC-1 contractual | Payment becomes possible at all; ceiling begins to bind |
+| **EVT-02** | **Labour Deployed** | An approved deployment takes effect for a worker or gang | EC-3 | Attendance capture becomes permissible for that worker |
+| **EVT-03** | **Work Assigned** | An assignment is issued, before execution | EC-3 (H-3) | Limb (b) of LAW-2 satisfied for the covered dates |
+| **EVT-04** | **Attendance Recorded** | Presence is captured at the point of occurrence | EC-3/EC-5 (H-3) | Enters the single-occupancy test (LI-16) |
+| **EVT-05** | **Attendance Validated** | An independent officer confirms it | EC-3 (H-2) | Becomes payable; becomes a productivity denominator |
+| **EVT-06** | **Work Executed** | Physical work is performed | EC-6 | Becomes measurable (LAW-3) |
+| **EVT-07** | **Measurement Recorded** | The engineer records quantity at site | EC-2 (H-3) | Enters the check regime |
+| **EVT-08** | **Measurement Verified** | Independent check confirms or reduces | EC-2 (H-2) | Becomes billable; enters the consumption register |
+| **EVT-09** | **Running Bill Submitted** | Contractor claims | EC-4 (H-6) | A claim only — no obligation arises (EDR-01) |
+| **EVT-10** | **Value Certified** | Technical certification within limit | EC-4 | Retention accrues in the same act (SY-6) |
+| **EVT-11** | **Recovery Applied** | Deduction taken at source | EC-4 | Obligation reduced; ledger updated |
+| **EVT-12** | **Settlement Calculated** | Net payable computed | EC-4 (H-5) | Establishes the **maximum** payable (EDR-05) |
+| **EVT-13** | **Settlement Approved** | Financial authority accepts within limit | EC-1/EC-4 | Amount and payee become immutable (LI-23) |
+| **EVT-14** | **Payment Released** | Disbursement instructed | EC-4 | Liability transfers to CAP-TRE; reconciliation clock starts |
+| **EVT-15** | **Payment Confirmed** | Disbursement confirmed by the channel | EC-4 (H-1) | Bill becomes PAID (SY-7); evidence consumed |
+| **EVT-16** | **Advance Issued** | Advance disbursed against a bound recovery plan | EC-4 | Recovery obligation live from this instant (LAW-7) |
+| **EVT-17** | **Value Issued to Contractor** | Material, plant, fuel, or utility issued | EC-4 | Recovery obligation created automatically (LI-14) |
+| **EVT-18** | **Retention Withheld** | Retention accrues on certification | EC-4 | Enterprise liability created (LAW-10) |
+| **EVT-19** | **Variation Sanctioned** | A variation is formally approved | EC-1 | The ceiling rises — the only mechanism by which it can (LAW-9) |
+| **EVT-20** | **Exception Raised** | A deviation is authorised | EC-3 | Time box starts; count accrues against the authoriser |
+| **EVT-21** | **Settlement Closed** | A bill or settlement is superseded or discharged | EC-4 | Evidence consumed permanently (LM-6) |
+| **EVT-22** | **Contract Closed** | All obligations expired and the record sealed | EC-1/EC-4 | Retention custody transfers; evidence retention clock governs |
+
+**EV-M1 — Every event is a control point.** Where an event occurs and no control is evaluated, the
+enterprise has a gap by construction.
+
+**EV-M2 — Events are recorded, not inferred.** An enterprise that reconstructs "when the value was
+certified" from a timestamp on a document has not recorded the event.
+
+**EV-M3 — Evidence fixed at an event does not change afterwards.** It may be superseded (LAW-11); it
+is never revised in place. This is what makes an event a point of reference at all.
+
+## 11.12 Architecture Review Board quality gate
+
+> This section is the self-review mandated before Part 11 concludes. **Every finding is recorded,
+> including those left uncorrected.** A review that reports no findings has not been performed.
+
+### 11.12.1 Gate results
+
+| # | Verification | Result |
+|---|---|---|
+| 1 | No contradictory rules | **1 material conflict found and resolved** (ARB-F1); 3 apparent conflicts resolved by precedence (ARB-F2) |
+| 2 | No payment path without evidence | **Pass**, with one declared weakening (ARB-F3) |
+| 3 | No overpayment path | **Pass against SC-17 for a single actor**; fails against collusion (ARB-F4) |
+| 4 | No duplicate payment path | **Pass within each payment path**; cross-path reconciliation is periodic, not structural (ARB-F5) |
+| 5 | No undefined responsibility | **Pass** with two ambiguities recorded (ARB-F6) |
+| 6 | No circular approvals | **Pass** (ARB-F7) |
+| 7 | No unsupported financial computation | **Pass** with one external dependency (ARB-F8) |
+| 8 | No orphan lifecycle | **Pass** (ARB-F9) |
+| 9 | No missing audit trail | **Pass** with one scope gap (ARB-F10) |
+| 10 | No business object without ownership | **Pass** (ARB-F11) |
+| 11 | No unresolved governance gap | **Fail — four gaps open** (ARB-F12…ARB-F15) |
+
+### 11.12.2 Findings
+
+> **ARB-F1 — Conflict between PEL-06 and CLS-13. Resolved.**
+> **Finding.** PEL-06 states that no authority may approve above the computed figure. CLS-13 permits a
+> negotiated final settlement that differs from the computed final account. Read together, CLS-13
+> could be used to pay above the computation, defeating EDR-05.
+> **Resolution.** CLS-13 does **not** create a payment authority. A negotiated settlement above the
+> computed figure requires the underlying entitlement to be changed by a formal instrument — a
+> sanctioned variation (LAW-9) or a recorded executive settlement carrying its own authority — and
+> the computed figure continues to bind the payment until that instrument exists. **PEL-06 governs;
+> CLS-13 governs only the recording of the variance.** Both rules stand as written with this
+> precedence recorded here.
+> **Status.** Resolved by precedence. No text changed.
+
+> **ARB-F2 — Three apparent conflicts, resolved by existing precedence. No change.**
+> (a) **MSR-18/MD-1 vs PEL-04.** MD-1 lets undisputed value proceed while an item is disputed;
+> PEL-04 says a broken chain stops the payment. **Resolution:** the chain is tested per quantity, not
+> per bill. A disputed item has a broken chain and does not proceed; the others are unaffected.
+> (b) **RET-06 vs LAW-10.** Retention is the contractor's money, yet RET-06 releases it net of
+> recovery. **Resolution:** LAW-8 governs the order of application; the contractor's money is applied
+> to the contractor's obligations. No Law is breached.
+> (c) **CTL-06 vs PEL-11.** CTL-06 pays workers directly where a contractor has failed to; PEL-11
+> restricts payment to the entitled payee. **Resolution:** the worker *is* an entitled payee under
+> the statutory obligation that CTL-06 discharges. PEL-11's prohibition is against payment to an
+> unentitled third party.
+> **Status.** Resolved. Recorded for future implementers who will encounter the same tensions.
+
+> **ARB-F3 — A declared weakening of LAW-2 on single-officer sites.**
+> **Finding.** ATT-08 requires validator ≠ reporter, but permits, in small teams, validation by an
+> officer outside the site under § 4.14.1. On a genuinely single-officer remote site, capture and
+> validation may be separated only by time and distance, not by person.
+> **Assessment.** This is a real reduction in control, not an equivalent alternative. It is recorded
+> as a standing exception, counted under LAW-12, and it is the direct enabler of RSK-54.
+> **Status.** **Accepted weakness, not corrected.** The alternative — refusing to operate
+> single-officer sites — is not within this capability's authority to impose.
+
+> **ARB-F4 — SC-17 holds against a single actor and fails against collusion.**
+> **Finding.** The overpayment thought experiment (SC-17) is satisfied for any single actor: causing
+> an overpayment requires a false measurement, its independent verification, an approval within
+> limit, and a permanent attributed record. **Two colluding actors — measurer and checker, or
+> supervisor and mate — can satisfy all four.**
+> **Assessment.** Rotation (RSK-53, RSK-54 controls), pairing analysis (AF-7), independent-process
+> reconciliation (MR-2…MR-5), and audit externality (IC-2) reduce but do not close this.
+> **Status.** **Open, recorded honestly.** § 10.8 question 2 states the same conclusion. This is the
+> capability's largest structural limitation and it must not be presented as closed.
+
+> **ARB-F5 — Cross-path duplicate payment is prevented periodically, not structurally.**
+> **Finding.** Within the contract path (SY-1, MSR-13) and within the labour path (SY-2, ATT-20),
+> consumption marking is structural. **Between** them — the same physical work paid once as a
+> contractor's measured item and once as piece-rate labour — PCR-05 requires consumption marking
+> across paths, but the reconciliation that would detect a failure runs at period close.
+> **Assessment.** RSK-16 carries this as Medium severity with Medium residual, which is consistent.
+> **Status.** **Open.** A future amendment should consider a synchronisation point (a companion to
+> SY-1/SY-2) binding cross-path consumption at the moment of settlement rather than at period close.
+
+> **ARB-F6 — Two ownership ambiguities in Part 5.**
+> **Finding.** OBJ-08 (Activity) and OBJ-23 (Productivity Record) are consumed by this capability but
+> originate in or serve CAP-PPM. Their owner within WFC is implied rather than stated.
+> **Assessment.** Neither is a financial object, so no payment path is affected. CTL-13 ensures every
+> engagement has a named accountable officer, which covers the operational gap.
+> **Status.** **Recorded, not corrected.** Part 5 is frozen baseline; the clarification belongs in a
+> future amendment rather than a retrospective edit (LAW-11 applied to the document itself).
+
+> **ARB-F7 — No circular approvals found.**
+> **Finding.** The transition authority matrix (§ 6.14) was traced for cycles. No transition requires
+> an approval that depends, directly or transitively, on a later transition. SEC-06 additionally
+> prevents a pending approval completing under withdrawn authority, which is the principal way a
+> cycle would arise in practice.
+> **Status.** Pass.
+
+> **ARB-F8 — One external dependency in the computation set.**
+> **Finding.** FM-05 escalation depends on a published index the enterprise does not control. ESC-1
+> forbids estimation, so an unpublished index blocks that component.
+> **Assessment.** This is fail-closed behaviour operating as intended (EDR-10), not a gap. It is
+> recorded because implementers routinely resolve it by estimating, which is PC-12.
+> **Status.** Pass, with the failure mode named.
+
+> **ARB-F9 — No orphan lifecycles.**
+> **Finding.** All twelve lifecycles (LC-01…LC-12) terminate in a defined state, and § 6.16 gives a
+> terminal state and consumption marker for every object that carries one. SY-10 and CLS-08 prevent
+> closure with any dependent lifecycle open.
+> **Status.** Pass.
+
+> **ARB-F10 — Audit-trail read-logging scope is undefined.**
+> **Finding.** AT-4 requires logging of reads "where the risk model requires it" and names three
+> categories. The boundary is not fully specified.
+> **Assessment.** Deliberate: exhaustive read logging is disproportionate and would itself become an
+> unmonitored data set. But an undefined boundary is an undefined term (LA-2).
+> **Status.** **Open.** A future amendment should enumerate the read-logged classes explicitly.
+
+> **ARB-F11 — Every business object has an owner.**
+> **Finding.** All thirty objects in § 5.1 carry an Owner facet. Subject to ARB-F6's two
+> clarifications, ownership is complete and no financial object is unowned.
+> **Status.** Pass.
+
+> **ARB-F12 — Governance gap: the exception library (Part 16) is referenced but not authored.**
+> **Finding.** XCP-01, XCP-02, XCP-03, XCP-06, and XCP-16 are referenced with established meanings
+> across Parts 2, 5, 9, and 10. The remaining identifiers in that range are unassigned.
+> **Assessment.** Part 10's register (RSK-01…RSK-72) is a distinct instrument and does not replace
+> the exception library: a *risk* is what can happen; an *exception* is an authorised deviation.
+> **Status.** **Open.** Part 16, when authored, MUST adopt the five established identifiers unchanged
+> and MUST NOT renumber them.
+
+> **ARB-F13 — Governance gap: Parts 12–15 are undefined.**
+> **Finding.** The document's internal references establish Part 16 as the exception library. Parts
+> 12 through 15 are neither authored nor scoped.
+> **Status.** **Open.** Scope to be set by governance decision before authoring continues.
+
+> **ARB-F14 — Governance gap: RSK-69 lies outside this capability's authority.**
+> **Finding.** Unbalanced rates at award are set in CAP-SCM (§ 3.4.3 — WFC applies rates, it does not
+> decide them; II-1 — authority is consumed, never created). WFC can detect and report the condition
+> and limit its consequence; it cannot prevent it.
+> **Status.** **Open by design.** Recorded so that no implementer mistakes the absence of a
+> preventive control for an oversight.
+
+> **ARB-F15 — Observation: 301 of 373 rules admit no exception.**
+> **Finding.** Four-fifths of the catalogue is Law-equivalent in strength.
+> **Assessment.** This is intentional (§ 9.32) and follows from DP-1 and LA-4: in a capability whose
+> subject is money leaving on evidence created at a distance, a rule that can be set aside under
+> pressure will be set aside precisely when it matters. It is recorded because it is a legitimate
+> subject of governance challenge, and a future board may reasonably wish to revisit the proportion.
+> **Status.** Recorded for governance attention. No change proposed.
+
+### 11.12.3 Board conclusion
+
+**The capability as specified in Parts 1–11 is internally consistent, has no payment path that
+bypasses evidence, and satisfies SC-17 against any single actor.**
+
+It does **not** close two exposures, and both are stated rather than argued away:
+
+1. **Collusion between two actors holding adjacent roles** (ARB-F4, § 10.8 Q2).
+2. **Fabrication of interested-party evidence** where no independent-process record exists
+   (§ 10.8 Q4) — mitigated by the evidence hierarchy, not eliminated by it.
+
+Four governance gaps remain open (ARB-F5, ARB-F10, ARB-F12, ARB-F13) and one is open by design
+(ARB-F14).
+
+> **Conformance note.** An implementation claiming conformance to CAP-WFC-01 MUST publish a
+> conformance statement enumerating every Immutable Law satisfied, every Business Rule implemented,
+> deferred, or rejected with reasons, and every Exception it can detect (§ How to read this
+> document). **Partial conformance is legitimate and honest. Silent partial conformance is not** —
+> and after Part 10 § 10.6, an implementer can no longer claim not to have known which controls
+> must be structural.
+
+---
+
+> **End of Parts 1–11.**
+> **Part 9** — 373 business rules across 29 domains, consolidated by 24 governing principles.
+> **Part 10** — 72 risks across 17 categories, with the adversarial review recorded at § 10.8.
+> **Part 11** — evidence hierarchy, confidence model, traceability chains, 24 reconciliations,
+> the audit and investigation framework, 12 Enterprise Decision Records, 22 enterprise events,
+> and the Architecture Review Board gate at § 11.12.
+>
+> **Outstanding by governance decision (ARB-F12, ARB-F13):** Part 16 — Exception Library, which MUST
+> adopt XCP-01, XCP-02, XCP-03, XCP-06 and XCP-16 as already established; and the scope of
+> Parts 12–15, which is not yet set.
