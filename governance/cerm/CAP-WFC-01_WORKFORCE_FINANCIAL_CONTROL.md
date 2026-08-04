@@ -2377,7 +2377,10 @@ wrong on the way?"*
 **LM-1 — There are exactly two payment lifecycles.** The contract path (LC-05) and the labour path
 (LC-03), as established in § 5.32.1. Every other lifecycle in this Part either *feeds* one of them,
 *constrains* one of them, or *closes* one of them. **No lifecycle terminates in money moving except
-LC-10 (Disbursement), and LC-10 may only be entered from LC-05, LC-03, or LC-06.**
+LC-10 (Disbursement), and LC-10 may only be entered from LC-03, LC-05, LC-06, LC-08 (retention
+release) or LC-11 (final account).** The enumeration is exhaustive by intent: a payment that cannot
+be placed on one of these five entries has no lawful route, and an implementation that creates one
+has created the unpoliced channel this rule exists to prevent (§ 5.32.1).
 
 **LM-2 — Lifecycles are entered at their origin, never in the middle.** PA-1 applies to processes,
 not only to payments. An implementation that permits a Running Bill to be created without a
@@ -2869,7 +2872,7 @@ constraint on the same transaction.
 | Measurement → REDUCED | | | **✔** | | | | |
 | Measurement → CANCELLED | | ✔ (pre-bill, with reason) | ✔ | | | | |
 | Bill → SUBMITTED | | | | | ✔ (on contractor claim) | | |
-| Bill → VERIFIED | | | | | **✔** | | |
+| Bill → VERIFIED | | | | | **✔** (≠ originator) | | |
 | Bill → CERTIFIED | | | | **✔** (≠ verifier) | | | |
 | Bill → APPROVED | | | | ✔ within limit | | **✔** | ✔ |
 | Ceiling breach override | | | | | | | **none — prohibited** |
@@ -2930,6 +2933,11 @@ worker identity MUST be enterprise-wide rather than per-project (§ 5.2).
 **LI-33 — Archival is not deletion.** `ARCHIVED` means "removed from operational view, retained for
 the statutory retention period, reconstructible on demand" (LAW-11, § 3.4.4). An implementation that
 deletes on archive is non-conformant.
+
+**Routes to disbursement.** Five of the objects above reach money movement, and only these five, per
+LM-1: a Running Bill through LC-05; a Settlement Sheet through LC-03; an Advance through LC-06;
+**Retention through LC-08 on release (FM-16)**; and a **Final Account through LC-11 (CLS-04)**. Each
+enters LC-10 and terminates at `CLOSED` only on confirmed disbursement (SY-7).
 
 ---
 
@@ -3022,6 +3030,8 @@ hand and an auditor can check without access to the implementation.
 | `Qᵢ(t)` | Verified quantity of item `i` executed on or before `t`, cumulative |
 | `Rᵢ(t)` | Contracted rate for item `i` **in force at** `t` |
 | `V` | A value in currency |
+| `V_paid_cum` | Cumulative **confirmed net disbursement** against the instrument (RI-6) |
+| `Ret_held` | Retention **currently held**: `Ret_cum − Ret_released − Ret_forfeited` (RI-5). Distinct from `Ret_cum`, which is retention *accrued* (FM-15) |
 | `Σ` | Summation over all members of the stated set |
 | `round₂(x)` | Rounding to 2 decimal places under RND-2 |
 | `⌈x⌉ᶜᵃᵖ` | `x` limited to a stated ceiling: `min(x, cap)` |
@@ -3059,12 +3069,12 @@ the counterparties who must verify the figure by hand, and CP-10 requires that t
 
 | # | Rounding point |
 |---|---|
-| RP-1 | Item value — `round₂` of `Qᵢ × Rᵢ` |
-| RP-2 | Each recovery amount, individually |
-| RP-3 | Each retention accrual |
-| RP-4 | Each statutory deduction |
-| RP-5 | Net payable on a voucher |
-| RP-6 | Each worker's net wage |
+| RPT-1 | Item value — `round₂` of `Qᵢ × Rᵢ` |
+| RPT-2 | Each recovery amount, individually |
+| RPT-3 | Each retention accrual |
+| RPT-4 | Each statutory deduction |
+| RPT-5 | Net payable on a voucher |
+| RPT-6 | Each worker's net wage |
 
 **RND-4 — Sums are sums of rounded components.** Gross measured value is `Σ round₂(item value)`, not
 `round₂(Σ item value)`. This makes the bill's line items add up on paper — a CP-10 requirement — and
@@ -3072,7 +3082,7 @@ is the only place where the "round once" rule is deliberately relaxed, at the it
 
 **RND-5 — No rounding may increase the enterprise's outflow.** Where a rounding convention is
 genuinely ambiguous, the resolution favours the enterprise's exposure being lower (CP-8) — **except
-in worker wage computation (RP-6), where ambiguity resolves in the worker's favour** (§ 1.8 LAW-8
+in worker wage computation (RPT-6), where ambiguity resolves in the worker's favour** (§ 1.8 LAW-8
 context, CP-9, PA-8).
 
 **RND-6 — Currency is never truncated.** Truncation is prohibited everywhere.
@@ -3116,6 +3126,14 @@ current one (LAW-11).
 
 **RR-3** — The same discipline governs wage rates, statutory minima, statutory deduction rates, and
 delegated approval limits. **All are time-versioned; all resolve by effective date** (DP-12).
+
+**RR-4 — `t` for work spanning a rate change.** Construction work is executed over a span, not on a
+date. For a measured element whose execution spans two in-force rate versions, `t` is the **date of
+completion of the element measured**, the element being the smallest unit the method of measurement
+recognises (MM-1). Where the method permits, an element spanning a rate boundary **MUST be measured
+in two parts at the boundary** and each part valued at its own `t`. **An undefined `t` is a rate
+selection made by the measurer**, who is the actor § 4.6 declares to be conflicted, and its value is
+the rate differential on the whole quantity (LA-2).
 
 ## 7.5 Valuation formulae — contract path
 
@@ -3291,7 +3309,12 @@ hindrance becomes an indefensible LD claim later.
 ```
 
 > **FM-19 — Net payable on a running bill.**
-> `Net = round₂( V_certified_cum − V_paid_cum − Ret_cum − Rec_cum − Ded_cum )`
+> `Net = round₂( V_certified_cum − V_paid_cum − Ret_held − Rec_cum − Ded_cum )`
+>
+> **`Ret_held`, not `Ret_cum`.** Retention that has been released has already been disbursed and is
+> therefore already inside `V_paid_cum`. Subtracting accrued retention would deduct the released
+> amount a second time, underpaying the contractor by exactly the sum released, at every subsequent
+> bill (LAW-10).
 
 Stated cumulatively, as LAW-6 requires. Every term is a **cumulative** figure, and the bill's own
 period movement is the difference from the previous settled position. This is what makes a prior
@@ -3434,7 +3457,7 @@ that shows only one of them misrepresents the position in one direction or the o
 | **RI-4** | `Issued_value = Recovered + Outstanding + Returned + Written_off` | L5 — issued-value leakage |
 | **RI-5** | `Ret_accrued = Ret_held + Ret_released + Ret_forfeited` | L6 — retention leakage |
 | **RI-6** | `V_paid_cum = Σ confirmed disbursements against this instrument` | L2 — duplicate payment |
-| **RI-7** | `Σ worker-days settled = Σ attendance records in state SETTLED` | L1/L2 — phantom or duplicate labour |
+| **RI-7** | `Σ worker-days paid across settlements in the period = Σ attendance records VALIDATED or LOCKED for that period`, residual investigated in **both** directions (WKS-03) | L1/L2 — phantom or duplicate labour; unsettled worker entitlement |
 | **RI-8** | `Σ Wage Card net = Σ labour disbursement confirmed` | L1 — intermediation leakage |
 | **RI-9** | `Ded_deducted = Ded_deposited` (reconciled with CAP-TAX) | Statutory exposure |
 | **RI-10** | `LD_accrued = LD_levied + LD_waived` | **L6 — the invisible one** |
@@ -3647,7 +3670,7 @@ Every measurement entry MUST record, at the moment of measurement:
 | **ME-3** | Location, to re-measurable granularity | MP-7 |
 | **ME-4** | Dimensions as taken, and the computation from them | The quantity must be reproducible, not asserted (CP-7) |
 | **ME-5** | Quantity and unit | The billable fact |
-| **ME-6** | Date of execution (`t`) and date of measurement | Rate resolution uses `t` (FM-00); the gap between them is itself a signal |
+| **ME-6** | Date of execution (`t`) and date of measurement | Rate resolution uses `t` (FM-00), determined by **RR-4** where execution spans a rate change; the gap between the two dates is itself a signal |
 | **ME-7** | Measurer identity | MP-4 |
 | **ME-8** | Evidence artefact references | MP-6 |
 | **ME-9** | Quality acceptance reference | MP-9 |
@@ -4367,7 +4390,7 @@ rule governs its own domain and the principle governs everywhere else.**
 - **Mandatory.** Raise the ledger entry at transfer; close the lending assignment and open the borrowing one on the same date (LI-04).
 - **Prohibited.** Transfer without a ledger entry; entries raised at period close from memory.
 - **Exception policy.** **None.**
-- **Laws.** LAW-5. **Cross-refs.** FM-30, RI-11, CLB-11, XCP-06.
+- **Laws.** LAW-5. **Cross-refs.** FM-30, RI-11, CLB-11, ATT-06, XCP-06.
 
 **BRL-02 — Borrowed labour requires dual accountability: the lending and the borrowing officer are both accountable.**
 - **Rationale.** Transfers fail because each side believes the other is recording it. Making both accountable for the same fact means neither can rely on the other's silence (GP-14).
@@ -4853,10 +4876,10 @@ rule governs its own domain and the principle governs everywhere else.**
 - **Rationale.** LI-16, restated as the operating rule of this domain. It is enforced at validation, not discovered in reporting.
 - **Trigger.** Validation.
 - **Preconditions.** WRK-02.
-- **Mandatory.** Test across all projects, contractors, suppliers, and engagement types; reject the second.
-- **Prohibited.** Post-hoc reconciliation in place of prevention.
+- **Mandatory.** Test across all projects, contractors, suppliers, and engagement types; reject the second. **On a transfer date** (BRL-01, CLB-11), attendance attaches to the deployment **in force at the start of the working day**, and the transfer takes effect from the next working day; where a genuine same-day split is required, **one** attendance record carries a split attribution across two activities, preserving one validated record per worker per date.
+- **Prohibited.** Post-hoc reconciliation in place of prevention. Two records for one worker on a transfer date; site-level agreement on which project records the day.
 - **Exception policy.** **None.**
-- **Laws.** LAW-2. **Cross-refs.** LI-16, BRL-05, XCP-02, RSK-02.
+- **Laws.** LAW-2. **Cross-refs.** LI-16, BRL-01, BRL-05, CLB-11, XCP-02, RSK-02.
 
 **ATT-07 — Attendance MUST be validated against a covering work assignment.**
 - **Rationale.** LAW-2 requires both limbs. Attendance alone establishes presence, not entitlement.
@@ -5749,10 +5772,10 @@ rule governs its own domain and the principle governs everywhere else.**
 - **Rationale.** LM-6, SY-1, AF-1. This is the structural prevention of duplicate billing (L2).
 - **Trigger.** Billing.
 - **Preconditions.** —
-- **Mandatory.** Mark consumed; block re-consumption enterprise-wide.
-- **Prohibited.** Re-billing after cancellation of a bill without restoring and re-verifying the entry.
+- **Mandatory.** Mark consumed; block re-consumption enterprise-wide. **On cancellation or rejection of a bill**, return its consumed entries to `VERIFIED` as an attributed act recorded against **both** the bill and each entry, and require fresh check-measurement confirmation before those entries may be billed again.
+- **Prohibited.** Re-billing after cancellation of a bill without restoring and re-verifying the entry. Restoration performed silently, in bulk, or by the actor who prepared the cancelled bill.
 - **Exception policy.** **None.**
-- **Laws.** LAW-11, LAW-6. **Cross-refs.** SY-1, XCP-03, RSK-18.
+- **Laws.** LAW-11, LAW-6. **Cross-refs.** SY-1, RBL-13, XCP-03, RSK-18.
 
 **MSR-14 — Measurement MUST NOT be performed against an item with no rate in force.**
 - **Rationale.** RR-1, SR-1. Measuring first and pricing later transfers the pricing decision to the moment of least leverage (SR-3).
@@ -6015,10 +6038,10 @@ rule governs its own domain and the principle governs everywhere else.**
 - **Rationale.** G-6, GP-17. A limit that is not tested by date is a limit that survives the delegation that created it.
 - **Trigger.** Approval.
 - **Preconditions.** Delegation register with validity dates (D-9).
-- **Mandatory.** Test amount against limit and validity.
-- **Prohibited.** Approval outside limit; approval under a lapsed delegation.
+- **Mandatory.** Test the **approval base** against the approver's limit, and test the delegation's validity at the approval date. **The approval base is the cumulative certified value** (FM-06), consistent with GP-18; net payable is a separate figure and is tested only against disbursement authority (PEL-14).
+- **Prohibited.** Approval outside limit; approval under a lapsed delegation. **Using net payable as the approval base** — it would make delegated authority a function of how much recovery happened to fall in the period, so a contractor whose advance recovery completes would move approval tier by arithmetic, with no one deciding anything.
 - **Exception policy.** **None.** Escalate to a higher authority instead.
-- **Laws.** LAW-4. **Cross-refs.** SEC-05, RSK-40.
+- **Laws.** LAW-4. **Cross-refs.** SEC-05, GP-18, RBL-12, PEL-09, RSK-40.
 
 **RBL-12 — Bills MUST NOT be split to remain within a delegated limit.**
 - **Rationale.** GP-18, PC-13, XCP-16. Splitting is the same offence as breaching, performed with more steps.
@@ -6218,10 +6241,10 @@ rule governs its own domain and the principle governs everywhere else.**
 - **Rationale.** PA-3. The rule that bends under pressure is not a rule; it is a default that can be argued away.
 - **Trigger.** Any missing link.
 - **Preconditions.** —
-- **Mandatory.** Hold the payment; record the gap; resolve the gap.
+- **Mandatory.** Hold the payment; record the gap; resolve the gap. **The chain is tested per quantity, not per bill:** a disputed or unsupported item has a broken chain and does not proceed, while undisputed items in the same bill are unaffected (MD-1, MSR-18).
 - **Prohibited.** Conditional release pending later evidence.
 - **Exception policy.** **None.**
-- **Laws.** LAW-1, LAW-2. **Cross-refs.** PA-3, DP-3.
+- **Laws.** LAW-1, LAW-2. **Cross-refs.** PA-3, DP-3, MD-1, MSR-18.
 
 **PEL-05 — Recovery MUST precede disbursement.**
 - **Rationale.** LAW-8, PA-5, LA-7. Recovery before payment is arithmetic; recovery after payment is litigation.
@@ -6236,10 +6259,10 @@ rule governs its own domain and the principle governs everywhere else.**
 - **Rationale.** The settlement computation is the enterprise's arithmetic statement of entitlement. An approval that increases it has substituted judgement for evidence, which is the precise definition of an unsupported payment.
 - **Trigger.** Approval.
 - **Preconditions.** Computed net (FM-19 or FM-28).
-- **Mandatory.** Cap the payable at the computed figure; record any reduction and its reason.
-- **Prohibited.** Approval above the computed figure by any authority.
+- **Mandatory.** Cap the payable at the computed figure; record any reduction and its reason. **This applies at final account exactly as at every running bill:** CLS-13 records a negotiated variance and **confers no payment authority**; a settlement above the computed figure requires the underlying entitlement to be changed by formal instrument (LAW-9).
+- **Prohibited.** Approval above the computed figure by any authority, at any stage, including closure.
 - **Exception policy.** **None.**
-- **Laws.** LAW-1, LAW-4, LAW-5. **Cross-refs.** EDR-05, FIN-02, RSK-39.
+- **Laws.** LAW-1, LAW-4, LAW-5. **Cross-refs.** EDR-05, FIN-02, CLS-13, RSK-39.
 
 **PEL-07 — Eligibility MUST be re-tested if any input changes after computation.**
 - **Rationale.** An approval given on one set of facts does not carry to another. Silent input drift between computation and disbursement is a known fraud vector.
@@ -6281,10 +6304,10 @@ rule governs its own domain and the principle governs everywhere else.**
 - **Rationale.** WRK-10, LI-23. Payee substitution is the highest-value, lowest-effort fraud available to anyone with access to correspondence.
 - **Trigger.** Disbursement.
 - **Preconditions.** Verified payee record.
-- **Mandatory.** Pay to the recorded payee; verify any change independently.
+- **Mandatory.** Pay to the recorded payee; verify any change independently. **A worker paid directly under CTL-06 is an entitled payee**, not a third party: this rule prohibits payment to an unentitled party, never the discharge of a statutory obligation the enterprise owes.
 - **Prohibited.** Payment to a third party on instruction, without recorded lawful authority.
 - **Exception policy.** Legal assignment or attachment, verified and recorded.
-- **Laws.** LAW-5, LAW-11. **Cross-refs.** WRK-10, RSK-46.
+- **Laws.** LAW-5, LAW-11. **Cross-refs.** WRK-10, CTL-06, RSK-46.
 
 **PEL-12 — Eligibility decisions MUST be recorded with their basis, including refusals.**
 - **Rationale.** CP-6, GP-09. A refusal that leaves no record cannot be reviewed for consistency, and inconsistent refusal is how relationship-based payment discipline emerges.
@@ -6650,7 +6673,7 @@ rule governs its own domain and the principle governs everywhere else.**
 - **Laws.** LAW-10. **Cross-refs.** LI-17, PEL-13, RSK-29.
 
 **RET-06 — Release MUST be net of outstanding recovery.**
-- **Rationale.** FM-16, LAW-8. Recovery precedes even the release of the contractor's own money, because the leverage does not return afterwards.
+- **Rationale.** FM-16, LAW-8. Recovery precedes even the release of the contractor’s own money, because the leverage does not return afterwards. **This does not qualify LAW-10:** the retention remains the contractor’s money throughout, and LAW-8 governs only the order in which the contractor’s money is applied to the contractor’s own obligations.
 - **Trigger.** Release.
 - **Preconditions.** Recovery position computed.
 - **Mandatory.** Deduct outstanding recoveries from the release.
@@ -6962,7 +6985,7 @@ rule governs its own domain and the principle governs everywhere else.**
 - **Rationale.** RND-1, RND-3. Rounding at each step compounds error and is the arithmetic origin of leakage form L7 and of the disputes that consume disproportionate effort.
 - **Trigger.** Computation.
 - **Preconditions.** —
-- **Mandatory.** Full-precision intermediates; round at RP-1…RP-6 only.
+- **Mandatory.** Full-precision intermediates; round at RPT-1…RPT-6 only.
 - **Prohibited.** Step-wise rounding; truncation anywhere.
 - **Exception policy.** **None.**
 - **Laws.** CP-4. **Cross-refs.** RND-1…RND-8, PC-7.
@@ -7518,10 +7541,10 @@ rule governs its own domain and the principle governs everywhere else.**
 - **Rationale.** LI-26. Where a commercial settlement genuinely departs from the computation, the departure is the decision — and it must be attributable to the executive who took it, permanently, beside the number it replaced.
 - **Trigger.** Settlement differing from the computed final account.
 - **Preconditions.** Computed figure.
-- **Mandatory.** Record the variance, its authority, and its reason; retain the computed figure permanently.
-- **Prohibited.** Restating the computation to match the settlement.
+- **Mandatory.** Record the variance, its authority, and its reason; retain the computed figure permanently. **This rule governs the recording of a variance and confers no payment authority** (PEL-06): a settlement above the computed figure requires the entitlement itself to be changed by formal instrument (LAW-9), or it is not payable.
+- **Prohibited.** Restating the computation to match the settlement. **Treating this rule as an approval route above the computed figure.**
 - **Exception policy.** Executive authority, recorded, counted, reported.
-- **Laws.** LAW-11, LAW-12. **Cross-refs.** LI-26, RSK-45.
+- **Laws.** LAW-11, LAW-12. **Cross-refs.** LI-26, PEL-06, RSK-45.
 
 **CLS-14 — The closed record MUST be sealed, retained, and reconstructible.**
 - **Rationale.** § 3.4.4: a contract is closed when the last obligation expires and the record is sealed. Sealing is an act, not an absence of activity.
@@ -10020,7 +10043,9 @@ is never revised in place. This is what makes an event a point of reference at a
 > the computed figure continues to bind the payment until that instrument exists. **PEL-06 governs;
 > CLS-13 governs only the recording of the variance.** Both rules stand as written with this
 > precedence recorded here.
-> **Status.** Resolved by precedence. No text changed.
+> **Status.** Resolved by precedence. **Superseded by amendment B-5:** the precedence stated here has
+> been promoted into PEL-06 and CLS-13 themselves, because a resolution recorded only in this
+> assessment section binds only readers of Part 11, while Part 9 is the operative layer.
 
 > **ARB-F2 — Three apparent conflicts, resolved by existing precedence. No change.**
 > (a) **MSR-18/MD-1 vs PEL-04.** MD-1 lets undisputed value proceed while an item is disputed;
@@ -10033,7 +10058,9 @@ is never revised in place. This is what makes an event a point of reference at a
 > restricts payment to the entitled payee. **Resolution:** the worker *is* an entitled payee under
 > the statutory obligation that CTL-06 discharges. PEL-11's prohibition is against payment to an
 > unentitled third party.
-> **Status.** Resolved. Recorded for future implementers who will encounter the same tensions.
+> **Status.** Resolved. **Superseded by amendment B-5:** all three resolutions have been promoted
+> into the operative rules — (a) into PEL-04, (b) into RET-06, (c) into PEL-11 — for the same reason
+> given at ARB-F1.
 
 > **ARB-F3 — A declared weakening of LAW-2 on single-officer sites.**
 > **Finding.** ATT-08 requires validator ≠ reporter, but permits, in small teams, validation by an
